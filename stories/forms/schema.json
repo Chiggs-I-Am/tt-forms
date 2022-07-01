@@ -1,0 +1,91 @@
+{
+	"$id": "nameSearchReservation",
+	"type": "object",
+	"properties": {
+		"firstName": {
+			"type": "string",
+			"transform": [ "trim" ],
+			"minLength": 3,
+			"description": "Please enter your first name"
+		},
+		"lastName": {
+			"type": "string",
+			"minLength": 3,
+			"description": "Please enter your last name"
+		},
+		"address": {
+			"type": "object",
+			"properties": {
+				"street": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your street"
+				},
+				"city": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your city"
+				},
+				"state": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your state"
+				},
+				"zip": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your zip"
+				}
+			}
+		},
+		"postalAddress": {
+			"type": "object",
+			"properties": {
+				"street": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your street"
+				},
+				"city": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your city"
+				},
+				"state": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your state"
+				},
+				"zip": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your zip"
+				}
+			}
+		},
+		"hasPostalAddress": {
+			"type": "string",
+			"enum": [ "Yes", "No" ]			
+		},
+		"phoneNumber": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"firstName", 
+		"lastName",
+		"address"
+	],
+	"errorMessage": {
+		"properties": {
+			"firstName": "Please enter your first name",
+			"lastName": "Please enter your last name",
+			"address": "Please enter your address"
+		},
+		"required": {
+			"firstName": "First name is required",
+			"lastName": "Last name is required",
+			"address": "Address is required"
+		}
+	}
+}

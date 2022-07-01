@@ -1,0 +1,109 @@
+{
+  "type": "Categorization",
+  "label": "Name Search / Reservation",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Name of applicant",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "First name",
+          "scope": "#/properties/firstName"
+        },
+        {
+          "type": "Control",
+          "label": "Last name",
+          "scope": "#/properties/lastName"
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Address",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "Street",
+          "scope": "#/properties/address/properties/street"
+        },
+        {
+          "type": "Control",
+          "label": "City",
+          "scope": "#/properties/address/properties/city"
+        },
+        {
+          "type": "Control",
+          "label": "State/Province",
+          "scope": "#/properties/address/properties/state"
+        },
+        {
+          "type": "Control",
+          "label": "Zip code",
+          "scope": "#/properties/address/properties/zip"
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Postal Address",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "Is your postal address different from your current address?",
+          "scope": "#/properties/hasPostalAddress",
+          "options": {
+            "format": "radio"
+          }
+        },
+        {
+          "type": "VerticalLayout",
+          "elements": [
+            {
+              "type": "Control",
+              "label": "Enter street name",
+              "scope": "#/properties/postalAddress/properties/street"
+            },
+            {
+              "type": "Control",
+              "label": "Enter city name",
+              "scope": "#/properties/postalAddress/properties/city"
+            },
+            {
+              "type": "Control",
+              "label": "Enter name of state",
+              "scope": "#/properties/postalAddress/properties/state"
+            },
+            {
+              "type": "Control",
+              "label": "Enter zip code",
+              "scope": "#/properties/postalAddress/properties/zip"
+            }
+          ],
+          "rule": {
+            "effect": "SHOW",
+            "condition": {
+              "scope": "#/properties/hasPostalAddress",
+              "schema": { "const": "Yes" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Phone Number",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "Enter your phone number",
+          "scope": "#/properties/phoneNumber"
+        }
+      ]
+    }
+  ],
+  "options": { 
+    "variant": "stepper",
+    "showNavButtons": true
+  }
+}
