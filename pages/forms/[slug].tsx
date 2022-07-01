@@ -1,19 +1,12 @@
 import Container from "@components/container";
+import DynamicForm from "@components/dynamic-form";
 import Layout from "@components/layout";
-import { JsonForms } from "@jsonforms/react";
-import { vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import { createFirebaseApp } from "@libs/firebase";
 import { collection, doc, DocumentData, getDoc, getDocs, getFirestore } from "firebase/firestore";
-import { useState } from "react";
 
-export default function TTForm({ form }: any )
+export default function FormPage({ form }: any )
 {
-  const [ formData, setFormData ] = useState( null );
   const { schema, uischema, name } = form;
-
-  const renderers = [
-    ...vanillaRenderers
-  ];
 
   return (
     <Layout>
@@ -21,12 +14,10 @@ export default function TTForm({ form }: any )
         <div>
           <h1>{ name }</h1>
 
-          <JsonForms
+          <DynamicForm
             schema={ schema }
-            uischema={ uischema }
-            data={ formData }
-            renderers={ renderers }/>
-            
+            uischema={ uischema }/>
+
         </div>
       </Container>
     </Layout>
@@ -63,8 +54,6 @@ export async function getStaticPaths()
     let { slug } = doc.data();
     return { params: { slug } };
   });
-
-  console.log( paths );
 
   return {
     paths,
