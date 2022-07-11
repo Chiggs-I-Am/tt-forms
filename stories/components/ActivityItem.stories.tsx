@@ -15,7 +15,11 @@ const activityItem = {
   fee: 25
 };
 
-const Template: ComponentStory<typeof ActivityItem> = ( args ) => <ActivityItem { ...args } />;
+const Template: ComponentStory<typeof ActivityItem> = ( args ) => (
+  <div className="w-full mx-auto">
+    <ActivityItem { ...args } />
+  </div>
+);
 
 export const Activity = Template.bind({});
 Activity.args = { ...activityItem };
