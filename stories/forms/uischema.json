@@ -34,7 +34,7 @@
         },
         {
           "type": "Control",
-          "label": "State/Province",
+          "label": "State / Province",
           "scope": "#/properties/address/properties/state"
         },
         {
