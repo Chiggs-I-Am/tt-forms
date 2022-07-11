@@ -79,14 +79,13 @@ export default function FormInput({
           text-sm text-gray-900 
           placeholder-transparent
           focus:outline-none focus:border-2 focus:border-primary-light"/>
-      <label
-        htmlFor={ `${id}-input` }
-        className={ 
-          joinClassNames( !focused && !dirty ? 
-            "absolute left-4 -top-2.5 text-gray-600 text-base transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs"
-            :
-            "absolute left-4 -top-2.5 px-1 bg-white text-gray-600 text-xs peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs"
-          )}>
+      <label 
+        htmlFor={ `${id}-input` } 
+        className={ joinClassNames(
+          "absolute left-4 -top-2.5", 
+          "text-gray-600 bg-on-primary-light transition-all",
+          "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4","peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs",
+          `${ !focused && dirty ? "px-1 text-xs" : "text-base"}`)}>
         { label }
       </label>
     </>
