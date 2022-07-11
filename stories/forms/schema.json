@@ -4,14 +4,21 @@
 	"properties": {
 		"firstName": {
 			"type": "string",
-			"transform": [ "trim" ],
 			"minLength": 3,
-			"description": "Please enter your first name"
+			"description": "Please enter your first name",
+			"errorMessage": {
+				"type": "First name is required",
+				"minLength": "First name must be at least 3 characters"
+			}
 		},
 		"lastName": {
 			"type": "string",
 			"minLength": 3,
-			"description": "Please enter your last name"
+			"description": "Please enter your last name",
+			"errorMessage": {
+				"type": "Last name is required",
+				"minLength": "Last name must be at least 3 characters"
+			}
 		},
 		"address": {
 			"type": "object",
@@ -28,8 +35,21 @@
 				},
 				"state": {
 					"type": "string",
-					"minLength": 3,
-					"description": "Please enter your state"
+					"enum": [
+						"Chaguanas",
+						"Couva",
+						"Diego Martin",
+						"Mayaro",
+						"Penal",
+						"Princes Town",
+						"Point Fortin",
+						"Port of Spain"
+					],
+          "description": "Please select a state or province",
+          "errorMessage": {
+            "type": "Please select a state or province",
+						"required": "Please select a state or province"
+          }
 				},
 				"zip": {
 					"type": "string",
@@ -64,8 +84,10 @@
 			}
 		},
 		"hasPostalAddress": {
-			"type": "string",
-			"enum": [ "Yes", "No" ]			
+			"oneOf": [
+				{ "const": "Yes", "title": "Yes it is" },
+				{ "const": "No", "title": "No it is not" }
+			]			
 		},
 		"phoneNumber": {
 			"type": "string"
@@ -74,18 +96,14 @@
 	"required": [
 		"firstName", 
 		"lastName",
-		"address"
+		"address",
+		"state"
 	],
 	"errorMessage": {
 		"properties": {
 			"firstName": "Please enter your first name",
 			"lastName": "Please enter your last name",
 			"address": "Please enter your address"
-		},
-		"required": {
-			"firstName": "First name is required",
-			"lastName": "Last name is required",
-			"address": "Address is required"
 		}
 	}
 }
