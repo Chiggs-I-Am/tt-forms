@@ -1,3 +1,4 @@
+import RadioGroupControl, { RadioGroupControlTester } from "@components/radio-group-control";
 import StepperLayout, { StepperLayoutTester } from "@components/stepper-layout";
 import TextInputControl, { TextInputControlTester } from "@components/text-input";
 import { createAjv, JsonSchema7, UISchemaElement } from "@jsonforms/core";
@@ -5,8 +6,8 @@ import { JsonForms } from "@jsonforms/react";
 import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
-import ajvKeywords from "ajv-keywords";
 import { useState } from 'react';
+import SelectControl, { SelectControlTester } from "./select-control";
 
 interface DynamicFormProps
 {
@@ -23,7 +24,9 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const renderers = [
     ...vanillaRenderers,
     { tester: StepperLayoutTester, renderer: StepperLayout },
-    { tester: TextInputControlTester, renderer: TextInputControl }
+    { tester: TextInputControlTester, renderer: TextInputControl },
+    { tester: RadioGroupControlTester, renderer: RadioGroupControl },
+    { tester: SelectControlTester, renderer: SelectControl }
   ];
 
   const cells = [
@@ -39,7 +42,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   ]};
 
   const ajv = ajvErrors( createAjv({ useDefaults: true }) );
-  ajvKeywords( ajv, ["transform"] );
+  // ajvKeywords( ajv, ["transform"] );
 
   /* function handleInputChange( data: any, errors: any ) {
     const validate = ajv.compile( { $ref: `${ schema.$id }#/properties/firstName` } );
