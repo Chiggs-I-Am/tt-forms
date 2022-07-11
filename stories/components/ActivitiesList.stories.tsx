@@ -1,5 +1,6 @@
 import ActivitiesList from "@components/activities-list";
 import ActivityItem from "@components/activity-item";
+import Container from "@components/container";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
 export default
@@ -34,7 +35,11 @@ const activities = [
 const forms = activities.map( activity => activity.forms );
 const activity = forms.flat();
 
-const Template: ComponentStory<typeof ActivitiesList> = ( args ) => <ActivitiesList { ...args }/>;
+const Template: ComponentStory<typeof ActivitiesList> = ( args ) => (
+  <Container>
+    <ActivitiesList { ...args }/>
+  </Container>
+);
 
 export const Activities = Template.bind({});
 
