@@ -1,10 +1,11 @@
 import FormInput from "@components/form-input";
+import { expect } from "@storybook/jest";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { screen, userEvent } from "@storybook/testing-library";
 import { ChangeEvent, useCallback, useState } from "react";
 
 export default {
-  title: "Components/Form-Input",
+  title: "Components/Dynamic-Form/Form-Input",
   component: FormInput
 } as ComponentMeta<typeof FormInput>;
 
@@ -36,8 +37,15 @@ Input.args = {
   required: true,
 };
 
-Input.play = async () => {
+export const UserInteractiveInput = Template.bind({});
+UserInteractiveInput.args = {
+  ...Input.args,
+};
+
+UserInteractiveInput.play = async () => {
   const nameInput = screen.getByLabelText("Name", { selector: "input" });
 
   await userEvent.type( nameInput, "Stephan Wilson", { delay: 250 } );
+
+  expect( nameInput ).toHaveValue("Stephan Wilson");
 };
