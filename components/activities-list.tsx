@@ -8,7 +8,7 @@ interface ActivitiesListProps
 export default function ActivitiesList({ children }: ActivitiesListProps )
 {
   return (
-    <div className="grid gap-2 w-full place-content-center md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
       { children }
     </div>
   )
