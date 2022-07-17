@@ -91,6 +91,29 @@
 		},
 		"phoneNumber": {
 			"type": "string"
+		},
+		"businessDetails": {
+			"type": "object",
+			"properties": {
+				"proposedName": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter a proposed business name"
+				},
+				"alternativeNames": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"minLength": 3,
+								"description": "Please enter an alternative name"
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"required": [
