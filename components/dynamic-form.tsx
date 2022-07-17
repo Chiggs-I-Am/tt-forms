@@ -1,13 +1,16 @@
+import DynamicInputControl, { DynamicInputControlTester } from "@components/dynamic-input-control";
 import RadioGroupControl, { RadioGroupControlTester } from "@components/radio-group-control";
+import SelectControl, { SelectControlTester } from "@components/select-control";
 import StepperLayout, { StepperLayoutTester } from "@components/stepper-layout";
 import TextInputControl, { TextInputControlTester } from "@components/text-input";
+
 import { createAjv, JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { JsonForms } from "@jsonforms/react";
 import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
+
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
 import { useState } from 'react';
-import SelectControl, { SelectControlTester } from "./select-control";
 
 interface DynamicFormProps
 {
@@ -26,7 +29,8 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     { tester: StepperLayoutTester, renderer: StepperLayout },
     { tester: TextInputControlTester, renderer: TextInputControl },
     { tester: RadioGroupControlTester, renderer: RadioGroupControl },
-    { tester: SelectControlTester, renderer: SelectControl }
+    { tester: SelectControlTester, renderer: SelectControl },
+    { tester: DynamicInputControlTester, renderer: DynamicInputControl }
   ];
 
   const cells = [
@@ -62,7 +66,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
           cells={ cells }
           ajv={ ajv }
           config={{ hideRequiredAsterisk: true }}
-          onChange={ ({ data, errors }) => { console.log( data, errors ) } }/>
+          onChange={ ({ data, errors }) => { console.log( data ) } }/>
       </JsonFormsStyleContext.Provider>
     </>
   )
