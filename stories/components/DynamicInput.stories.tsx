@@ -1,0 +1,32 @@
+import DynamicInput from "@components/dynamic-input";
+import { ComponentMeta, ComponentStory } from "@storybook/react";
+
+export default
+{
+  title: "Components/Dynamic-Form",
+  component: DynamicInput,
+  parameters: {
+    actions: { 
+      handles: [ "mouseup", "show-delete-dialog-btn" ] 
+    }
+  }
+} as ComponentMeta<typeof DynamicInput>;
+
+const Template: ComponentStory<typeof DynamicInput> = ( args ) => ( 
+  <div>
+    <DynamicInput { ...args } />
+  </div>
+);
+
+export const InputWithDelete = Template.bind({});
+
+InputWithDelete.args = {
+  data: "",
+  id: "",
+  name: "",
+  label: "",
+  required: false,
+  enabled: true,
+  updateValue: ( event: any ) => {  },
+  handleRemoveItem: () => { },
+};
