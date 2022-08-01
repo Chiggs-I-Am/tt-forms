@@ -6,10 +6,8 @@ export default
   title: "Components/Dynamic-Form",
   component: DynamicInput,
   parameters: {
-    actions: { 
-      handles: [ "mouseup", "show-delete-dialog-btn" ] 
-    }
-  }
+    actions: [ "mouseup", "button" ]
+  },
 } as ComponentMeta<typeof DynamicInput>;
 
 const Template: ComponentStory<typeof DynamicInput> = ( args ) => ( 
@@ -27,6 +25,6 @@ InputWithDelete.args = {
   label: "",
   required: false,
   enabled: true,
-  updateValue: ( event: any ) => {  },
+  updateValue: ( value ) => { console.log( value ) },
   handleRemoveItem: () => { },
 };
