@@ -1,4 +1,3 @@
-import DynamicInputControl, { DynamicInputControlTester } from "@components/dynamic-input-control";
 import RadioGroupControl, { RadioGroupControlTester } from "@components/radio-group-control";
 import SelectControl, { SelectControlTester } from "@components/select-control";
 import StepperLayout, { StepperLayoutTester } from "@components/stepper-layout";
@@ -8,9 +7,10 @@ import { createAjv, JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { JsonForms } from "@jsonforms/react";
 import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 
+import ArraryControlRenderer, { ArrayControlRendererTester } from "@components/arrary-control-renderer";
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface DynamicFormProps
 {
@@ -30,7 +30,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     { tester: TextInputControlTester, renderer: TextInputControl },
     { tester: RadioGroupControlTester, renderer: RadioGroupControl },
     { tester: SelectControlTester, renderer: SelectControl },
-    { tester: DynamicInputControlTester, renderer: DynamicInputControl }
+    { tester: ArrayControlRendererTester, renderer: ArraryControlRenderer },
   ];
 
   const cells = [
@@ -55,6 +55,22 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     console.error( "Errors: ", validate.errors, errors );
   } */
 
+  // validate data against schema
+  const validateFormData = () => {
+    const validate = ajv.compile( schema );
+    const isValid = validate( formData );
+
+    console.error( "Errors: ", validate.errors );
+  };
+
+  useEffect( () => {
+    console.log( "Form data: ", formData );
+  }, [ formData ]);
+
+  const onChange = useCallback( ( data: any ) => {
+    setFormData( data );
+  }, []);
+
   return (
     <>
       <JsonFormsStyleContext.Provider value={ styleContext }>
@@ -66,7 +82,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
           cells={ cells }
           ajv={ ajv }
           config={{ hideRequiredAsterisk: true }}
-          onChange={ ({ data, errors }) => { console.log( data ) } }/>
+          onChange={ ({ data, errors }) => { onChange( data ) } }/>
       </JsonFormsStyleContext.Provider>
     </>
   )
