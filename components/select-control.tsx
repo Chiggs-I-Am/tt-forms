@@ -1,13 +1,13 @@
 import FormSelect from "@components/form-select";
 import { ControlProps, isDescriptionHidden, isEnumControl, OwnPropsOfEnum, RankedTester, rankWith } from "@jsonforms/core";
 import { withJsonFormsEnumProps } from "@jsonforms/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import ValidationHelperText from "./validation-helper-text";
 
 function SelectControl( props: ControlProps & OwnPropsOfEnum ) 
 {
   const [ isFocused, setIsFocused ] = useState( false );
-  const { config, uischema, options, visible, description, label, required, errors, path, handleChange } = props;
+  const { data, config, uischema, options, visible, description, label, required, errors, path, handleChange } = props;
 
   const uiSchemaOptions = { ...config, ...uischema };
 
@@ -19,13 +19,18 @@ function SelectControl( props: ControlProps & OwnPropsOfEnum )
     uiSchemaOptions.showUnfocusedDescription 
   );
 
+  const handleOnChange = useCallback( ( option: any ) => {
+    handleChange( path, option );
+  }, [ handleChange, path ]);
+
   return (
     <div className="relative min-h-[80px]" hidden={ !visible }>
       <FormSelect 
+        data={ data }
         label={ label }
         options={ options }
         required={ required }
-        onChange={ ( option ) => handleChange( path, option ) }
+        onChange={ handleOnChange }
         handleFocus={ () => setIsFocused( true ) }
         handleBlur={ () => setIsFocused( false ) }/>
         
