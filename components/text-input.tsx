@@ -1,7 +1,7 @@
 import { computeLabel, ControlProps, getAjv, isControl, isDescriptionHidden, RankedTester, rankWith } from "@jsonforms/core";
 import { useJsonForms, withJsonFormsControlProps } from "@jsonforms/react";
 import { VanillaRendererProps, withVanillaControlProps } from "@jsonforms/vanilla-renderers";
-import { ChangeEvent, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import FormInput from "./form-input";
 import ValidationHelperText from "./validation-helper-text";
 
@@ -57,6 +57,10 @@ function TextInputControl( props: ControlProps & VanillaRendererProps )
 
   }, [ ajv, data, schema ]);
 
+  const updateValue = useCallback( ( value: string ) => {
+    handleChange( path, value );
+  }, [ handleChange, path ]);
+
   return (
     <div className="relative min-h-[80px]" hidden={ !visible }>
       
@@ -67,7 +71,7 @@ function TextInputControl( props: ControlProps & VanillaRendererProps )
         required={ required }
         value={ data }
         minLength={ schema.minLength }
-        updateValue={ ( event: ChangeEvent<HTMLInputElement> ) => handleChange( path, event.target.value ) }
+        updateValue={ updateValue }
         label={ computeLabel( label, required!, uiSchemaOptions?.hideRequiredAsterisk ) }
         handleFocus={ handleFocus }
         handleBlur={ () => validateInput() }/>
