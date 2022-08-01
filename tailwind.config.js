@@ -36,7 +36,7 @@ module.exports = {
 
         "error-light": "#ba1a1a",
 	      "on-error-light": "#ffffff",
-	      "color-error-container-light": "#ffdad6",
+	      "error-container-light": "#ffdad6",
 	      "on-error-container-light": "#410002",
 
         "outline-light": "#6f797b",
