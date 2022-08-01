@@ -1,3 +1,4 @@
+import useDebounce from "@utils/debounce";
 import useJoinClassNames from "@utils/joinClasses";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
@@ -10,7 +11,7 @@ interface FormInputProps
   enabled: boolean;
   required: boolean | undefined;
   minLength?: number;
-  updateValue: ( event: ChangeEvent<HTMLInputElement> ) => void;
+  updateValue: ( value: string ) => void;
   handleFocus?: () => void;
   handleBlur?: () => void;
 }
@@ -32,6 +33,17 @@ export default function FormInput({
   
   const inputRef = useRef<HTMLInputElement>( null );
   const joinClassNames = useJoinClassNames();
+
+  const [ inputValue, setInputValue ] = useState<string>( value ?? "" );
+  const debouncedValue = useDebounce( inputValue, 200 );
+
+  useEffect( () => {
+    if( debouncedValue ) { updateValue( debouncedValue ); }
+  }, [ updateValue, debouncedValue ]);
+
+  const handleChange = useCallback( ( event: ChangeEvent<HTMLInputElement> ) => {
+    setInputValue( event.target.value );
+  }, []);  
   
   /**
     * Check for input value on component mount to determine if the input is dirty.
@@ -67,9 +79,9 @@ export default function FormInput({
         placeholder="Enter value"
         disabled={ !enabled }
         required={ required }
-        value={ value || "" }
+        value={ inputValue }
         minLength={ minLength }
-        onChange={ updateValue }
+        onChange={ handleChange }
         onFocus={ handleFocus }
         onBlur={ onBlur }
         className="

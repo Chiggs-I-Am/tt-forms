@@ -1,10 +1,12 @@
 import { Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, SelectorIcon } from "@heroicons/react/solid";
+import useDebounce from "@utils/debounce";
 import useJoinClassNames from "@utils/joinClasses";
-import { ChangeEvent, Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface FormSelectProps
 {
+  data: any;
   options: { value: string; label: string }[] | undefined;
   label: string;
   required: boolean | undefined;
@@ -19,25 +21,36 @@ interface Option
   value: string;
 }
 
-function FormSelect({ options, onChange, label, required, handleFocus, handleBlur }: FormSelectProps )
+function FormSelect({ data, options, onChange, label, required, handleFocus, handleBlur }: FormSelectProps )
 {
-  const [ selectedValue, setSelectedValue ] = useState<string>("");
+  const [ selectedValue, setSelectedValue ] = useState<string>( data ?? "");
   const [ queryValue, setQueryValue ] = useState<string>("");
+
+  const debouncedValue = useDebounce( selectedValue );
+
   const [ filteredOptions, setFilteredOptions ] = useState( options );
 
   const [ focused, setFocused ] = useState( false );
   const [ dirty, setDirty ] = useState( false );
 
+  const isDirty = useMemo( () => selectedValue, [ selectedValue ]);
+
   const inputRef = useRef<HTMLInputElement>( null );
   const joinClassNames = useJoinClassNames();
 
   useEffect( () => {
-    if( selectedValue ) {
+    if( data ) {
       setDirty( true );
 
-      onChange( selectedValue );
+      console.log( "data", data );
     }
-  }, [ onChange, selectedValue ]);
+  }, [ data ]);
+
+  useEffect( () => {
+    if( debouncedValue ) {
+      onChange( debouncedValue );
+    }
+  }, [ onChange, debouncedValue ]);
 
   const onFocus = useCallback( () => {
     setFocused( true );
