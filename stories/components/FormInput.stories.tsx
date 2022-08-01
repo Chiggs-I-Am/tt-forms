@@ -2,7 +2,7 @@ import FormInput from "@components/form-input";
 import { expect } from "@storybook/jest";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { screen, userEvent } from "@storybook/testing-library";
-import { ChangeEvent, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 
 export default {
   title: "Components/Dynamic-Form/Form-Input",
@@ -12,8 +12,7 @@ export default {
 const Template: ComponentStory<typeof FormInput> = ( args ) => {
   const [ value, setValue ] = useState( args.value );
 
-  const handleChange = useCallback( ( event: ChangeEvent<HTMLInputElement> ) => {
-    let { value } = event.target;
+  const handleChange = useCallback( ( value: string ) => {
     setValue( value );
   }, []);
 
@@ -22,7 +21,7 @@ const Template: ComponentStory<typeof FormInput> = ( args ) => {
       <FormInput 
         { ...args }
         value={ value }
-        updateValue={ ( event ) => handleChange( event ) }/>
+        updateValue={ handleChange }/>
     </div>
   )
 };
@@ -32,7 +31,6 @@ Input.args = {
   id: "name-input",
   name: "name",
   label: "Name",
-  value: "",
   enabled: true,
   required: true,
 };
