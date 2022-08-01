@@ -7,9 +7,9 @@ export default
 {
   title: "Components/Dynamic-Form",
   component: DynamicForm,
-  /* parameters: {
+  parameters: {
     layout: "fullscreen",
-  } */
+  }
 } as ComponentMeta<typeof DynamicForm>
 
 const Template: ComponentStory<typeof DynamicForm> = ( args ) => <DynamicForm { ...args } />;
