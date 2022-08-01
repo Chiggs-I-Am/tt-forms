@@ -37,7 +37,7 @@ function StepperLayout( props: StepperLayoutProps )
           <Tab.Panels>
             { categorization.elements.map( ( category ) => 
               isVisible( category, data, path, ajv ) && (
-                <Tab.Panel as="ul" className="flex flex-col gap-2 min-h-[320px] px-2" key={ category.label }>                
+                <Tab.Panel as="ul" className="flex flex-col gap-6 min-h-[320px] px-2" key={ category.label }>                
                   { category.elements.map( ( child, index ) => (
                     <li key={`${ path }-${ index }`}>
                       <JsonFormsDispatch
