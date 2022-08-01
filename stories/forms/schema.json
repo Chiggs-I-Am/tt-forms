@@ -1,0 +1,132 @@
+{
+	"$id": "nameSearchReservation",
+	"type": "object",
+	"properties": {
+		"firstName": {
+			"type": "string",
+			"minLength": 3,
+			"description": "Please enter your first name",
+			"errorMessage": {
+				"type": "First name is required",
+				"minLength": "First name must be at least 3 characters"
+			}
+		},
+		"lastName": {
+			"type": "string",
+			"minLength": 3,
+			"description": "Please enter your last name",
+			"errorMessage": {
+				"type": "Last name is required",
+				"minLength": "Last name must be at least 3 characters"
+			}
+		},
+		"address": {
+			"type": "object",
+			"properties": {
+				"street": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your street"
+				},
+				"city": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your city"
+				},
+				"state": {
+					"type": "string",
+					"enum": [
+						"Chaguanas",
+						"Couva",
+						"Diego Martin",
+						"Mayaro",
+						"Penal",
+						"Princes Town",
+						"Point Fortin",
+						"Port of Spain"
+					],
+          "description": "Please select a state or province",
+          "errorMessage": {
+            "type": "Please select a state or province",
+						"required": "Please select a state or province"
+          }
+				},
+				"zip": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your zip"
+				}
+			}
+		},
+		"postalAddress": {
+			"type": "object",
+			"properties": {
+				"street": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your street"
+				},
+				"city": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your city"
+				},
+				"state": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your state"
+				},
+				"zip": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your zip"
+				}
+			}
+		},
+		"hasPostalAddress": {
+			"oneOf": [
+				{ "const": "Yes", "title": "Yes it is" },
+				{ "const": "No", "title": "No it is not" }
+			]			
+		},
+		"phoneNumber": {
+			"type": "string"
+		},
+		"businessDetails": {
+			"type": "object",
+			"properties": {
+				"proposedName": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter a proposed business name"
+				},
+				"alternativeNames": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"minLength": 3,
+								"description": "Please enter an alternative name"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"required": [
+		"firstName", 
+		"lastName",
+		"address",
+		"state"
+	],
+	"errorMessage": {
+		"properties": {
+			"firstName": "Please enter your first name",
+			"lastName": "Please enter your last name",
+			"address": "Please enter your address"
+		}
+	}
+}
