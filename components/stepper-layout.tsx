@@ -1,9 +1,10 @@
 import Container from "@components/container";
+import { SelectedIndexContext, ShowPreviewContext } from "@components/dynamic-form";
 import { Tab } from "@headlessui/react";
 import { and, Categorization, categorizationHasCategory, getAjv, isVisible, LayoutProps, optionIs, RankedTester, rankWith, uiTypeIs } from "@jsonforms/core";
 import { JsonFormsDispatch, useJsonForms, withJsonFormsLayoutProps } from "@jsonforms/react";
 import useJoinClassNames from "@utils/joinClasses";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export interface StepperLayoutProps extends LayoutProps
 {
@@ -13,7 +14,14 @@ export interface StepperLayoutProps extends LayoutProps
 function StepperLayout( props: StepperLayoutProps )
 {
   const [ selectedIndex, setSelectedIndex ] = useState( 0 );
-  const [ showCategory, setShowCategory ] = useState( true );
+  
+  const { showPreview, setShowPreview } = useContext( ShowPreviewContext );
+  const { sectionIndex, setSectionIndex } = useContext( SelectedIndexContext );
+
+  useEffect( ()=> {
+    if( sectionIndex !== undefined ) setSelectedIndex( sectionIndex );
+  }, [ sectionIndex ]);
+
   const joinClassNames = useJoinClassNames();
 
   const { data, path, schema, uischema } = props;
@@ -53,20 +61,36 @@ function StepperLayout( props: StepperLayoutProps )
             )}
           </Tab.Panels>
         </Tab.Group>
-        <div className="flex py-4 justify-end space-x-2">
+        <div className="flex p-4 items-center justify-between">
           <button 
             disabled={ selectedIndex === 0 }
+            className="flex w-fit h-fit rounded-full overflow-hidden outline outline-2 outline-outline-light"
             onClick={ () => {
             if( selectedIndex > 0 ) setSelectedIndex( selectedIndex - 1 )
-          }}>Previous</button>
+          }}>
+            <span className="flex h-10 px-6 items-center justify-center text-sm text-secondary-light font-medium">Back</span>
+          </button>
 
           <button 
-            className="flex w-fit h-fit rounded-full overflow-hidden shadow-lg text-sm text-primary-light font-medium"
+            className={
+              joinClassNames( `${ selectedIndex === categorization.elements.length - 1 ? "hidden" : "" }`, 
+              "flex w-fit h-fit rounded-full overflow-hidden bg-primary-container-light text-sm text-on-primary-container-light font-medium" )}
             disabled={ selectedIndex === categorization.elements.length - 1 }
             onClick={ () => {
               if( selectedIndex < categorization.elements.length - 1 ) setSelectedIndex( selectedIndex + 1 )
             }}>
             <span className="flex h-10 px-6 items-center justify-center">Next</span>
+          </button>
+
+          <button 
+            className={ 
+              joinClassNames( `${ selectedIndex !== categorization.elements.length - 1 ? "hidden" : "" }`, 
+                "flex w-fit h-fit rounded-full overflow-hidden text-sm text-on-primary-container-light bg-primary-container-light font-medium" )}
+            onClick={ () => {
+              setShowPreview( true );
+              setSectionIndex( undefined );
+            }}>
+            <span className="flex h-10 px-6 items-center justify-center">Review and Submit</span>
           </button>
         </div>
       </div>
