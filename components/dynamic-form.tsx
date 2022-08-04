@@ -10,7 +10,8 @@ import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from
 import ArraryControlRenderer, { ArrayControlRendererTester } from "@components/arrary-control-renderer";
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useState } from 'react';
+import PreviewForm from "./preview-form";
 
 interface DynamicFormProps
 {
@@ -18,12 +19,33 @@ interface DynamicFormProps
   uischema: UISchemaElement
 }
 
+interface ShowPreviewContextProps
+{
+  showPreview: boolean;
+  setShowPreview: ( showPreview: boolean ) => void;
+}
+
+interface SectionIndexContextProps
+{
+  sectionIndex: number | undefined;
+  setSectionIndex: ( sectionIndex: number | undefined ) => void;
+}
+
+export const ShowPreviewContext = createContext( {} as ShowPreviewContextProps );
+export const SelectedIndexContext = createContext( {} as SectionIndexContextProps );
+
 export default function DynamicForm({ schema, uischema }: DynamicFormProps )
 {
   const [ formData, setFormData ] = useState<{} | null>(null);
+  
   const joinClassNames = useJoinClassNames();
   const styles = useStyles();
+  
+  const [ showPreview, setShowPreview ] = useState( false );
+  const [ isValid, setIsValid ] = useState( false );
 
+  const [ sectionIndex, setSectionIndex ] = useState<number | undefined>();
+  
   const renderers = [
     ...vanillaRenderers,
     { tester: StepperLayoutTester, renderer: StepperLayout },
@@ -46,44 +68,59 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   ]};
 
   const ajv = ajvErrors( createAjv({ useDefaults: true }) );
-  // ajvKeywords( ajv, ["transform"] );
 
-  /* function handleInputChange( data: any, errors: any ) {
-    const validate = ajv.compile( { $ref: `${ schema.$id }#/properties/firstName` } );
+  const validateFormData = useCallback(( data: any ) => {
+    const validate = ajv.compile( schema );
     const isValid = validate( data );
 
-    console.error( "Errors: ", validate.errors, errors );
-  } */
+    setIsValid( isValid );
+  }, [ ajv, schema ]);
 
-  // validate data against schema
-  const validateFormData = () => {
-    const validate = ajv.compile( schema );
-    const isValid = validate( formData );
+  useEffect( () => {  
+    if( formData ) validateFormData( formData );
 
-    console.error( "Errors: ", validate.errors );
-  };
-
-  useEffect( () => {
-    console.log( "Form data: ", formData );
-  }, [ formData ]);
+  }, [ formData, validateFormData ] );
 
   const onChange = useCallback( ( data: any ) => {
     setFormData( data );
   }, []);
 
+  const gotoSection = useCallback( ( index: number ) => {
+    setSectionIndex( index );
+  }, []);
+
   return (
     <>
-      <JsonFormsStyleContext.Provider value={ styleContext }>
-        <JsonForms
-          schema={ schema }
-          uischema={ uischema }
-          data={ formData }
-          renderers={ renderers }
-          cells={ cells }
-          ajv={ ajv }
-          config={{ hideRequiredAsterisk: true }}
-          onChange={ ({ data, errors }) => { onChange( data ) } }/>
-      </JsonFormsStyleContext.Provider>
+      <SelectedIndexContext.Provider value={{ sectionIndex, setSectionIndex }}>
+        <ShowPreviewContext.Provider value={{ showPreview, setShowPreview }}>
+          <JsonFormsStyleContext.Provider value={ styleContext }>
+            <JsonForms
+              schema={ schema }
+              uischema={ uischema }
+              data={ formData }
+              renderers={ renderers }
+              cells={ cells }
+              ajv={ ajv }
+              config={{ hideRequiredAsterisk: true }}
+              onChange={ ({ data, errors }) => { onChange( data ) }}/>
+          </JsonFormsStyleContext.Provider>
+        </ShowPreviewContext.Provider>
+      </SelectedIndexContext.Provider>
+
+      { 
+        isValid && showPreview ? (
+          <PreviewForm 
+            open={ showPreview }
+            title={ schema.$id }
+            description="Review your data and submit"
+            formData={ formData }
+            gotoSection={ gotoSection }
+            submitForm={ () => setShowPreview( false ) }
+            onCloseDialog={ () => {
+              setShowPreview( false );
+            }}/>
+        ) : null 
+      }
     </>
   )
 }
