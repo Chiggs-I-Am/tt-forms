@@ -1,4 +1,4 @@
-import PreviewForm from "@components/preview-form";
+import PreviewForm from "@components/form/preview-form";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
 export default {

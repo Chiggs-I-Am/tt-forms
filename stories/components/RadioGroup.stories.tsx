@@ -1,4 +1,4 @@
-import RadioButtonGroup from "@components/radio-button-group";
+import RadioButtonGroup from "@components/form/radio-button-group";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
 export default

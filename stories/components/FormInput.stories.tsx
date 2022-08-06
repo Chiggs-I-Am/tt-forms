@@ -1,4 +1,4 @@
-import FormInput from "@components/form-input";
+import FormInput from "@components/form/form-input";
 import { expect } from "@storybook/jest";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { screen, userEvent } from "@storybook/testing-library";

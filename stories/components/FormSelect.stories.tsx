@@ -1,4 +1,4 @@
-import FormSelect from "@components/form-select";
+import FormSelect from "@components/form/form-select";
 import { expect } from "@storybook/jest";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { screen, userEvent } from "@storybook/testing-library";

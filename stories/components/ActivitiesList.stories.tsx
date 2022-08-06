@@ -1,6 +1,6 @@
 import ActivitiesList from "@components/activities-list";
 import ActivityItem from "@components/activity-item";
-import Container from "@components/container";
+import Container from "@components/layout/container";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
 export default
