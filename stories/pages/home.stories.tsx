@@ -12,26 +12,30 @@ const Template: ComponentStory<typeof Home> = ( args: any ) => <Home { ...args }
 
 export const HomePage = Template.bind({});
 HomePage.args = {
-  forms: [
+  activities: [
     { 
-      slug: "name-search-reservation", 
-      number: 25, 
-      name: "Name Search Reservation"
+      forms: [
+        { name: "Name search reservation", fee: 25, slug: "name-search-reservation" },
+        { name: "Notice of Directors", fee: 15, slug: "notice-of-directors" },
+      ], 
+      name: "Company registry",
+      imageURL: "https://picsum.photos/200",
     },
     {
-      slug: "notice-of-directors",
-      number: 4,
-      name: "Notice of Directors"
+      forms: [
+        { name: "Name search reservation", fee: 25, slug: "name-search-reservation" },
+        { name: "Notice of Directors", fee: 15, slug: "notice-of-directors" },
+        { name: "Name search reservation", fee: 25, slug: "name-search-reservation" },
+      ],
+      name: "Land registry",
+      imageURL: "https://picsum.photos/200",
     },
     {
-      slug: "notice-of-address",
-      number: 5,
-      name: "Notice of Address"
+      forms: [
+        { name: "Name search reservation", fee: 25, slug: "name-search-reservation" },
+      ],
+      name: "Civil registry",
+      imageURL: "https://picsum.photos/200",
     },
-    {
-      slug: "articles-of-incorporation",
-      number: 6,
-      name: "Articles of Incorporation"
-    }
   ]
 };
