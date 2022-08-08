@@ -1,6 +1,5 @@
 import ActivitiesList from "@components/activities-list";
 import ActivityItem from "@components/activity-item";
-import Container from "@components/layout/container";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
 export default
@@ -10,41 +9,17 @@ export default
 } as ComponentMeta<typeof ActivitiesList>;
 
 const activities = [
-  { 
-    id: "incorporation-of-profit",
-    title: "Incorporation of a Profit", 
-    forms: [
-      { slug: "name-search-reservation", name: "Name Search / Reservation", number: 25, fee: 25 },
-      { slug: "notice-of-directors", name: "Notice of Directors", number: 25, fee: 25 },
-      { slug: "notice-of-address", name: "Notice of Address", number: 25, fee: 25 },
-      { slug: "articles-of-incorporation", name: "Articles of Incorporation", number: 25, fee: 25 },
-    ]
-  },
-  { 
-    id: "incorporation-of-non-profit",
-    title: "Incorporation of a Non-Profit", 
-    forms: [
-      { slug: "name-search-reservation", name: "Name Search / Reservation", number: 25, fee: 25 },
-      { slug: "notice-of-directors", name: "Notice of Directors", number: 25, fee: 25 },
-      { slug: "notice-of-address", name: "Notice of Address", number: 25, fee: 25 },
-      { slug: "articles-of-incorporation", name: "Articles of Incorporation", number: 25, fee: 25 },
-    ]
-  },
+  { name: "Company registry", numberOfForms: 4, imageURL: "", handleOnClick: () => console.log( "clicked" ) },
+  { name: "Land registry", numberOfForms: 4, imageURL: "", handleOnClick: () => console.log( "clicked" ) },
+  { name: "Civil registry", numberOfForms: 4, imageURL: "", handleOnClick: () => console.log( "clicked" ) },
 ];
 
-const forms = activities.map( activity => activity.forms );
-const activity = forms.flat();
-
-const Template: ComponentStory<typeof ActivitiesList> = ( args ) => (
-  <Container>
-    <ActivitiesList { ...args }/>
-  </Container>
-);
+const Template: ComponentStory<typeof ActivitiesList> = ( args ) => <ActivitiesList { ...args }/>;
 
 export const Activities = Template.bind({});
 
 Activities.args = {
-  children: activity.map( ( form, index ) => (
-    <ActivityItem key={ index } { ...form } />
+  children: activities.map( ( activity, index ) => (
+    <ActivityItem key={ index } { ...activity } />
   ))
 };
