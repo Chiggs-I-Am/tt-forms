@@ -1,6 +1,6 @@
-import Container from "@components/container";
-import DynamicForm from "@components/dynamic-form";
-import Layout from "@components/layout";
+import DynamicForm from "@components/form/dynamic-form";
+import Container from "@components/layout/container";
+import Layout from "@components/layout/layout";
 import { createFirebaseApp } from "@libs/firebase";
 import { collection, doc, DocumentData, getDoc, getDocs, getFirestore } from "firebase/firestore";
 
