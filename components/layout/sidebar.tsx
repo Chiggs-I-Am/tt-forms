@@ -1,6 +1,6 @@
 import { Transition } from "@headlessui/react";
 import { XIcon } from "@heroicons/react/solid";
-import { Fragment, ReactNode, useState } from 'react';
+import { Fragment, ReactNode, useLayoutEffect, useState } from 'react';
 
 interface SidenavProps
 {
@@ -14,11 +14,23 @@ export default function Sidebar({ open, name, handleOnClick, children }: Sidenav
 {
   const [ isOpen, setIsOpen ] = useState( open );
 
+  useLayoutEffect(() => {
+    // get body overflow style
+    const bodyOverflow = window.getComputedStyle( document.body ).overflow;
+    // set overflow to hidden on mount
+    document.body.style.overflow = "hidden";
+    // set overflow to body overflow on unmount
+    return () => {
+      document.body.style.overflow = bodyOverflow
+    };
+  }, [ isOpen ])
+
   return (
-    <Transition appear as={ Fragment } show={ isOpen }>
+    <Transition appear={ true } as={ Fragment } show={ isOpen }>
       <div className="relative z-50">
 
           <Transition.Child
+            appear={ true}
             enter="ease-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
@@ -33,12 +45,13 @@ export default function Sidebar({ open, name, handleOnClick, children }: Sidenav
         <div className="fixed inset-0 overflow-hidden">
           <div className="grid w-full h-full place-items-end ">
             <Transition.Child
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-x-full"
-              enterTo="opacity-100 translate-x-0"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-x-0"
-              leaveTo="translate-x-full opacity-0"
+              appear={ true }
+              enter="transition ease-in-out duration-300 transform"
+              enterFrom="translate-x-full"
+              enterTo="translate-x-0"
+              leave="transition ease-in-out duration-300 transform"
+              leaveFrom="translate-x-0"
+              leaveTo="translate-x-full"
               as={ Fragment }>
                 <div className="flex flex-col gap-6 w-full max-w-sm h-full bg-surface-light">
                   <div className="flex w-full h-14 p-4 justify-between items-center">
