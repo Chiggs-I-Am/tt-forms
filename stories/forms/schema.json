@@ -2,22 +2,27 @@
 	"$id": "nameSearchReservation",
 	"type": "object",
 	"properties": {
-		"firstName": {
-			"type": "string",
-			"minLength": 3,
-			"description": "Please enter your first name",
-			"errorMessage": {
-				"type": "First name is required",
-				"minLength": "First name must be at least 3 characters"
-			}
-		},
-		"lastName": {
-			"type": "string",
-			"minLength": 3,
-			"description": "Please enter your last name",
-			"errorMessage": {
-				"type": "Last name is required",
-				"minLength": "Last name must be at least 3 characters"
+		"name": {
+			"type": "object",
+			"properties": {
+				"firstName": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your first name",
+					"errorMessage": {
+						"type": "First name is required",
+						"minLength": "First name must be at least 3 characters"
+					}
+				},
+				"lastName": {
+					"type": "string",
+					"minLength": 3,
+					"description": "Please enter your last name",
+					"errorMessage": {
+						"type": "Last name is required",
+						"minLength": "Last name must be at least 3 characters"
+					}
+				}						
 			}
 		},
 		"address": {
@@ -61,6 +66,12 @@
 		"postalAddress": {
 			"type": "object",
 			"properties": {
+				"hasPostalAddress": {
+					"oneOf": [
+						{ "const": "Yes", "title": "Yes it is" },
+						{ "const": "No", "title": "No it is not" }
+					]			
+				},
 				"street": {
 					"type": "string",
 					"minLength": 3,
@@ -73,8 +84,21 @@
 				},
 				"state": {
 					"type": "string",
-					"minLength": 3,
-					"description": "Please enter your state"
+					"enum": [
+						"Chaguanas",
+						"Couva",
+						"Diego Martin",
+						"Mayaro",
+						"Penal",
+						"Princes Town",
+						"Point Fortin",
+						"Port of Spain"
+					],
+          "description": "Please select a state or province",
+          "errorMessage": {
+            "type": "Please select a state or province",
+						"required": "Please select a state or province"
+          }
 				},
 				"zip": {
 					"type": "string",
@@ -82,12 +106,6 @@
 					"description": "Please enter your zip"
 				}
 			}
-		},
-		"hasPostalAddress": {
-			"oneOf": [
-				{ "const": "Yes", "title": "Yes it is" },
-				{ "const": "No", "title": "No it is not" }
-			]			
 		},
 		"phoneNumber": {
 			"type": "string"
@@ -117,10 +135,8 @@
 		}
 	},
 	"required": [
-		"firstName", 
-		"lastName",
-		"address",
-		"state"
+		"name",
+		"address"
 	],
 	"errorMessage": {
 		"properties": {

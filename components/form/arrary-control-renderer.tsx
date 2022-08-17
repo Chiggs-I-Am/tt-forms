@@ -1,6 +1,6 @@
 import { ArrayControlProps, isObjectArrayControl, RankedTester, rankWith } from "@jsonforms/core";
 import { withJsonFormsArrayControlProps } from "@jsonforms/react";
-import ArrayControl from "./array-control";
+import ArrayControl from "@components/form/array-control";
 
 interface ArrayControlRendererProps extends ArrayControlProps {
   handleChange?: ( path: string, value: any ) => void;

@@ -1,5 +1,6 @@
 import { Analytics, getAnalytics } from "firebase/analytics";
 import { FirebaseApp, getApps, initializeApp } from "firebase/app";
+import { getAuth, inMemoryPersistence, setPersistence } from "firebase/auth";
 
 export function createFirebaseApp(): FirebaseApp | undefined
 {
@@ -27,4 +28,10 @@ export function analytics(): Analytics | undefined
       return getAnalytics( getApps()[0] );
     }
   }
+}
+
+function setAuthPersistence() 
+{
+  let auth = getAuth();
+  setPersistence( auth, inMemoryPersistence );
 }

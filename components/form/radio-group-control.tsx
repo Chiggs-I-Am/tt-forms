@@ -1,7 +1,7 @@
 import { and, ControlProps, isOneOfEnumControl, optionIs, OwnPropsOfEnum, RankedTester, rankWith } from "@jsonforms/core";
 import { withJsonFormsOneOfEnumProps } from "@jsonforms/react";
 import { useCallback } from "react";
-import RadioButtonGroup from "./radio-button-group";
+import RadioButtonGroup from "@components/form/radio-button-group";
 
 interface RadioGroupControlProps extends ControlProps, OwnPropsOfEnum
 {

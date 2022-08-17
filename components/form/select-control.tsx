@@ -1,4 +1,4 @@
-import FormSelect from "@components/form-select";
+import FormSelect from "@components/form/form-select";
 import { ControlProps, isDescriptionHidden, isEnumControl, OwnPropsOfEnum, RankedTester, rankWith } from "@jsonforms/core";
 import { withJsonFormsEnumProps } from "@jsonforms/react";
 import { useCallback, useState } from "react";

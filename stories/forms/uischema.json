@@ -9,12 +9,12 @@
         {
           "type": "Control",
           "label": "First name",
-          "scope": "#/properties/firstName"
+          "scope": "#/properties/name/properties/firstName"
         },
         {
           "type": "Control",
           "label": "Last name",
-          "scope": "#/properties/lastName"
+          "scope": "#/properties/name/properties/lastName"
         }
       ]
     },
@@ -51,7 +51,7 @@
         {
           "type": "Control",
           "label": "Is your postal address different from your current address?",
-          "scope": "#/properties/hasPostalAddress",
+          "scope": "#/properties/postalAddress/properties/hasPostalAddress",
           "options": {
             "format": "radio"
           }
@@ -83,7 +83,7 @@
           "rule": {
             "effect": "SHOW",
             "condition": {
-              "scope": "#/properties/hasPostalAddress",
+              "scope": "#/properties/postalAddress/properties/hasPostalAddress",
               "schema": { "const": "Yes" }
             }
           }

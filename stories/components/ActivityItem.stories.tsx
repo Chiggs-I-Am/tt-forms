@@ -7,19 +7,18 @@ export default
   component: ActivityItem
 } as ComponentMeta<typeof ActivityItem>;
 
-const activityItem = {
-  slug: "name-search-reservation",
-  number: 25,
-  name: "Name Search / Reservation",
-  activities: ["Incorporation of a Profit", "Incorporation of a Non-Profit"],
-  fee: 25
+const activityItemData = {
+  numberOfForms: 4,
+  name: "Company registry",
+  imageURL: "https://picsum.photos/320",
+  handleOnClick: () => console.log( "clicked" ),
 };
 
 const Template: ComponentStory<typeof ActivityItem> = ( args ) => (
-  <div className="w-full mx-auto">
+  <div className="grid w-full place-items-center">
     <ActivityItem { ...args } />
   </div>
 );
 
 export const Activity = Template.bind({});
-Activity.args = { ...activityItem };
+Activity.args = { ...activityItemData };
