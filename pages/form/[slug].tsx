@@ -1,7 +1,7 @@
 import DynamicForm from "@components/form/dynamic-form";
 import Container from "@components/layout/container";
 import Layout from "@components/layout/layout";
-import { createFirebaseApp } from "@libs/firebase";
+import { createFirebaseApp } from "@libs/firebase/app";
 import { collection, doc, DocumentData, getDoc, getDocs, getFirestore } from "firebase/firestore";
 
 export default function FormPage({ form }: any )
