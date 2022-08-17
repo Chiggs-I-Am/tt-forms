@@ -1,11 +1,13 @@
 import Home from "@pages/index";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default
 {
   title: "Pages/Home",
-  component: Home
+  component: Home.contextTypes,
+  parameters: {
+    layout: "fullscreen",
+  }
 } as ComponentMeta<typeof Home>;
 
 const Template: ComponentStory<typeof Home> = ( args: any ) => <Home { ...args }/>;
