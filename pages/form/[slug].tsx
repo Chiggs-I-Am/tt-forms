@@ -1,7 +1,7 @@
 import DynamicForm from "@components/form/dynamic-form";
 import Container from "@components/layout/container";
 import Layout from "@components/layout/layout";
-import { createFirebaseApp } from "@libs/firebase/app";
+import { initializeFirebaseApp } from "@libs/firebase/firebaseApp";
 import { collection, doc, DocumentData, getDoc, getDocs, getFirestore } from "firebase/firestore";
 
 export default function FormPage({ form }: any )
@@ -28,7 +28,7 @@ export async function getStaticProps({ params }: any )
 {
   let { slug } = params;
   
-  let app = createFirebaseApp();
+  let app = initializeFirebaseApp();
   let firestore = getFirestore( app );
 
   let formsCollection = collection( firestore, "forms" );
@@ -44,7 +44,7 @@ export async function getStaticProps({ params }: any )
 
 export async function getStaticPaths()
 {
-  let app = createFirebaseApp();
+  let app = initializeFirebaseApp();
   let firestore = getFirestore( app );
 
   let formsCollection = collection( firestore, "forms" );
