@@ -1,13 +1,13 @@
-import { UserAuthStateProvider } from "@components/user-auth-state";
 import '@styles/globals.css';
+import { SessionProvider } from "next-auth/react";
 import type { AppProps } from 'next/app';
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
-
+function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps)
+{
   return (
-    <UserAuthStateProvider>
-      <Component {...pageProps} />
-    </UserAuthStateProvider>
+    <SessionProvider session={ session }>
+      <Component { ...pageProps } />
+    </SessionProvider>
   );
 }
 
