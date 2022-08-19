@@ -1,18 +1,20 @@
-import { apps } from "firebase-admin";
-import { App, applicationDefault, initializeApp } from "firebase-admin/app";
+import { apps, credential } from "firebase-admin";
+import { App, getApp, initializeApp } from "firebase-admin/app";
 import { DecodedIdToken, getAuth, UserRecord } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { NextApiResponse } from "next";
 
 export function createFirebaseAdminApp(): App | undefined
 {
   if( apps.length <= 0 || !apps.length ) {
     let app = initializeApp({
-      credential: applicationDefault(),
+      credential: credential.cert( process.env.GOOGLE_APPLICATION_CREDENTIALS as string ),
     });
     
     return app;
   }
+
+  const app = getApp();
+  return app;
 }
 
 export const firebaseAdmin = createFirebaseAdminApp();
@@ -26,18 +28,9 @@ export async function getUserRecordFromToken( idToken: string )
   return userRecord;
 }
 
-export async function getUserRecordFromSessionCookie( sessionCookie: string )
+export async function getUserInfoFromSessionCookie( sessionCookie: string )
 {
   let decodedIdToken: DecodedIdToken = await authAdmin.verifySessionCookie( sessionCookie, true );
   
   return decodedIdToken;
-}
-
-export async function createSessionCookie( idToken: string, res: NextApiResponse )
-{
-  const expiresIn = 60 * 60 * 24 * 7; // 7 days
-
-  const sessionCookie = await authAdmin.createSessionCookie( idToken, { expiresIn } );
-  const options = { maxAge: expiresIn, httpOnly: true, secure: true };
-  console.log( "sessionCookie", sessionCookie );
 }
