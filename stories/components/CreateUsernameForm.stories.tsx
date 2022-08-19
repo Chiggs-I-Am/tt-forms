@@ -1,6 +1,6 @@
 import CreateUsernameForm from "@components/auth/create-username-form";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
-import { usernameFormSchema, usernameFormUiSchema } from "../forms/usernameFormSchema";
+import { usernameFormSchema, usernameFormUiSchema } from "../forms/createUsernameFormSchema";
 
 export default {
   title: "Components/Username Form",

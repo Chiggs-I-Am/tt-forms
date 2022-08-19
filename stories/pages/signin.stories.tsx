@@ -1,4 +1,4 @@
-import SignIn from "@pages/auth/signIn";
+import SignIn from "@pages/auth/signin";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
 export default 
