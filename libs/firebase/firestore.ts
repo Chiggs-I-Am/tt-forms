@@ -1,9 +1,8 @@
-import { createFirebaseApp } from "@libs/firebase/app";
-import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { initializeFirebaseApp } from "./firebaseApp";
 
-let app = createFirebaseApp();
-
-export const firestore = getFirestore( app );
+const firebaseApp = initializeFirebaseApp();
+export const firestore = getFirestore( firebaseApp );
 
 export async function createDocument( path: string, data: any )
 {
@@ -13,6 +12,13 @@ export async function createDocument( path: string, data: any )
     alert( `Document created at: users/${ data.uid}` );
   }
   catch( error: any ) {
-    alert( JSON.stringify( error ) );
+    console.log( error.code, error.message );
   }
+}
+
+export async function getFirestoreDocument( collectionPath: string, docPath: string )
+{
+  let userDocRef = doc( firestore, collectionPath, docPath );
+  let userDoc = await getDoc( userDocRef );
+  return userDoc;
 }
