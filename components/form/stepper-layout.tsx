@@ -98,14 +98,6 @@ function StepperLayout( props: StepperLayoutProps )
   );
 }
 
-/* 
-  TODO: make classNames a utility function
-*/
-function joinClassNames( ...classes: any )
-{
-  return classes.filter(Boolean).join(" ");
-}
-
 export default withJsonFormsLayoutProps( StepperLayout );
 
 export const StepperLayoutTester: RankedTester = rankWith(
