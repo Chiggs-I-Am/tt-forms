@@ -1,25 +1,40 @@
 import DynamicForm from "@components/form/dynamic-form";
+import AppToolbar from "@components/layout/app-toolbar";
 import Container from "@components/layout/container";
 import Layout from "@components/layout/layout";
-import { initializeFirebaseApp } from "@libs/firebase/firebaseApp";
-import { collection, doc, DocumentData, getDoc, getDocs, getFirestore } from "firebase/firestore";
+import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
+import { firestore } from "@libs/firebase/firestore";
+import { DocumentData } from "firebase-admin/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
+import { camelCase } from "lodash";
+import { signOut } from "next-auth/react";
 
-export default function FormPage({ form }: any )
+interface FormPageProps
 {
-  const { schema, uischema, name } = form;
+  form: {
+    name: string;
+    schema: JsonSchema7;
+    uischema: UISchemaElement;
+  }
+}
+
+export default function FormPage({ form }: FormPageProps )
+{
+  let { name, schema, uischema } = form;
 
   return (
     <Layout>
-      <Container>
-        <div>
-          <h1>{ name }</h1>
-
+      <div className="grid gap-6 w-full h-full grid-rows-[auto_1fr_auto]">
+        <AppToolbar>
+          <h1 className="text-sm font-bold">Applying for: { name }</h1>
+          <button className="" onClick={ () => signOut() }>Sign out</button>
+        </AppToolbar>
+        <Container>          
           <DynamicForm
             schema={ schema }
             uischema={ uischema }/>
-
-        </div>
-      </Container>
+        </Container>
+      </div>
     </Layout>
   );
 }
@@ -27,33 +42,59 @@ export default function FormPage({ form }: any )
 export async function getStaticProps({ params }: any )
 {
   let { slug } = params;
+  /**
+   * Get document from firestore wth a query the using converted name from slug
+   * @param slug - e.g "name-search-reservation"
+   * converted @param slug to camelCase - e.g "nameSearchReservation"
+   * get collection e.g "activities/{DOCUMENT_RETURNED_FROM_QUERY}"
+   * @returns { DocumentData } - based on query
+   */
+  let colRef = query( 
+    collection( firestore, "activities" ), 
+    orderBy( `registryForms.${ camelCase( slug ) }`, "asc" )
+  );
   
-  let app = initializeFirebaseApp();
-  let firestore = getFirestore( app );
-
-  let formsCollection = collection( firestore, "forms" );
-  let formDocRef = doc( formsCollection, slug );
-
-  let formDocSnapshot = await getDoc( formDocRef );
-  let form = formDocSnapshot.data();
+  let queryDocSnapshot = await getDocs( colRef );
   
-  return {
-    props: { form },
-  };
+  let docRefPath = queryDocSnapshot.docs[ 0 ].ref.path;
+  let formDocRef = doc( firestore, docRefPath, "forms", slug );
+  let formDoc = await getDoc( formDocRef );
+  
+  if( formDoc.exists() ) {
+    let data = formDoc.data();
+    let form = {
+      name: data.name,
+      schema: data.schema,
+      uischema: data.uischema
+    };
+    
+    return {
+      props: {
+        form,
+      }
+    };
+  }
 }
 
 export async function getStaticPaths()
 {
-  let app = initializeFirebaseApp();
-  let firestore = getFirestore( app );
+  let activitiesCollectionRef = collection( firestore, "activities" );
+  let activitiesSnapshot = await getDocs( activitiesCollectionRef );
 
-  let formsCollection = collection( firestore, "forms" );
-  let formsDocSnapshot = await getDocs( formsCollection );
-
-  let paths = formsDocSnapshot.docs.map( ( doc: DocumentData ) => {
-    let { slug } = doc.data();
-    return { params: { slug } };
+  let activities = activitiesSnapshot.docs.map( ( doc ) => {
+    return doc.data();
   });
+
+  let paths = activities.map( ( activity ) => {
+    let { registryForms } = activity;
+    
+    let slug = Object.keys( registryForms ).map( key => {
+      let slug = registryForms[ key ].slug;
+      return { params: { slug } };
+    });
+
+    return slug;
+  }).flat();
 
   return {
     paths,
