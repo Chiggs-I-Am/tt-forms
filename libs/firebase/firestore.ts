@@ -1,4 +1,4 @@
-import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, DocumentSnapshot, getDoc, getFirestore, setDoc } from "firebase/firestore";
 import { initializeFirebaseApp } from "./firebaseApp";
 
 const firebaseApp = initializeFirebaseApp();
@@ -21,4 +21,15 @@ export async function getFirestoreDocument( collectionPath: string, docPath: str
   let userDocRef = doc( firestore, collectionPath, docPath );
   let userDoc = await getDoc( userDocRef );
   return userDoc;
+}
+
+export function dataToJSON( doc: DocumentSnapshot ) {
+  let data = doc.data();
+  
+  return {
+    ...data,
+    id: doc?.id,
+    createAt: data?.createdAt.toMillis() ?? 0,
+    updateAt: data?.updatedAt.toMillis() ?? 0,
+  };
 }
