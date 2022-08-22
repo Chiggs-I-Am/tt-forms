@@ -1,7 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { PencilIcon } from "@heroicons/react/solid";
 import { lowerCase, startCase, upperFirst } from "lodash";
-import Link from "next/link";
 import { Fragment, useCallback, useState } from 'react';
 
 interface PreviewFormProps
@@ -85,13 +84,12 @@ export default function PreviewForm({ open, formData, title, description, submit
                           <div className="pb-1 outline outline-1 outline-outline-light rounded-lg">
                           <div className="flex px-4 py-2 items-center justify-between text-sm font-medium bg-secondary-container-light text-on-secondary-container-light">
                             <h3>{ name }</h3>
-                            <Link href="">
-                              <a 
+                            
+                              <button 
                                 className="p-1 rounded-full bg-on-secondary-container-light text-secondary-container-light"
                                 onClick={ () => editSection( index ) }>
                                 <PencilIcon className="w-4 h-4" />
-                              </a>
-                            </Link>
+                              </button>
                           </div>
                           { typeof value === "object"
                               ? Object.keys( value ).map( ( valueKey: string ) => {
