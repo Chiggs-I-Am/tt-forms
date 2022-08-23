@@ -1,5 +1,5 @@
-import Container from "@components/layout/container";
 import { SelectedIndexContext, ShowPreviewContext } from "@components/form/dynamic-form";
+import Container from "@components/layout/container";
 import { Tab } from "@headlessui/react";
 import { and, Categorization, categorizationHasCategory, getAjv, isVisible, LayoutProps, optionIs, RankedTester, rankWith, uiTypeIs } from "@jsonforms/core";
 import { JsonFormsDispatch, useJsonForms, withJsonFormsLayoutProps } from "@jsonforms/react";
@@ -32,15 +32,15 @@ function StepperLayout( props: StepperLayoutProps )
 
   return (
     <Container>
-      <div className="grid gap-5 grid-rows-[auto_1fr_auto] w-full max-w-md h-screen mx-auto">
+      <div className="grid grid-rows-[auto_1fr_auto] w-full max-w-md h-screen max-h-[600px] mx-auto">
         <Tab.Group selectedIndex={ selectedIndex } onChange={ setSelectedIndex }>
           <Tab.List>
           { categorization.elements.map( ( category ) => (
-              <Tab
+              <Tab as="div"
                 key={ category.label } 
                 className={ ({ selected }) => 
-                  joinClassNames( !selected ? "hidden" : "" , "w-full h-10 text-sm text-left text-white px-4 py-2 bg-primary-light" )}>
-                <span className="text-on-primary-light font-medium">{ category.label }</span>
+                  joinClassNames( !selected ? "hidden" : "" , "flex items-center w-full h-14 text-sm text-left text-white px-4 bg-surface-light select-none" )}>
+                <span className="text-on-surface-light font-medium">{ category.label }</span>
               </Tab>
           ))}
           </Tab.List>
