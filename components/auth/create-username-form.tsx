@@ -11,16 +11,15 @@ interface CreateUsernameFormProps
 {
   schema: JsonSchema7;
   uischema: UISchemaElement;
-  user: unknown;
+  userID: string;
 }
 
-export default function CreateUsernameForm({ schema, uischema, user }: CreateUsernameFormProps) 
+export default function CreateUsernameForm({ schema, uischema, userID }: CreateUsernameFormProps) 
 {
   const [ formData, setFormData ] = useState<string>("");
 
   const [ isUsernameValid, setIsUsernameValid ] = useState( false );
   const [loading, setLoading] = useState( false );
-  const userID = user as string;
 
   const router = useRouter();
 
@@ -31,27 +30,26 @@ export default function CreateUsernameForm({ schema, uischema, user }: CreateUse
     { tester: TextInputControlTester, renderer: TextInputControl },
   ];
 
-  const checkIfUsernameExists = useCallback( async (username: string) =>
+  const checkIfUsernameExists = useCallback( async ( username: string ) =>
   {
-    /* const response = await fetch( `/api/users/${username}` );
-    const data = await response.json();
-    return data.exists; */
-    let userDocRef = doc( firestore, "users", username );
-    let userDoc = await getDoc( userDocRef );
-    let exists = userDoc.exists();
+    try {
+      let userDocRef = doc( firestore, "usernames", username.toLowerCase() );
+      let userDoc = await getDoc( userDocRef );
+      let exists = userDoc.exists();
 
-    setIsUsernameValid( exists );
-    setLoading( false );
+      setIsUsernameValid( !exists );
+      setLoading( false );
+    }
+    catch( error: any ) {
+      // show toast: error creating username
+    }
   }, []);
 
-  useEffect(() =>
-  {
-    if ( usernameFormData ) {
-      checkIfUsernameExists( usernameFormData );
-    }
+  useEffect(() => {
+    if( usernameFormData.length >= 3 ) checkIfUsernameExists( usernameFormData );
   }, [ usernameFormData, checkIfUsernameExists ]);
 
-  const handleOnSubmit = useCallback(async () => {
+  const handleOnSubmit = useCallback( async () => {
     let username = formData;
 
     let batch = writeBatch(firestore);
@@ -59,13 +57,10 @@ export default function CreateUsernameForm({ schema, uischema, user }: CreateUse
     try
     {
       let userDocRef = doc(firestore, "users", userID );
-      batch.update( userDocRef, { 
-        username: username,
-      });
+      batch.update( userDocRef, { username });
 
-      let usernameDocRef = doc(firestore, "usernames", username );
+      let usernameDocRef = doc(firestore, "usernames", username.toLowerCase() );
       batch.set( usernameDocRef, { userID });
-      alert( "Username created" );
       
       await batch.commit();
 
@@ -74,8 +69,7 @@ export default function CreateUsernameForm({ schema, uischema, user }: CreateUse
 
       router.push("/");
     }
-    catch (error: any)
-    {
+    catch (error: any) {
       console.log( `${error}` );
     }
 
@@ -83,20 +77,19 @@ export default function CreateUsernameForm({ schema, uischema, user }: CreateUse
 
   function validateUsername( username: string )
   {
-    let name = username.toLowerCase();
     const reg = /^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/;
 
-    if ( name.length < 3 ) {
+    if ( username.length < 3 ) {
       setFormData( username );
       setLoading( false );
       setIsUsernameValid( false );
     }
 
-    if ( reg.test( name ) )
+    if ( reg.test( username ) )
     {
       setFormData( username );
       setLoading( true );
-      setIsUsernameValid( false );
+      setIsUsernameValid( prev => prev );
     }
   }
 
