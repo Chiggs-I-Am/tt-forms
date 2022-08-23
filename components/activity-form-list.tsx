@@ -17,7 +17,7 @@ export default function ActivityFormList({ forms }: ActivityFormListProps )
         const { name, fee, slug } = form;
         return (
           <Link key={ index } href={ `form/${ slug }` }>
-            <a className="w-full h-fit rounded-xl shadow-md overflow-hidden bg-primary-container-light sm:max-w-sm">
+            <a className="w-full h-fit rounded-xl shadow-md overflow-hidden bg-primary-container-light">
               <figure className="flex min-h-[86px] p-4 justify-between items-center gap-2 select-none cursor-pointer">
                 <figcaption className="flex flex-col items-start">
                   <p className="text-sm text-on-primary-container-light font-bold">{ name }</p>
