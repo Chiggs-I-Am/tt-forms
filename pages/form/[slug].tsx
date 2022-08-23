@@ -7,7 +7,8 @@ import { firestore } from "@libs/firebase/firestore";
 import { DocumentData } from "firebase-admin/firestore";
 import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
 import { camelCase } from "lodash";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 interface FormPageProps
 {
@@ -20,7 +21,14 @@ interface FormPageProps
 
 export default function FormPage({ form }: FormPageProps )
 {
-  let { name, schema, uischema } = form;
+  const { name, schema, uischema } = form;
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  if( status === "unauthenticated" ) {
+    // TODO: show popop to redirect to sign in page
+    return router.push("/");
+  }
 
   return (
     <Layout>
