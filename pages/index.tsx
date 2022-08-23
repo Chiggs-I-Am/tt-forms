@@ -4,13 +4,14 @@ import Container from "@components/layout/container";
 import Layout from "@components/layout/layout";
 import Sidebar from "@components/layout/sidebar";
 
-import type { NextApiRequest, NextApiResponse, NextPage } from 'next';
-import { useCallback, useMemo, useState } from "react";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { useCallback, useState } from "react";
 
-import { firestoreAdmin } from "@libs/firebase/firebaseAdmin";
 
 import ActivitiesList from "@components/activities-list";
 import ActivityItem from "@components/activity-item";
+import { firestore } from "@libs/firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { Session, unstable_getServerSession } from "next-auth";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { authOptions } from "./api/auth/[...nextauth]";
@@ -20,29 +21,28 @@ interface HomePageProps
   activities: {
     name: string;
     imageURL: string;
-    forms: {
-      name: string;
-      fee: number;
-      slug: string;
-    }[];
+    registryForms: {
+      [key: string]: {
+        name: string;
+        fee: string;
+        slug: string;
+      }
+    };
   }[];
   userSession: Session;
 }
 
-const Home: NextPage<HomePageProps> = ({ activities, userSession }: HomePageProps ) => { 
-  const [ activityName, setActivityName ] = useState("");
+export default function Home({ activities, userSession }: HomePageProps )
+{ 
+  const [ activityName, setActivityName ] = useState<string>("");
   const [ forms, setForms ] = useState( [] as { name: string; fee: number; slug: string }[] );
   const [ isOpen, setIsOpen ] = useState( false );
   
+  const { data: session } = useSession();
+  
   const toggleSidbar = useCallback( ( ) => {
     setIsOpen( prev => !prev );
-  }, []);
-
-  const aName = useMemo( () => activityName, [ activityName ]);
-  // const forms = activities.map( activity => activity.forms ).flat();
-  // const forms = useMemo( () => activityForms, [ activityForms ]);
-
-  const { data: session } = useSession();
+  }, []);  
 
   const handleSignOut = useCallback( () => {
     signOut();
@@ -78,12 +78,15 @@ const Home: NextPage<HomePageProps> = ({ activities, userSession }: HomePageProp
         <Container>
           <ActivitiesList>
             { activities.map( ( activity, index: number ) => {
-                const { name, imageURL, forms } = activity;
+                const { name, imageURL, registryForms } = activity;
+                const numberOfForms = Object.keys( registryForms ).length;
+                const forms = Object.values( registryForms );
+
                 return (
                   <ActivityItem 
                     key={ index } 
                     name={ name }
-                    numberOfForms={ forms.length } 
+                    numberOfForms={ numberOfForms } 
                     imageURL={ imageURL }
                     handleOnClick={ () => {
                       toggleSidbar();
@@ -98,7 +101,7 @@ const Home: NextPage<HomePageProps> = ({ activities, userSession }: HomePageProp
       { isOpen 
         ? <Sidebar
             open={ isOpen }
-            name={ `${ aName } forms` }
+            name={ `${ activityName } forms` }
             handleOnClick={ toggleSidbar }>
               <ActivityFormList forms={ forms } />
           </Sidebar> 
@@ -109,19 +112,35 @@ const Home: NextPage<HomePageProps> = ({ activities, userSession }: HomePageProp
 
 export async function getServerSideProps({ req, res }: { req: NextApiRequest, res: NextApiResponse })
 {
-  let activitiesCollectionRef = await firestoreAdmin.collection( "activities" ).get();
-  let activitiesSnapshot = activitiesCollectionRef.docs;
-  let activities = activitiesSnapshot.map( ( doc ) => {
-    return doc.data();
-  });
+  let activitiesCollectionRef = collection( firestore, "activities" );
+  let activitiesSnapshot = await getDocs( activitiesCollectionRef );
+  let activities = activitiesSnapshot.docs.map( doc => doc.data() );
 
   let userSession = await unstable_getServerSession( req, res, authOptions );
 
   if( !userSession ) {
     return {
       props: {
-        activities,
+        activities
       }
+    };
+  }
+
+  let userID = userSession.userID as string;
+  
+  let usernamesCollectionRef = collection( firestore, "usernames" );
+  let queryUsernameDoc = query( usernamesCollectionRef, where( "userID", "==", userID ));
+  let usernameDocSnapshot = await getDocs( queryUsernameDoc );
+  let isEmpty = usernameDocSnapshot.empty;
+  
+  // if user is signed in and doesn't have a username then redirect to create-username page
+  if( userSession && isEmpty ) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/create-username",
+      },
+      props: {}
     };
   }
 
@@ -132,5 +151,3 @@ export async function getServerSideProps({ req, res }: { req: NextApiRequest, re
     }
   };
 }
-
-export default Home
