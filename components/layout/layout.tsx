@@ -8,7 +8,7 @@ interface LayoutProps
 export default function Layout({ children }: LayoutProps ) 
 {
   return (
-    <main className="flex h-screen">
+    <main className="grid h-screen">
       { children }
     </main>
   )
