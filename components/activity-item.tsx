@@ -29,7 +29,7 @@ export default function ActivityItem({ name, numberOfForms, imageURL, handleOnCl
               { name }
             </h3>
             
-            <p className="text-xs font-medium text-outline-light">{ numberOfForms } Forms</p>
+            <p className="text-xs font-medium text-outline-light">{ numberOfForms == 1 ? `${ numberOfForms } Form` : `${ numberOfForms } Forms` }</p>
           
             <div className="mt-2">
               <button 
