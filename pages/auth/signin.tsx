@@ -13,7 +13,7 @@ interface SigninProps
   uischema: UISchemaElement;
 }
 
-export default function Signin({ schema, uischema }: SigninProps ) 
+export default function Signin() 
 {
   return (
     <Layout>
@@ -28,9 +28,9 @@ export default function Signin({ schema, uischema }: SigninProps )
   )
 }
 
-export async function getServerSideProps( context: GetServerSidePropsContext )
+export async function getServerSideProps({ req, res }: GetServerSidePropsContext )
 {
-  let session = await unstable_getServerSession( context.req, context.res, authOptions );
+  let session = await unstable_getServerSession( req, res, authOptions );
 
   if( session ) {
     return {
