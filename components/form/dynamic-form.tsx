@@ -8,15 +8,19 @@ import { JsonForms } from "@jsonforms/react";
 import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 
 import ArraryControlRenderer, { ArrayControlRendererTester } from "@components/form/arrary-control-renderer";
+import { firestore } from "@libs/firebase/firestore";
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { kebabCase } from "lodash";
+import { useSession } from "next-auth/react";
 import { createContext, useCallback, useEffect, useState } from 'react';
 import PreviewForm from "./preview-form";
 
 interface DynamicFormProps
 {
   schema: JsonSchema7;
-  uischema: UISchemaElement
+  uischema: UISchemaElement;
 }
 
 interface ShowPreviewContextProps
@@ -45,6 +49,8 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const [ isValid, setIsValid ] = useState( false );
 
   const [ sectionIndex, setSectionIndex ] = useState<number | undefined>();
+
+  const { data: session } = useSession();
   
   const renderers = [
     ...vanillaRenderers,
@@ -89,6 +95,35 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     setSectionIndex( index );
   }, []);
 
+  const userID = session?.userID as string;
+
+  const onSubmitForm = async () => {
+    let data = {
+      formData,
+      status: "Pending Approval",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      ticketNumber: "NSR-00001" // save a ticket number based on form e.g. Name Search Reservation = NSR-12345
+    };
+
+    let formName = schema.$id as string;
+    
+    try { 
+      let userDocRef = doc( firestore, "users", userID, "forms", kebabCase(formName) );
+      await setDoc( userDocRef, data, { merge: true } );
+      
+      setShowPreview( false );
+      // show document created success
+      // toast.success("Form submitted!")
+      
+      // redirect to home page
+      // router.push("/");
+    }
+    catch( error: any ) {
+      alert( error.message );
+    }
+  };
+
   return (
     <>
       <SelectedIndexContext.Provider value={{ sectionIndex, setSectionIndex }}>
@@ -115,7 +150,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
             description="Review your data and submit"
             formData={ formData }
             gotoSection={ gotoSection }
-            submitForm={ () => setShowPreview( false ) }
+            submitForm={ onSubmitForm }
             onCloseDialog={ () => {
               setShowPreview( false );
             }}/>
