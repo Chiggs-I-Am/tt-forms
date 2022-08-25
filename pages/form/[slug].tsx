@@ -7,7 +7,7 @@ import { firestore } from "@libs/firebase/firestore";
 import { DocumentData } from "firebase-admin/firestore";
 import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
 import { camelCase } from "lodash";
-import { signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 interface FormPageProps
@@ -27,14 +27,23 @@ export default function FormPage({ form }: FormPageProps )
 
   if( status === "unauthenticated" ) {
     // TODO: show popop to redirect to sign in page
-    return router.push("/");
+    return (
+      <div className="grid w-full h-full place-items-center">
+        <div className="">
+          <p>You have to be signed in to view this page</p>
+          <button 
+            onClick={ () => signIn() }
+            className="text-sm font-medium h-10 px-6 rounded-full shadow-md bg-primary-light text-on-primary-light">Sign in</button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <Layout>
       <div className="grid gap-6 w-full h-full grid-rows-[auto_1fr_auto]">
         <AppToolbar>
-          <h1 className="text-sm font-bold">Applying for: { name }</h1>
+          <h1 className="text-sm font-bold">{ name }</h1>
           <button className="" onClick={ () => signOut() }>Sign out</button>
         </AppToolbar>
         <Container>          
