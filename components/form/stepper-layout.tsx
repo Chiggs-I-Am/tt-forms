@@ -34,13 +34,13 @@ function StepperLayout( props: StepperLayoutProps )
     <Container>
       <div className="grid grid-rows-[auto_1fr_auto] w-full max-w-md h-screen max-h-[600px] mx-auto">
         <Tab.Group selectedIndex={ selectedIndex } onChange={ setSelectedIndex }>
-          <Tab.List>
+          <Tab.List className="mb-6">
           { categorization.elements.map( ( category ) => (
               <Tab as="div"
                 key={ category.label } 
                 className={ ({ selected }) => 
-                  joinClassNames( !selected ? "hidden" : "" , "flex items-center w-full h-14 text-sm text-left text-white px-4 bg-surface-light select-none" )}>
-                <span className="text-on-surface-light font-medium">{ category.label }</span>
+                  joinClassNames( !selected ? "hidden" : "" , "flex items-center w-full h-14 text-sm text-left text-white p-4 select-none" )}>
+                <span className="text-on-surface-light font-semibold">{ category.label }</span>
               </Tab>
           ))}
           </Tab.List>
