@@ -12,6 +12,7 @@ export const UserForm = Template.bind({});
 UserForm.args = {
   forms: [
     {
+      name: "Name search reservation",
       createdAt: "Thurs 25th Aug",
       updatedAt: "Thurs 25th Aug",
       status: "Pending Approval",
@@ -20,6 +21,7 @@ UserForm.args = {
       }
     },
     {
+      name: "Name search reservation",
       createdAt: "Thurs 25th Aug",
       updatedAt: "Thurs 25th Aug",
       status: "Pending Approval",
@@ -28,6 +30,7 @@ UserForm.args = {
       }
     },
     {
+      name: "Name search reservation",
       createdAt: "Thurs 25th Aug",
       updatedAt: "Thurs 25th Aug",
       status: "Pending Approval",
