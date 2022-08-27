@@ -112,15 +112,7 @@ function FormSelect({ data, options, onChange, label, required, handleFocus, han
                   onFocus={ handleFocus }
                   onBlur={ onBlur }/>
 
-                  <Combobox.Label 
-                    className={ joinClassNames(
-                      `${ !focused && dirty ? "px-1 text-xs -top-2.5" : "text-base top-4" }`,
-                      "absolute left-4 ",
-                      "text-gray-600 bg-on-primary-light transition-all",
-                      "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4",
-                      "peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs")}>
-                    { label }
-                  </Combobox.Label>
+                <Combobox.Label className="absolute left-2 -top-5 text-xs peer-focus:font-semibold">{ label }</Combobox.Label>
 
                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
                   <SelectorIcon className="w-5 h-5" />
