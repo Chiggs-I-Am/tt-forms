@@ -39,19 +39,10 @@ export const authOptions: NextAuthOptions = {
 	},
 	callbacks: {
 		session: async ({ session, user }) => {
-			console.log( "CALLBACK SESSION: ", session, "UID", user.id );
 			session.userID = user.id;
 			return session;
 		}
 	},
-	events: {
-		session: async ({ session }) => {
-			console.log( "EVENT SESSION: ", session );
-		},
-		linkAccount: async ({ account }) => {
-			console.log( "LINK ACCOUNT: ", account );
-		}
-	}
 };
 
 export default NextAuth( authOptions );
