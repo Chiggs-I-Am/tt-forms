@@ -98,6 +98,11 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const userID = session?.userID as string;
 
   const onSubmitForm = async () => {
+    if( !session ) {
+      // show toast -> you need to be signed in to submit this form
+      return
+    }
+    
     let data = {
       formData,
       status: "Pending Approval",
