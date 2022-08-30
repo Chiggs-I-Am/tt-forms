@@ -20,7 +20,8 @@ export default function ActivityItem({ name, numberOfForms, imageURL, handleOnCl
               src={ imageURL }
               objectFit="cover"
               layout="fill"
-              alt="Card image"/>
+              alt="Card image"
+              priority/>
           </div>
 
           <div className="flex flex-col w-2/3 gap-1 p-4 sm:w-full">
