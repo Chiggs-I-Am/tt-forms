@@ -1,15 +1,16 @@
 import DynamicForm from "@components/form/dynamic-form";
-import AppToolbar from "@components/layout/app-toolbar";
+import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
-import Layout from "@components/layout/layout";
+import { XCircleIcon } from "@heroicons/react/solid";
 import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { firestore } from "@libs/firebase/firestore";
+import { NextPageWithLayout } from "@pages/_app";
 import { DocumentData } from "firebase-admin/firestore";
 import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
 import { camelCase } from "lodash";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect } from "react";
+import toast from "react-hot-toast";
 
 interface FormPageProps
 {
@@ -20,37 +21,39 @@ interface FormPageProps
   }
 }
 
-export default function FormPage({ form }: FormPageProps)
-{
+const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => {
   const { name, schema, uischema } = form;
-  const { data: session, status } = useSession();
+  const { status } = useSession();
+
+  const checkForUser = useCallback(() => {
+    if (status === "unauthenticated") {
+      toast.custom((t) => (
+        <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-error-container-light` }>
+          <div className="flex gap-2 h-14 px-4 items-center">
+            <XCircleIcon className="flex-none w-8 h-8 text-on-error-container-light" />
+            <p className="text-sm font-medium">You have to be signed in to submit this form</p>
+          </div>
+        </div>
+      ));
+    }
+  }, [ status ]);
+
+  useEffect( () => {
+    checkForUser();
+  }, [ checkForUser ]);
 
   return (
-    <Layout>
-      <div className="grid gap-6 w-full h-full grid-rows-[auto_1fr_auto]">
-        <AppToolbar></AppToolbar>
-        <Container>
-          <div className="grid w-full gap-4">
-            { status === "unauthenticated" ?
-              <div className="mx-auto w-full max-w-xs rounded-lg shadow-lg overflow-hidden bg-primary-container-light">
-                <div className="grid gap-2 p-4">
-                  <h1 className="text-base text-on-primary-container-light font-semibold">You have to be signed in to submit this form</h1>
-                  <button 
-                    className="w-fit h-10 px-6 rounded-full shadow-lg text-sm text-on-primary-light bg-primary-light"
-                    onClick={ () => signIn() }>Sign in</button>
-                </div>
-              </div>
-              : null
-            }
-            <DynamicForm
-              schema={ schema }
-              uischema={ uischema } />
-          </div>
-        </Container>
-      </div>
-    </Layout>
+    <Container>
+      <DynamicForm
+        schema={ schema }
+        uischema={ uischema } />
+    </Container>
   );
 }
+
+FormPage.Layout = AppLayout
+
+export default FormPage;
 
 export async function getStaticProps({ params }: any)
 {
