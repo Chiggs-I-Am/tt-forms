@@ -30,7 +30,7 @@ export default function Sidebar({ open, name, handleOnClick, children }: Sidenav
       <div className="relative z-50">
 
           <Transition.Child
-            appear={ true}
+            
             enter="ease-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
@@ -45,7 +45,7 @@ export default function Sidebar({ open, name, handleOnClick, children }: Sidenav
         <div className="fixed inset-0 overflow-hidden">
           <div className="grid w-full h-full place-items-end ">
             <Transition.Child
-              appear={ true }
+              
               enter="transition ease-in-out duration-300 transform"
               enterFrom="translate-x-full"
               enterTo="translate-x-0"
@@ -53,11 +53,11 @@ export default function Sidebar({ open, name, handleOnClick, children }: Sidenav
               leaveFrom="translate-x-0"
               leaveTo="translate-x-full"
               as={ Fragment }>
-                <div className="flex flex-col gap-6 w-full max-w-sm h-full bg-surface-light">
+                <div className="flex flex-col gap-6 w-full max-w-sm h-full dark:bg-surface-dark bg-surface-light">
                   <div className="flex w-full h-14 p-4 justify-between items-center">
-                    <h3 className="block text-sm font-bold text-on-surface-light">{ name }</h3>
+                    <h3 className="block text-sm font-bold dark:text-on-surface-dark text-on-surface-light">{ name }</h3>
                     <button 
-                      className="text-on-surface-light"
+                      className="dark:text-on-surface-dark text-on-surface-light"
                       onClick={ handleOnClick }>
                       <XIcon className="w-6 h-6" />
                     </button>
