@@ -6,6 +6,7 @@ import { firestore } from "@libs/firebase/firestore";
 import { doc, getDoc, writeBatch } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useCallback, useDeferredValue, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 interface CreateUsernameFormProps
 {
@@ -65,7 +66,7 @@ export default function CreateUsernameForm({ schema, uischema, userID }: CreateU
       await batch.commit();
 
       // show user created successfully
-      // toast.success("User created successfully");
+      toast.success("Username created successfully");
 
       router.push("/");
     }
