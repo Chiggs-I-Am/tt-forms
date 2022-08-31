@@ -1,3 +1,4 @@
+import { firestoreAdmin } from "@libs/firebase/firebaseAdmin";
 import { FirestoreAdapter } from "@next-auth/firebase-adapter";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
@@ -39,7 +40,23 @@ export const authOptions: NextAuthOptions = {
 	},
 	callbacks: {
 		session: async ({ session, user }) => {
+			let userData = {
+				...session.user,
+				userID: user.id
+			};
+			session.user = userData;
 			session.userID = user.id;
+
+			let userRef = await firestoreAdmin.doc( `users/${ user.id }` ).get();
+			let username = userRef.data()?.username;
+			
+			if( username ) {
+				let data = {
+					...session.user,
+					username
+				};
+				session.user = data;
+			}
 			return session;
 		}
 	},
