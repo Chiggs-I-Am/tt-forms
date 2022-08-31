@@ -88,11 +88,11 @@ export default function FormInput({
           peer h-14 w-full
           border border-outline-light 
           rounded-[4px]
-          text-sm text-gray-900
+          text-sm dark:text-on-surface-dark text-on-surface-light
           bg-transparent
           placeholder-transparent
-          focus:outline-none focus:border-2 focus:border-primary-light"/>
-      <label className="absolute left-2 -top-5 text-xs peer-focus:font-semibold">{ label }</label>
+          focus:outline-none focus:border-2 focus:dark:border-primary-dark focus:border-primary-light"/>
+      <label className="absolute left-2 -top-5 text-xs dark:text-on-surface-dark text-on-surface-light peer-focus:font-semibold">{ label }</label>
       {/* <label 
         htmlFor={ `${id}-input` } 
         className={ joinClassNames(

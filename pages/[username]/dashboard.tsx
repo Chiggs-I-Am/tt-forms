@@ -33,8 +33,8 @@ export default function UsernamePage({ userSession, forms }: UsernamePageProps )
         <Container>
           <div className="flex flex-col w-full gap-6 items-center">
             <UserProfile name={ user?.name! } email={ user?.email! } image={ user?.image! } />
-            <div className="w-full max-w-sm">
-              <h3 className="text-xs font-medium text-on-surface-light px-2 py-4">Completed Forms</h3>
+            <div className="w-full max-w-sm px-4">
+              <h3 className="text-xs font-medium dark:text-on-surface-variant-dark text-on-surface-light py-4">Completed Forms</h3>
               <UserForms forms={ forms } />
             </div>
           </div>

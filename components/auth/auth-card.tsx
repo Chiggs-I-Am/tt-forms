@@ -65,11 +65,11 @@ export default function AuthCard({ handleProviderSignIn, handleEmailSignIn, hand
 
   return (
     <div className="grid w-full h-full place-items-center">
-      <div className="w-full max-w-sm rounded-xl shadow-md overflow-hidden bg-primary-container-light">
+      <div className="w-full max-w-sm rounded-xl shadow-md overflow-hidden dark:bg-primary-dark bg-primary-container-light">
         <div className="grid w-full h-full min-h-[320px]">
           <div className="relative grid w-full justify-center">
-            <div className="w-[175px] h-fit p-4 text-center rounded-b-xl bg-primary-light">
-              <span className="text-lg font-bold text-on-primary-light">{ showSignInOptions ? "Join TT Forms" : "Welcome back" }</span>
+            <div className="w-[175px] h-fit p-4 text-center rounded-b-xl dark:bg-secondary-dark bg-primary-light">
+              <span className="text-lg font-bold dark:text-on-primary-dark text-on-primary-light">{ showSignInOptions ? "Join TT Forms" : "Welcome back" }</span>
             </div>
             { showCloseIcon ? 
                 <div className="absolute top-0 right-0 p-4">
@@ -100,7 +100,7 @@ export default function AuthCard({ handleProviderSignIn, handleEmailSignIn, hand
                   </div>
 
                   <div className="place-self-center">
-                    <p className="text-sm text-on-primary-container-light font-medium">Already have an account? <span className="font-bold text-tertiary-light select-none cursor-pointer" onClick={ () => setShowSignInOptions(false) }>Sign in</span>
+                    <p className="text-sm dark:text-on-primary-dark text-on-primary-container-light font-medium">Already have an account? <span className="font-bold text-tertiary-light select-none cursor-pointer" onClick={ () => setShowSignInOptions(false) }>Sign in</span>
                     </p>
                   </div>
                   
@@ -124,20 +124,13 @@ export default function AuthCard({ handleProviderSignIn, handleEmailSignIn, hand
                       onBlur={ handleBlur }
                       className="
                             peer h-14 w-full
-                            border border-outline-light 
+                            border border-outline-dark
                             rounded-[4px]
-                            text-sm text-gray-900 
+                            text-sm dark:text-on-primary-dark 
                             placeholder-transparent
-                            focus:outline-none focus:border-2 focus:border-primary-light"/>
-                    <label
-                      htmlFor={ `${ id }-input` }
-                      className={ joinClassNames(
-                        "absolute left-4 -top-2.5",
-                        "text-gray-600 bg-on-primary-light transition-all",
-                        "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4", "peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs",
-                        `${ !focused && dirty ? "px-1 text-xs" : "text-base" }`) }>
-                      Email
-                    </label>
+                            bg-inherit
+                            focus:outline-none focus:border-2 focus:border-primary-container-dark"/>
+                    <label className="absolute left-2 -top-5 text-xs dark:text-on-primary-dark text-on-primary-light peer-focus:font-semibold">Email</label>
                   </div>
                   <button
                     onClick={ () => handleSignInWithEmail(inputValue) }
@@ -201,18 +194,11 @@ export default function AuthCard({ handleProviderSignIn, handleEmailSignIn, hand
                             peer h-14 w-full
                             border border-outline-light 
                             rounded-[4px]
-                            text-sm text-gray-900 
+                            text-sm dark:text-on-primary-dark
+                            bg-inherit 
                             placeholder-transparent
-                            focus:outline-none focus:border-2 focus:border-primary-light"/>
-                    <label
-                      htmlFor={ `${ id }-input` }
-                      className={ joinClassNames(
-                        "absolute left-4 -top-2.5",
-                        "text-gray-600 bg-on-primary-light transition-all",
-                        "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4", "peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs",
-                        `${ !focused && dirty ? "px-1 text-xs" : "text-base" }`) }>
-                      Email
-                    </label>
+                            focus:outline-none focus:border-2 focus:border-primary-container-dark"/>
+                    <label className="absolute left-2 -top-5 text-xs dark:text-on-primary-dark text-on-primary-light peer-focus:font-semibold">Email</label>
                   </div>
                   <button
                     onClick={ () => handleSignInWithEmail(inputValue) }

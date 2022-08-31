@@ -39,8 +39,8 @@ function StepperLayout( props: StepperLayoutProps )
               <Tab as="div"
                 key={ category.label } 
                 className={ ({ selected }) => 
-                  joinClassNames( !selected ? "hidden" : "" , "flex items-center w-full h-14 text-sm text-left text-white p-4 select-none" )}>
-                <span className="text-on-surface-light font-semibold">{ category.label }</span>
+                  joinClassNames( !selected ? "hidden" : "" , "flex items-center w-full h-14 text-sm text-left p-4 select-none" )}>
+                <span className="dark:text-on-surface-dark text-on-surface-light font-semibold">{ category.label }</span>
               </Tab>
           ))}
           </Tab.List>
@@ -64,17 +64,17 @@ function StepperLayout( props: StepperLayoutProps )
         <div className="flex p-4 items-center justify-between">
           <button 
             disabled={ selectedIndex === 0 }
-            className="flex w-fit h-fit rounded-full overflow-hidden outline outline-2 outline-outline-light"
+            className="flex w-fit h-fit rounded-full overflow-hidden outline outline-2 dark:outline-primary-dark outline-outline-light"
             onClick={ () => {
             if( selectedIndex > 0 ) setSelectedIndex( selectedIndex - 1 )
           }}>
-            <span className="flex h-10 px-6 items-center justify-center text-sm text-secondary-light font-medium">Back</span>
+            <span className="flex h-10 px-6 items-center justify-center text-sm dark:text-secondary-dark text-secondary-light font-medium">Back</span>
           </button>
 
           <button 
             className={
               joinClassNames( `${ selectedIndex === categorization.elements.length - 1 ? "hidden" : "" }`, 
-              "flex w-fit h-fit rounded-full overflow-hidden bg-primary-container-light text-sm text-on-primary-container-light font-medium" )}
+              "flex w-fit h-fit rounded-full overflow-hidden dark:bg-primary-dark dark:text-on-primary-dark bg-primary-container-light text-sm text-on-primary-container-light font-medium" )}
             disabled={ selectedIndex === categorization.elements.length - 1 }
             onClick={ () => {
               if( selectedIndex < categorization.elements.length - 1 ) setSelectedIndex( selectedIndex + 1 )
@@ -85,7 +85,7 @@ function StepperLayout( props: StepperLayoutProps )
           <button 
             className={ 
               joinClassNames( `${ selectedIndex !== categorization.elements.length - 1 ? "hidden" : "" }`, 
-                "flex w-fit h-fit rounded-full overflow-hidden text-sm text-on-primary-container-light bg-primary-container-light font-medium" )}
+                "flex w-fit h-fit rounded-full overflow-hidden text-sm dark:bg-primary-dark dark:text-on-primary-dark text-on-primary-container-light bg-primary-container-light font-medium" )}
             onClick={ () => {
               setShowPreview( true );
               setSectionIndex( undefined );
