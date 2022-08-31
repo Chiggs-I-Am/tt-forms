@@ -8,13 +8,16 @@ import { JsonForms } from "@jsonforms/react";
 import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 
 import ArraryControlRenderer, { ArrayControlRendererTester } from "@components/form/arrary-control-renderer";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import { firestore } from "@libs/firebase/firestore";
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { kebabCase } from "lodash";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { createContext, useCallback, useEffect, useState } from 'react';
+import toast from "react-hot-toast";
 import PreviewForm from "./preview-form";
 
 interface DynamicFormProps
@@ -41,6 +44,8 @@ export const SelectedIndexContext = createContext( {} as SectionIndexContextProp
 export default function DynamicForm({ schema, uischema }: DynamicFormProps )
 {
   const [ formData, setFormData ] = useState<{} | null>(null);
+
+  const router = useRouter();
   
   const joinClassNames = useJoinClassNames();
   const styles = useStyles();
@@ -100,6 +105,29 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const onSubmitForm = async () => {
     if( !session ) {
       // show toast -> you need to be signed in to submit this form
+      toast.custom((t) => (
+        <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-error-container-light` }>
+          <div className="flex gap-2 h-14 px-4 items-center justify-center">
+            <XCircleIcon className="w-8 h-8 text-on-error-container-light" />
+            <p className="text-sm font-medium">You have to be signed in to submit this form</p>
+          </div>
+        </div>
+      ));
+      return
+    }
+
+    if( !isValid ) {
+      toast.custom((t) => (
+        <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-error-container-light` }>
+          <div className="flex gap-2 h-14 px-4 items-center justify-center">
+            <XCircleIcon className="w-8 h-8 text-on-error-container-light" />
+            <p className="text-sm font-medium">Please fix all errors before submitting</p>
+          </div>
+        </div>
+      ));
+
+      setShowPreview( false );
+
       return
     }
     
@@ -118,14 +146,21 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
       await setDoc( userDocRef, data, { merge: true } );
       
       setShowPreview( false );
-      // show document created success
-      // toast.success("Form submitted!")
+      
+      toast.custom((t) => (
+        <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-secondary-container-light` }>
+          <div className="flex gap-2 h-14 px-4 items-center">
+            <CheckCircleIcon className="flex-none w-8 h-8 text-green-500" />
+            <p className="text-sm font-medium">Form submitted</p>
+          </div>
+        </div>
+      ));
       
       // redirect to home page
-      // router.push("/");
+      router.push("/");
     }
     catch( error: any ) {
-      alert( error.message );
+      console.log( error.message );
     }
   };
 
