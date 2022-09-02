@@ -12,10 +12,6 @@ export default function AppLayout( page: ReactElement )
   const { data, error } = useSWR( "/api/auth/session", getUserSession );
   const [ showAuthDialog, setShowAuthDialog ] = useState( false );
 
-  const AuthDialog = ({ children }: any ) => (
-    <>{ children }</>
-  );
-
   return (
     <div className="grid grid-flow-row auto-rows-max">
       <AppToolbar userSession={ data } handleSignIn={ () => setShowAuthDialog( true ) } />
