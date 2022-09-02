@@ -1,3 +1,4 @@
+import { useAuthState } from "@components/auth/user-auth-state";
 import DynamicForm from "@components/form/dynamic-form";
 import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
@@ -8,7 +9,6 @@ import { NextPageWithLayout } from "@pages/_app";
 import { DocumentData } from "firebase-admin/firestore";
 import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
 import { camelCase } from "lodash";
-import { useSession } from "next-auth/react";
 import { useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -23,10 +23,10 @@ interface FormPageProps
 
 const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => {
   const { name, schema, uischema } = form;
-  const { status } = useSession();
+  const { user } = useAuthState();
 
   const checkForUser = useCallback(() => {
-    if (status === "unauthenticated") {
+    if ( !user ) {
       toast.custom((t) => (
         <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-error-container-light` }>
           <div className="flex gap-2 h-14 px-4 items-center">
@@ -36,7 +36,7 @@ const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => 
         </div>
       ));
     }
-  }, [ status ]);
+  }, [ user ]);
 
   useEffect( () => {
     checkForUser();

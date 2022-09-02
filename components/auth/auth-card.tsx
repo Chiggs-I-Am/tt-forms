@@ -5,13 +5,13 @@ import { ChangeEvent, useCallback, useId, useRef, useState } from "react";
 
 interface AuthCardProps
 {
-  handleProviderSignIn: ( provider: string ) => void;
+  handleGoogleSignIn: () => void;
   handleEmailSignIn: ( email: string ) => void;
   handleCloseDialog?: () => void;
   showCloseIcon?: boolean;
 }
 
-export default function AuthCard({ handleProviderSignIn, handleEmailSignIn, handleCloseDialog, showCloseIcon = false }: AuthCardProps)
+export default function AuthCard({ handleGoogleSignIn, handleEmailSignIn, handleCloseDialog, showCloseIcon = false }: AuthCardProps)
 {
   const [showSignInOptions, setShowSignInOptions] = useState(true);
   const [showSignUpOptions, setShowSignUpOptions] = useState(true);
@@ -34,8 +34,8 @@ export default function AuthCard({ handleProviderSignIn, handleEmailSignIn, hand
   }, [ handleCloseDialog ]);
 
   const handleSignInWithGoogle = useCallback(async () => {
-    handleProviderSignIn("google");
-  }, [ handleProviderSignIn ]);
+    handleGoogleSignIn();
+  }, [ handleGoogleSignIn ]);
 
   const handleSignInWithEmail = useCallback(async (email: string) => {
     handleEmailSignIn( email );

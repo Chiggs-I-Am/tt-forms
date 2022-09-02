@@ -19,6 +19,7 @@ import { useRouter } from "next/router";
 import { createContext, useCallback, useEffect, useState } from 'react';
 import toast from "react-hot-toast";
 import PreviewForm from "./preview-form";
+import { useAuthState } from "@components/auth/user-auth-state";
 
 interface DynamicFormProps
 {
@@ -55,7 +56,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
 
   const [ sectionIndex, setSectionIndex ] = useState<number | undefined>();
 
-  const { data: session } = useSession();
+  const { user } = useAuthState();
   
   const renderers = [
     ...vanillaRenderers,
@@ -100,10 +101,8 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     setSectionIndex( index );
   }, []);
 
-  const userID = session?.userID as string;
-
   const onSubmitForm = async () => {
-    if( !session ) {
+    if( !user ) {
       // show toast -> you need to be signed in to submit this form
       toast.custom((t) => (
         <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-error-container-light` }>
@@ -142,7 +141,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     let formName = schema.$id as string;
     
     try { 
-      let userDocRef = doc( firestore, "users", userID, "forms", kebabCase(formName) );
+      let userDocRef = doc( firestore, "users", user.uid, "forms", kebabCase(formName) );
       await setDoc( userDocRef, data, { merge: true } );
       
       setShowPreview( false );

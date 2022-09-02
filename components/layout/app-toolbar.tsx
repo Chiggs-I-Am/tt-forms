@@ -1,10 +1,11 @@
 import AuthCard from "@components/auth/auth-card";
+import { useAuthState } from "@components/auth/user-auth-state";
 import { Transition } from "@headlessui/react";
 import * as Popover from "@radix-ui/react-popover";
 import { Session } from "next-auth";
-import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { ReactNode, useCallback, useState } from "react";
 
 interface AppToolbarProps
@@ -26,18 +27,33 @@ interface UserSession extends Session
   }
 }
 
-export default function AppToolbar({ children, userSession, handleSignOut, handleSignIn }: AppToolbarProps)
+export default function AppToolbar({ children, userSession }: AppToolbarProps)
 {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const { user, isNewUser, signInWithGoogle, signInWithEmail, signOut } = useAuthState();
+
+  const router = useRouter();
 
   const onSignOut = useCallback(() => {
-    if (handleSignOut) handleSignOut();
     signOut();
-  }, [ handleSignOut ]);
+  }, [ signOut ]);
 
-  /* const showAuthDialog = useCallback( () => {
-    if( handleSignIn ) handleSignIn();
-  }, [ handleSignIn ]); */
+  const checkIsNewUser = useCallback(() => {
+    if( isNewUser ) {
+      console.log( "is new user?", isNewUser );
+      router.push( "/auth/create-username" );
+    }
+  }, [ isNewUser, router ]);
+
+  const handleGoogleSignIn = useCallback( async () => {
+    await signInWithGoogle();
+    setShowAuthDialog( false );
+    
+    if( isNewUser ) {
+      console.log( "is new user?", isNewUser );
+      router.push( "/auth/create-username" );
+    }
+  }, [ signInWithGoogle, isNewUser, router ]);
 
   return (
     <>
@@ -48,18 +64,19 @@ export default function AppToolbar({ children, userSession, handleSignOut, handl
           </Link>
         </div>
         { children }
-        { !userSession?.user ?
+        { !user ?
           <button
             onClick={ () => setShowAuthDialog( true ) }
             className="flex items-center justify-center text-sm font-medium h-10 px-6 rounded-full shadow-md dark:bg-secondary-container-dark dark:text-on-secondary-container-dark bg-secondary-container-light text-on-secondary-container-light">
             Get started
           </button>
           :
+          // Move to <UserAvatar user={ userSession.user } />
           <Popover.Root>
             <Popover.Trigger asChild>
               <div className="relative w-8 h-8 rounded-full overflow-hidden">
                 <Image 
-                  src={ `${ userSession.user?.image }` } 
+                  src={ `${ user.photoURL }` } 
                   alt="profile image" 
                   layout="fill" />
               </div>
@@ -72,17 +89,17 @@ export default function AppToolbar({ children, userSession, handleSignOut, handl
                     <li className="flex p-4 items-center justify-center">
                       <div className="relative w-16 h-16 rounded-full overflow-hidden">
                         <Image 
-                          src={ `${ userSession.user?.image }` } 
+                          src={ `${ user.photoURL }` } 
                           alt="Profile image" 
                           layout="fill" />
                       </div>
                     </li>
                     <li className="h-12 border-b dark:border-outline-dark border-outline-light">
-                      <h3 className="text-sm font-semibold dark:text-on-surface-variant-dark text-on-surface-light">{ userSession.user?.name }</h3>
-                      <p className="text-xs dark:text-outline-dark text-outline-light">{ userSession.user?.email }</p>
+                      <h3 className="text-sm font-semibold dark:text-on-surface-variant-dark text-on-surface-light">{ user.displayName }</h3>
+                      <p className="text-xs dark:text-outline-dark text-outline-light">{ user.email }</p>
                     </li>
                     <li className="flex h-12 border-b dark:border-outline-dark border-outline-light">
-                      <Link href={ `/${ userSession.user?.username?.toLowerCase() }/dashboard` }>
+                      <Link href={ `/${ `username`?.toLowerCase() }/dashboard` }>
                         <a className="flex items-center justify-center w-full text-sm text-center dark:text-on-surface-variant-dark text-on-surface-light font-semibold hover:dark:bg-surface-dark focus:dark:bg-surface-dark dark:outline-primary-dark hover:bg-surface-variant-light focus:bg-surface-variant-light outline-primary-light">Dashboard</a>
                       </Link>
                     </li>
@@ -116,8 +133,8 @@ export default function AppToolbar({ children, userSession, handleSignOut, handl
             <Transition.Child>
               <div className="fixed inset-0 grid place-items-center z-50">
                 <AuthCard
-                  handleProviderSignIn={ (provider) => signIn(provider) }
-                  handleEmailSignIn={ (email) => signIn("email", { email }) }
+                  handleGoogleSignIn={ handleGoogleSignIn }
+                  handleEmailSignIn={ ( email ) => signInWithEmail( email ) }
                   showCloseIcon={ true }
                   handleCloseDialog={ () => setShowAuthDialog(false) } />
               </div>

@@ -1,6 +1,6 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 
 import ActivitiesList from "@components/activities-list";
@@ -9,10 +9,10 @@ import ActivityItem from "@components/activity-item";
 import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
 import Sidebar from "@components/layout/sidebar";
+import { auth } from "@libs/firebase/auth";
 import { firestore } from "@libs/firebase/firestore";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { Session, unstable_getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]";
+import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
 import { NextPageWithLayout } from "./_app";
 
 interface HomePageProps
@@ -28,14 +28,35 @@ interface HomePageProps
       }
     };
   }[];
-  userSession: Session;
 }
 
-const Home: NextPageWithLayout<HomePageProps> = ({ activities, userSession }: HomePageProps) =>
+const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) =>
 {
   const [activityName, setActivityName] = useState<string>("");
   const [forms, setForms] = useState([] as { name: string; fee: number; slug: string }[]);
   const [isOpen, setIsOpen] = useState(false);
+
+  const emailSignIn = useCallback( async () => {
+    if( isSignInWithEmailLink( auth, window.location.href ) ) {
+      let email = window.localStorage.getItem( "emailForSignIn" );
+      if( !email ) {
+        // prompt user for email address
+      }
+      try {
+        let userCredential = await signInWithEmailLink( auth, email!, window.location.href );
+        // userCredential.additionalUserInfo.isNewUser
+        console.log( userCredential );
+        window.localStorage.removeItem( "emailForSignIn" );
+      }
+      catch( error: any ) {
+        console.log( error.code, error.message );
+      }
+    }
+  }, [])
+
+  useEffect( () => {
+    emailSignIn()
+  }, [ emailSignIn ]);
 
   const toggleSidbar = useCallback(() =>
   {
@@ -95,9 +116,9 @@ export async function getServerSideProps({ req, res }: { req: NextApiRequest, re
 {
   let activitiesCollectionRef = collection(firestore, "activities");
   let activitiesSnapshot = await getDocs(activitiesCollectionRef);
-  let activities = activitiesSnapshot.docs.map(doc => doc.data());
+  let activities = activitiesSnapshot.docs.map( doc => doc.data() );
 
-  let userSession = await unstable_getServerSession(req, res, authOptions);
+  /* let userSession = await unstable_getServerSession(req, res, authOptions);
 
   if (!userSession)
   {
@@ -106,9 +127,9 @@ export async function getServerSideProps({ req, res }: { req: NextApiRequest, re
         activities
       }
     };
-  }
+  } */
 
-  try
+  /* try
   {
     let userID = userSession.userID as string;
     let usernamesCollectionRef = collection(firestore, "usernames");
@@ -128,12 +149,11 @@ export async function getServerSideProps({ req, res }: { req: NextApiRequest, re
       };
     }
   }
-  catch (error: any) { }
+  catch (error: any) { } */
 
   return {
     props: {
       activities,
-      userSession
     }
   };
 }
