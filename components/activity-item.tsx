@@ -11,7 +11,7 @@ interface ActivityItemProps
 export default function ActivityItem({ name, numberOfForms, imageURL, handleOnClick }: ActivityItemProps ) 
 {
   return (
-    <div className="w-full max-w-xs rounded-xl shadow-md overflow-hidden dark:bg-primary-container-dark bg-primary-light">
+    <div className="w-full max-w-xs rounded-xl shadow-md overflow-hidden dark:bg-primary-dark bg-primary-light">
         {/* Card */}
         <div className="flex sm:block">
 
@@ -26,7 +26,7 @@ export default function ActivityItem({ name, numberOfForms, imageURL, handleOnCl
 
           <div className="flex flex-col w-2/3 gap-1 p-4 sm:w-full">
             
-            <h3 className="text-sm font-bold dark:text-on-primary-container-dark">
+            <h3 className="text-sm font-bold dark:text-on-primary-dark">
               { name }
             </h3>
             
@@ -34,7 +34,7 @@ export default function ActivityItem({ name, numberOfForms, imageURL, handleOnCl
           
             <div className="mt-2">
               <button 
-                className="h-10 px-6 text-sm font-medium rounded-full shadow-md dark:bg-secondary-dark dark:text-on-secondary-dark bg-primary-container-light text-on-primary-container-light"
+                className="h-10 px-6 text-sm font-medium rounded-full shadow-md dark:bg-secondary-container-dark dark:text-on-secondary-container-dark bg-primary-container-light text-on-primary-container-light"
                 onClick={ handleOnClick }>
                   { numberOfForms == 1 ? `View Form` : `View Forms` }
               </button>
