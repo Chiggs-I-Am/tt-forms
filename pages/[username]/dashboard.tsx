@@ -21,12 +21,12 @@ interface UsernamePageProps
 
 const UserDashboard: NextPageWithLayout<UsernamePageProps> = ( { forms }: UsernamePageProps ) =>
 {
-  const { user } = useAuthState();
+  const { user, username } = useAuthState();
 
   return (
     <Container>
       <div className="flex flex-col w-full gap-6 items-center mt-6">
-        { user && <UserProfile name={ user?.displayName! } email={ user?.email! } image={ user?.photoURL! } /> }
+        { user && <UserProfile user={{ ...user, username }} /> }
         <div className="w-full max-w-sm px-4">
           <h3 className="text-xs font-medium dark:text-on-surface-variant-dark text-on-surface-light py-4">Completed Forms</h3>
           { forms.length === 0 ?
@@ -44,7 +44,7 @@ UserDashboard.Layout = AppLayout;
 
 export default UserDashboard;
 
-export async function getServerSideProps( { req, res, query }: GetServerSidePropsContext )
+export async function getServerSideProps( { query }: GetServerSidePropsContext )
 {
   const { username } = query;
 
@@ -78,8 +78,6 @@ export async function getServerSideProps( { req, res, query }: GetServerSideProp
       return form;
     } );
   }
-
-  console.log( "FORMS", forms );
 
   return {
     props: {
