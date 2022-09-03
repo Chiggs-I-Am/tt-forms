@@ -1,20 +1,22 @@
+import { useAuthState } from "@components/auth/user-auth-state";
 import { ReactElement, useState } from 'react';
-import useSWR from "swr";
 import AppToolbar from "./app-toolbar";
 
-async function getUserSession( endpoint: string ) {
+async function getUser( endpoint: string ) {
   let response = await fetch( endpoint );
   return response.json();
 }
 
 export default function AppLayout( page: ReactElement )
 {
-  const { data, error } = useSWR( "/api/auth/session", getUserSession );
+  const { user } = useAuthState();
   const [ showAuthDialog, setShowAuthDialog ] = useState( false );
+  
+  // const username = 
 
   return (
     <div className="grid grid-flow-row auto-rows-max">
-      <AppToolbar userSession={ data } handleSignIn={ () => setShowAuthDialog( true ) } />
+      <AppToolbar handleSignIn={ () => setShowAuthDialog( true ) } />
       {/* NOTE: height = viewport height - navbar height */}
       <main className="grid h-[calc(100vh-56px)]">
         { page }
