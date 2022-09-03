@@ -1,5 +1,5 @@
 import { additionalUserInfo, auth, signInWithEmail, signInWithGoogle } from "@libs/firebase/auth";
-import { createUser } from "@libs/firebase/firestore";
+import { createUser, getFirestoreDocument } from "@libs/firebase/firestore";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { useRouter } from "next/router";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
@@ -7,6 +7,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 interface UserAuthStateProps
 {
   user: User | null | undefined;
+  username: string | undefined;
   isNewUser: boolean | undefined;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: ( email: string ) => void;
@@ -22,10 +23,10 @@ interface UserAuthStateProviderProps
 
 export function UserAuthStateProvider({ children }: UserAuthStateProviderProps )
 {
-  const { user, isNewUser, signInWithGoogle, signInWithEmail, signOut } = useAuthProvider();
+  const { user, username, isNewUser, signInWithGoogle, signInWithEmail, signOut } = useAuthProvider();
 
   return (
-    <UserAuthStateContext.Provider value={{ user, isNewUser, signInWithGoogle, signInWithEmail, signOut }}>
+    <UserAuthStateContext.Provider value={{ user, username, isNewUser, signInWithGoogle, signInWithEmail, signOut }}>
       { children }
     </UserAuthStateContext.Provider>
   );
@@ -39,6 +40,7 @@ function useAuthProvider()
 {
   const [ user, setUser ] = useState<User | null | undefined>( null );
   const [ isNewUser, setIsNewUser ] = useState<boolean | undefined>( false );
+  const [ username, setUsername ] = useState<string>();
 
   const router = useRouter();
 
@@ -69,7 +71,15 @@ function useAuthProvider()
 
   useEffect( () => {
     const unsubscribe = onAuthStateChanged( auth, ( user ) => {
-      if( user ) setUser( user );
+      if( user ) {
+        setUser( user );
+
+        getFirestoreDocument( "users", user?.uid )
+          .then( docData => {
+            let username = docData.data()?.username;
+            setUsername( username );
+        });
+      }
     });
 
     return () => unsubscribe();
@@ -77,6 +87,7 @@ function useAuthProvider()
 
   return {
     user,
+    username,
     isNewUser,
     signInWithGoogle: signInWithGoogleProvider,
     signInWithEmail: signInWithPasswordLessEmail,
