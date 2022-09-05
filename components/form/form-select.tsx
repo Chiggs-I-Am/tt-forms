@@ -41,8 +41,6 @@ function FormSelect({ data, options, onChange, label, required, handleFocus, han
   useEffect( () => {
     if( data ) {
       setDirty( true );
-
-      console.log( "data", data );
     }
   }, [ data ]);
 
@@ -96,7 +94,7 @@ function FormSelect({ data, options, onChange, label, required, handleFocus, han
         { ({ activeOption }) => (
           <>
             <div className="relative">
-              <div className="relative w-full rounded-[4px] bg-surface-light text-left">
+              <div className="relative w-full rounded-[4px] text-left">
                 
                 <Combobox.Input 
                   ref={ inputRef }
@@ -104,26 +102,19 @@ function FormSelect({ data, options, onChange, label, required, handleFocus, han
                   peer h-14 w-full
                   border border-outline-light
                   rounded-[4px]
-                  text-sm text-gray-900 
+                  text-sm dark:text-on-surface-dark text-on-surface-light
                   placeholder-transparent
-                  focus:outline-none focus:border-2 focus:border-primary-light"
+                  bg-inherit 
+                  focus:outline-none focus:border-2 focus:dark:border-primary-dark focus:border-primary-light"
                   required={ required }
                   onChange={ onQueryChange }
                   onFocus={ handleFocus }
                   onBlur={ onBlur }/>
 
-                  <Combobox.Label 
-                    className={ joinClassNames(
-                      `${ !focused && dirty ? "px-1 text-xs -top-2.5" : "text-base top-4" }`,
-                      "absolute left-4 ",
-                      "text-gray-600 bg-on-primary-light transition-all",
-                      "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4",
-                      "peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs")}>
-                    { label }
-                  </Combobox.Label>
+                <Combobox.Label className="absolute left-2 -top-5 text-xs dark:text-on-surface-dark text-surface-light peer-focus:font-semibold">{ label }</Combobox.Label>
 
                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                  <SelectorIcon className="w-5 h-5" />
+                  <SelectorIcon className="w-5 h-5 dark:text-on-surface-dark" />
                 </Combobox.Button>
                 
               </div>
@@ -133,9 +124,9 @@ function FormSelect({ data, options, onChange, label, required, handleFocus, han
                 leaveFrom="opacity-100"
                 leaveTo="opacity-0"
                 afterLeave={ () => setQueryValue("") }>
-                <Combobox.Options className="absolute mt-5 max-h-52 w-full overflow-auto rounded-md bg-surface-light py-1 text-sm shadow-lg z-50 [scrollbar-width:thin] [scrollbar-gutter:auto] [&::-webkit-scrollbar-track]:w-1">
+                <Combobox.Options className="absolute mt-5 max-h-52 w-full overflow-auto rounded-md dark:bg-surface-variant-dark bg-surface-light py-1 text-sm shadow-lg z-50 [scrollbar-width:thin] [scrollbar-gutter:auto] [&::-webkit-scrollbar-track]:w-1">
                   { filteredOptions?.length === 0 && queryValue !== "" ? (
-                      <div className="relative cursor-default select-none px-4 py-2 text-on-surface-light">
+                      <div className="relative cursor-default select-none px-4 py-2 dark:text-on-surface-variant-dark text-on-surface-light">
                         Nothing Found.
                       </div>
                     )
@@ -145,14 +136,14 @@ function FormSelect({ data, options, onChange, label, required, handleFocus, han
                         key={ index } 
                         value={ filteredOption } 
                         className={({ active }) =>
-                          `relative cursor-default select-none py-2 pl-10 pr-4 
-                          ${ active ? 'bg-primary-light text-on-primary-light' : 'text-on-surface-light'}`}>
+                          `relative cursor-default select-none py-2 pl-10 pr-4 hover:cursor-pointer
+                          ${ active ? 'dark:bg-primary-dark dark:text-on-primary-dark bg-primary-light text-on-primary-light' : 'dark:text-on-surface-variant-dark text-on-surface-light'}`}>
                         { ({ selected, active }) => (
                           <>
                             <span>{ `${ filteredOption.label }` }</span>
                             { selected ? (
                               <span>
-                                <CheckIcon className="w-5 h-5" aria-hidden="true"/>
+                                <CheckIcon className="w-5 h-5 dark:text-on-primary-dark text-on-primary-light" aria-hidden="true"/>
                               </span>
                             ) : null }
                           </>

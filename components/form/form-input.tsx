@@ -88,18 +88,20 @@ export default function FormInput({
           peer h-14 w-full
           border border-outline-light 
           rounded-[4px]
-          text-sm text-gray-900 
+          text-sm dark:text-on-surface-dark text-on-surface-light
+          bg-transparent
           placeholder-transparent
-          focus:outline-none focus:border-2 focus:border-primary-light"/>
-      <label 
+          focus:outline-none focus:border-2 focus:dark:border-primary-dark focus:border-primary-light"/>
+      <label className="absolute left-2 -top-5 text-xs dark:text-on-surface-dark text-on-surface-light peer-focus:font-semibold">{ label }</label>
+      {/* <label 
         htmlFor={ `${id}-input` } 
         className={ joinClassNames(
           "absolute left-4 -top-2.5", 
-          "text-gray-600 bg-on-primary-light transition-all",
-          "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4","peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs",
+          "text-gray-600 transition-all",
+          "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4","peer-focus:-top-2.5 peer-focus:text-primary-light  peer-focus:px-1 peer-focus:text-xs peer-focus:bg-inherit",
           `${ !focused && dirty ? "px-1 text-xs" : "text-base"}`)}>
         { label }
-      </label>
+      </label> */}
     </>
   )
 }

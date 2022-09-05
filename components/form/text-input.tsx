@@ -76,7 +76,7 @@ function TextInputControl( props: ControlProps & VanillaRendererProps )
         handleFocus={ handleFocus }
         handleBlur={ () => validateInput() }/>
         
-      <div className="text-xs text-black font-medium px-2">
+      <div className="text-xs dark:text-on-surface-dark text-on-surface-light font-medium px-2">
         { 
           !isValid || error ? 
             <ValidationHelperText error={ error } />

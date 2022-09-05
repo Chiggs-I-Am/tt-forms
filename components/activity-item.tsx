@@ -11,31 +11,32 @@ interface ActivityItemProps
 export default function ActivityItem({ name, numberOfForms, imageURL, handleOnClick }: ActivityItemProps ) 
 {
   return (
-    <div className="w-full max-w-xs rounded-xl shadow-md overflow-hidden bg-primary-container-light">
+    <div className="w-full max-w-xs rounded-xl shadow-md overflow-hidden dark:bg-primary-dark bg-primary-light">
         {/* Card */}
         <div className="flex sm:block">
 
-          <div className="relative w-1/3 max-w-sm sm:w-full sm:aspect-video bg-on-primary-container-light">
+          <div className="relative w-1/3 max-w-sm sm:w-full sm:aspect-video">
             <Image
               src={ imageURL }
               objectFit="cover"
               layout="fill"
-              alt="Card image"/>
+              alt="Card image"
+              priority/>
           </div>
 
           <div className="flex flex-col w-2/3 gap-1 p-4 sm:w-full">
             
-            <h3 className="text-sm font-bold">
+            <h3 className="text-sm font-bold dark:text-on-primary-dark">
               { name }
             </h3>
             
-            <p className="text-xs font-medium text-outline-light">{ numberOfForms } Forms</p>
+            <p className="text-xs font-medium dark:text-outline-dark text-outline-light">{ numberOfForms == 1 ? `${ numberOfForms } Form` : `${ numberOfForms } Forms` }</p>
           
             <div className="mt-2">
               <button 
-                className="h-10 px-6 text-sm font-medium rounded-full shadow-md bg-primary-light text-on-primary-light"
+                className="h-10 px-6 text-sm font-medium rounded-full shadow-md dark:bg-secondary-container-dark dark:text-on-secondary-container-dark bg-primary-container-light text-on-primary-container-light"
                 onClick={ handleOnClick }>
-                  View Forms
+                  { numberOfForms == 1 ? `View Form` : `View Forms` }
               </button>
             </div>
 

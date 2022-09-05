@@ -17,7 +17,7 @@ export default function ValidationHelperText({ error }: HelperTextProps )
   }, [ error ]);
 
   return (
-    <div className="text-error-light text-xs font-medium">
+    <div className="dark:text-error-dark text-error-light text-xs font-medium">
       { errorMessage }
     </div>
   )

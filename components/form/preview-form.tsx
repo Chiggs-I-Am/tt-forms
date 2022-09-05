@@ -1,7 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { PencilIcon } from "@heroicons/react/solid";
 import { lowerCase, startCase, upperFirst } from "lodash";
-import Link from "next/link";
 import { Fragment, useCallback, useState } from 'react';
 
 interface PreviewFormProps
@@ -64,15 +63,15 @@ export default function PreviewForm({ open, formData, title, description, submit
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95">
 
-                <Dialog.Panel className="w-full max-w-sm space-y-4 overflow-hidden rounded-xl bg-white p-4 text-left align-middle shadow-xl transform transition-all sm:max-w-md sm:space-y-6 sm:p-6">
+                <Dialog.Panel className="w-full max-w-sm space-y-4 overflow-hidden rounded-xl dark:bg-surface-variant-dark bg-surface-light p-4 text-left align-middle shadow-xl transform transition-all sm:max-w-md sm:space-y-6 sm:p-6">
                 {/* <Dialog.Panel className="w-full h-full space-y-4 p-4 max-w-sm overflow-hidden transform transition-all bg-surface-light text-left align-middle sm:p-6 sm:rounded-xl sm:shadow-lg"> */}
                   
                   <Dialog.Title className="flex items-center">
-                    <h3  className="text-sm font-bold">{ startCase( title ) ?? "Review and Submit" }</h3>              
+                    <span  className="text-sm dark:text-on-surface-variant-dark text-on-surface-light font-semibold">{ startCase( title ) ?? "Review and Submit" }</span>              
                   </Dialog.Title>
                   
                   <Dialog.Description>
-                    <span className="text-sm font-medium">{ description }</span>
+                    <span className="text-sm dark:text-on-surface-variant-dark text-on-surface-light font-medium">{ description }</span>
                   </Dialog.Description>
                   
                   <div className="grid gap-2">
@@ -82,16 +81,15 @@ export default function PreviewForm({ open, formData, title, description, submit
 
                       return (
                         <>
-                          <div className="pb-1 outline outline-1 outline-outline-light rounded-lg">
-                          <div className="flex px-4 py-2 items-center justify-between text-sm font-medium bg-secondary-container-light text-on-secondary-container-light">
+                          <div className="pb-1 outline outline-1 dark:outline-outline-dark outline-outline-light rounded-lg overflow-hidden">
+                          <div className="flex px-4 py-2 items-center justify-between text-sm font-medium dark:bg-secondary-container-dark dark:text-on-secondary-container-dark bg-secondary-container-light text-on-secondary-container-light">
                             <h3>{ name }</h3>
-                            <Link href="">
-                              <a 
-                                className="p-1 rounded-full bg-on-secondary-container-light text-secondary-container-light"
+                            
+                              <button 
+                                className="p-1 rounded-full dark:bg-on-secondary-container-dark dark:text-secondary-container-dark bg-on-secondary-container-light text-secondary-container-light"
                                 onClick={ () => editSection( index ) }>
                                 <PencilIcon className="w-4 h-4" />
-                              </a>
-                            </Link>
+                              </button>
                           </div>
                           { typeof value === "object"
                               ? Object.keys( value ).map( ( valueKey: string ) => {
@@ -100,9 +98,9 @@ export default function PreviewForm({ open, formData, title, description, submit
                                   let name = upperFirst( lowerCase( valueKey ) );
 
                                   return (
-                                    <ul key={ valueKey } className="px-4 py-1">
-                                      <li className="text-xs">
-                                        <span className="font-medium">{ `${ name }` }</span>
+                                    <div key={ valueKey } className="px-4 py-1">
+                                      <div className="flex text-xs">
+                                        <h3 className="font-medium dark:text-on-surface-dark">{ `${ name }` }</h3>
                                         { 
                                           Array.isArray( objValue ) 
                                             ? objValue.map( ( item: any, index: number ) => {
@@ -113,17 +111,17 @@ export default function PreviewForm({ open, formData, title, description, submit
 
                                                 return (
                                                   <div key={ index }>
-                                                    <div>{ `${ itemValue }` }</div>
+                                                    <span className="dark:text-on-surface-variant-dark text-on-surface-light">{ `${ itemValue }` }</span>
                                                   </div>
                                                 );
                                               })
-                                            : <span>{ `: ${ objValue }` }</span> 
+                                            : <span className="dark:text-on-surface-variant-dark text-on-surface-light">{ `: ${ objValue }` }</span> 
                                         }
-                                      </li>
-                                    </ul>
+                                      </div>
+                                    </div>
                                   );
                                 })
-                              : <div className="px-4 py-1 text-xs">{ value }</div>
+                              : <div className="px-4 py-1 text-xs dark:text-on-surface-variant-dark text-on-surface-light">{ value }</div>
                           }
                           </div>
                         </>
@@ -132,7 +130,7 @@ export default function PreviewForm({ open, formData, title, description, submit
                   </div>
                   <div className="flex w-full justify-between">
                     <button 
-                      className="h-10 px-6 rounded-full text-sm text-on-surface-light font-medium bg-surface-light border-2 border-solid border-on-surface-variant-light"
+                      className="h-10 px-6 rounded-full text-sm text-on-surface-light font-medium border-2 border-solid dark:border-primary-dark dark:text-secondary-dark border-on-surface-variant-light"
                       onClick={ handleCloseDialog }>
                         Cancel
                     </button>

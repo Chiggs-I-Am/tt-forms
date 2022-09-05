@@ -1,66 +1,40 @@
-import { createFirebaseApp } from "@libs/firebase/app";
-import
-	{
-		AuthProvider,
-		getAuth,
-		getIdToken,
-		inMemoryPersistence,
-		setPersistence,
-		signInWithPopup,
-		signOut,
-		User
-	} from "firebase/auth";
+import { ActionCodeSettings, browserSessionPersistence, getAdditionalUserInfo, getAuth, GoogleAuthProvider, sendSignInLinkToEmail, setPersistence, signInWithPopup, UserCredential } from "firebase/auth";
+import { initializeFirebaseApp } from "./firebaseApp";
 
-let app = createFirebaseApp();
+const app = initializeFirebaseApp();
+export const auth = getAuth( app );
 
-export const auth = getAuth(app);
+export async function signInWithGoogle() 
+{
+  const provider = new GoogleAuthProvider();
 
-export async function signInWithAuthProvider(provider: AuthProvider) {
-	try {
-		await setPersistence(auth, inMemoryPersistence);
+  await setPersistence( auth, browserSessionPersistence );
 
-		const userCredentials = await signInWithPopup(auth, provider);
+  const userCredential = await signInWithPopup( auth, provider );
 
-		// let csrfToken = getCookie( "csrfToken" );
-		// postTokenToSessionLogin(userCredentials.user, csrfToken);
-		postTokenToSessionLogin(userCredentials.user);
-
-		return userCredentials;
-	} catch (error: any) {
-		console.log(`Code: ${error.code} | Message: ${error.message}`);
-	}
+  return userCredential;
 }
 
-async function postTokenToSessionLogin(user: User) {
-	let idToken = await getIdToken(user);
+export function additionalUserInfo( userCredential: UserCredential )
+{
+  let userInfo = getAdditionalUserInfo( userCredential );
 
-	await fetch("/api/auth/sessionLogin", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ idToken }),
-	});
+  return userInfo;
 }
 
-export async function signOutUser() {
-	try {
-		await signOut(auth);
+const actionCodeSettings: ActionCodeSettings = {
+  // URL to redirect back to
+  url: "localhost:3000", // ? window.location.href
+  handleCodeInApp: true,
+};
 
-		fetch("/api/auth/sessionLogout", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({}),
-		});
-	} catch (error: any) {
-		console.log(`Code: ${error.code} | Message: ${error.message}`);
-	}
-}
-
-export function getCookie(name: string): string | null {
-	const cookieArray = document.cookie.match("(^|;) ?" + name + "=([^;]*)(;|$)");
-	alert(JSON.stringify(cookieArray));
-	return cookieArray ? cookieArray[2] : null;
+export async function signInWithEmail( email: string )
+{
+  try { 
+    await sendSignInLinkToEmail( auth, email, actionCodeSettings );
+    window.localStorage.setItem( "emailForSignIn", email );
+  }
+  catch( error: any ) {
+    console.log( error.code, error.message );
+  }
 }

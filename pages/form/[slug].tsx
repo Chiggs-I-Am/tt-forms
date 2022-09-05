@@ -1,59 +1,120 @@
+import { useAuthState } from "@components/auth/user-auth-state";
 import DynamicForm from "@components/form/dynamic-form";
+import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
-import Layout from "@components/layout/layout";
-import { createFirebaseApp } from "@libs/firebase/app";
-import { collection, doc, DocumentData, getDoc, getDocs, getFirestore } from "firebase/firestore";
+import { XCircleIcon } from "@heroicons/react/solid";
+import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
+import { firestore } from "@libs/firebase/firestore";
+import { NextPageWithLayout } from "@pages/_app";
+import { DocumentData } from "firebase-admin/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
+import { camelCase } from "lodash";
+import { useCallback, useEffect } from "react";
+import toast from "react-hot-toast";
 
-export default function FormPage({ form }: any )
+interface FormPageProps
 {
-  const { schema, uischema, name } = form;
+  form: {
+    name: string;
+    schema: JsonSchema7;
+    uischema: UISchemaElement;
+  }
+}
+
+const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => {
+  const { name, schema, uischema } = form;
+  const { user } = useAuthState();
+
+  const checkForUser = useCallback(() => {
+    if ( !user ) {
+      toast.custom((t) => (
+        <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-error-container-light` }>
+          <div className="flex gap-2 h-14 px-4 items-center">
+            <XCircleIcon className="flex-none w-8 h-8 text-on-error-container-light" />
+            <p className="text-sm font-medium">You have to be signed in to submit this form</p>
+          </div>
+        </div>
+      ));
+    }
+  }, [ user ]);
+
+  useEffect( () => {
+    checkForUser();
+  }, [ checkForUser ]);
 
   return (
-    <Layout>
-      <Container>
-        <div>
-          <h1>{ name }</h1>
-
-          <DynamicForm
-            schema={ schema }
-            uischema={ uischema }/>
-
-        </div>
-      </Container>
-    </Layout>
+    <Container>
+      <DynamicForm
+        schema={ schema }
+        uischema={ uischema } />
+    </Container>
   );
 }
 
-export async function getStaticProps({ params }: any )
+FormPage.Layout = AppLayout
+
+export default FormPage;
+
+export async function getStaticProps({ params }: any)
 {
   let { slug } = params;
-  
-  let app = createFirebaseApp();
-  let firestore = getFirestore( app );
+  /**
+   * Get document from firestore wth a query the using converted name from slug
+   * @param slug - e.g "name-search-reservation"
+   * converted @param slug to camelCase - e.g "nameSearchReservation"
+   * get collection e.g "activities/{DOCUMENT_RETURNED_FROM_QUERY}"
+   * @returns { DocumentData } - based on query
+   */
+  let colRef = query(
+    collection(firestore, "activities"),
+    orderBy(`registryForms.${ camelCase(slug) }`, "asc")
+  );
 
-  let formsCollection = collection( firestore, "forms" );
-  let formDocRef = doc( formsCollection, slug );
+  let queryDocSnapshot = await getDocs(colRef);
 
-  let formDocSnapshot = await getDoc( formDocRef );
-  let form = formDocSnapshot.data();
-  
-  return {
-    props: { form },
-  };
+  let docRefPath = queryDocSnapshot.docs[0].ref.path;
+  let formDocRef = doc(firestore, docRefPath, "forms", slug);
+  let formDoc = await getDoc(formDocRef);
+
+  if (formDoc.exists())
+  {
+    let data = formDoc.data();
+    let form = {
+      name: data.name,
+      schema: data.schema,
+      uischema: data.uischema
+    };
+
+    return {
+      props: {
+        form,
+      }
+    };
+  }
 }
 
 export async function getStaticPaths()
 {
-  let app = createFirebaseApp();
-  let firestore = getFirestore( app );
+  let activitiesCollectionRef = collection(firestore, "activities");
+  let activitiesSnapshot = await getDocs(activitiesCollectionRef);
 
-  let formsCollection = collection( firestore, "forms" );
-  let formsDocSnapshot = await getDocs( formsCollection );
-
-  let paths = formsDocSnapshot.docs.map( ( doc: DocumentData ) => {
-    let { slug } = doc.data();
-    return { params: { slug } };
+  let activities = activitiesSnapshot.docs.map((doc) =>
+  {
+    return doc.data();
   });
+
+  let paths = activities.map((activity) =>
+  {
+    let { registryForms } = activity;
+
+    let slug = Object.keys(registryForms).map(key =>
+    {
+      let slug = registryForms[key].slug;
+      return { params: { slug } };
+    });
+
+    return slug;
+  }).flat();
 
   return {
     paths,

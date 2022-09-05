@@ -34,7 +34,7 @@ function SelectControl( props: ControlProps & OwnPropsOfEnum )
         handleFocus={ () => setIsFocused( true ) }
         handleBlur={ () => setIsFocused( false ) }/>
         
-      <div className="px-2 text-black text-xs font-medium">
+      <div className="px-2 dark:text-on-surface-dark text-on-surface-light text-xs font-medium">
         { 
           !isValid ? 
             <ValidationHelperText error={ errors } />

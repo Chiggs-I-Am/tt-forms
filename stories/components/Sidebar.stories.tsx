@@ -11,8 +11,8 @@ export default {
 
 const Template: ComponentStory<typeof Sidebar> = (args: any) => <Sidebar { ...args } />;
 
-export const Sidenaav = Template.bind({});
-Sidenaav.args = {
+export const Sidenav = Template.bind({});
+Sidenav.args = {
   open: true,
   name: "Company registry",
   handleOnClick: () => console.log("close"),

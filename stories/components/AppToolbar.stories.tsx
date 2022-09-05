@@ -10,27 +10,22 @@ export default
   },
   argTypes: {
     signedIn: { control: "boolean" },
-  },
-  args: {
-    hasSession: { user: { email: "user@domain.com" }},
   }
 } as ComponentMeta<typeof AppToolbar>;
 
 const Template: ComponentStory<typeof AppToolbar> = (args) => <AppToolbar {...args} />;
 
-const session: boolean = false;
-export const Toolbar = Template.bind({});
-Toolbar.args = {
-  children: (
-    <>
-    { !session ? 
-        <div>
-          <button className="text-sm font-medium h-10 px-6 rounded-full shadow-md bg-primary-light text-on-primary-light">Login</button>
-        </div>
-        :
-        <div>
-          <h1>{ `User: user@domain.com` }</h1>
-        </div>
-    }
-  </>)
+export const ToolbarWithSignedInUser = Template.bind({});
+ToolbarWithSignedInUser.args = {
+  userSession: {
+    user: {
+      name: "Stephan Wilson",
+      email: "stephanthedev@gmail.com",
+      image: "path-to-image",
+    },
+    expires: Date.now().toString()
+  }
 };
+
+export const Toolbar = Template.bind({});
+Toolbar.args = {};
