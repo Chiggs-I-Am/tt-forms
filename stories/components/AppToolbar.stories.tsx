@@ -16,16 +16,7 @@ export default
 const Template: ComponentStory<typeof AppToolbar> = (args) => <AppToolbar {...args} />;
 
 export const ToolbarWithSignedInUser = Template.bind({});
-ToolbarWithSignedInUser.args = {
-  userSession: {
-    user: {
-      name: "Stephan Wilson",
-      email: "stephanthedev@gmail.com",
-      image: "path-to-image",
-    },
-    expires: Date.now().toString()
-  }
-};
+ToolbarWithSignedInUser.args = {};
 
 export const Toolbar = Template.bind({});
 Toolbar.args = {};
