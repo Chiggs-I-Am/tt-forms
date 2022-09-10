@@ -2,7 +2,8 @@ import { Popover } from "@headlessui/react";
 import { User } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { usePopper } from "react-popper";
 
 interface UserAvatarProps
@@ -23,6 +24,13 @@ export default function UserAvatar( { user, handleSignOut }: UserAvatarProps )
       { name: "offset", options: { offset: [0, 4] } }
     ]
   });
+
+  const router = useRouter();
+
+  useEffect(() => {
+    router.prefetch( `/${ user.username?.toLowerCase() }` )
+  }, [ router, user ]);
+  
 
   return (
     <Popover className="relative h-8">
@@ -46,7 +54,8 @@ export default function UserAvatar( { user, handleSignOut }: UserAvatarProps )
                 <Image
                   src={ `${ user.photoURL }` }
                   alt="Profile image"
-                  layout="fill" />
+                  layout="fill"
+                  loading="lazy" />
               </div>
             </li>
             <li className="h-12 border-b dark:border-outline-dark border-outline-light">
