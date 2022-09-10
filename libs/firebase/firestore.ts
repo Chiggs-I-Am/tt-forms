@@ -1,9 +1,8 @@
 import { User } from "firebase/auth";
-import { doc, DocumentSnapshot, getDoc, getFirestore, setDoc } from "firebase/firestore";
-import { initializeFirebaseApp } from "./firebaseApp";
+import { addDoc, collection, doc, DocumentSnapshot, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { getFirebase } from "./firebaseApp";
 
-const firebaseApp = initializeFirebaseApp();
-export const firestore = getFirestore( firebaseApp );
+export const { firestore } = getFirebase();
 
 export async function createDocument( path: string, data: any )
 {
@@ -52,4 +51,24 @@ export async function createUser( user: User )
   catch( error: any ) {
     console.log( "Error code: ", error.code, "Error message: ", error.message );
   }
+}
+
+export async function createUserSession( sessionToken: string, userId: string ) 
+{
+  const sessionCollectionRef = collection( firestore, "sessions" );
+  const addDaysToCurrentDate = ( days: number ) => {
+    const currentDate = new Date();
+    return new Date( new Date( currentDate ).setDate( currentDate.getDate() + days ) );
+  };
+  // const expires = 
+  await addDoc( sessionCollectionRef, {
+    expires: addDaysToCurrentDate( 5 ).toUTCString(),
+    sessionToken,
+    userId
+  });
+}
+
+export function getDateFromTimestamp( time: Timestamp )
+{
+  return new Date( time.toMillis() ).toDateString();
 }
