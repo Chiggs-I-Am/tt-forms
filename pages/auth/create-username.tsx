@@ -21,7 +21,7 @@ export default function CreateUsername()
       <Container>
         <div className="grid gap-2 w-full h-full place-items-center">
           {/* TODO: pull out firestore logic from form */}
-          <CreateUsernameForm schema={ createUsernameSchema } uischema={ createUsernameUischema } userID={ `${ user?.uid }` }/>
+          <CreateUsernameForm schema={ createUsernameSchema } uischema={ createUsernameUischema } />
         </div>
       </Container>
     </Layout>
