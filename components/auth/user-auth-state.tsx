@@ -1,4 +1,5 @@
-import { additionalUserInfo, auth, signInWithEmail, signInWithGoogle } from "@libs/firebase/auth";
+import { additionalUserInfo, signInWithEmail, signInWithGoogle } from "@libs/firebase/auth";
+import { getFirebase } from "@libs/firebase/firebaseApp";
 import { createUser, getFirestoreDocument } from "@libs/firebase/firestore";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { useRouter } from "next/router";
@@ -42,22 +43,27 @@ function useAuthProvider()
   const [ isNewUser, setIsNewUser ] = useState<boolean | undefined>( false );
   const [ username, setUsername ] = useState<string>();
 
+  const { auth } = getFirebase();
+
   const router = useRouter();
 
   async function signInWithGoogleProvider() {
-    let userCredential = await signInWithGoogle();
-    setUser( userCredential.user );
+    try {
+      let userCredential = await signInWithGoogle();
+      setUser( userCredential.user );
 
-    let additionalInfo = additionalUserInfo( userCredential );
-    let isNewUser = additionalInfo?.isNewUser;
+      let additionalInfo = additionalUserInfo( userCredential );
+      let isNewUser = additionalInfo?.isNewUser;
   
-    setIsNewUser( isNewUser );
+      setIsNewUser( isNewUser );
 
-    if( isNewUser ) {
-      // redirect user to create-username page
-      createUser( userCredential.user );
-      router.push( "/auth/create-username" );
+      if( isNewUser ) {
+        // redirect user to create-username page
+        createUser( userCredential.user );
+        router.push( "/auth/create-username" );
+      }
     }
+    catch( error ) {}
   };
 
   function signOutUser() {
@@ -83,7 +89,7 @@ function useAuthProvider()
     });
 
     return () => unsubscribe();
-  }, [ isNewUser, router ]);
+  }, [ auth, isNewUser, router ]);
 
   return {
     user,

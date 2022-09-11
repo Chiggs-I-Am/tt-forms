@@ -1,5 +1,7 @@
 import { Analytics, getAnalytics } from "firebase/analytics";
 import { FirebaseApp, FirebaseOptions, getApp, getApps, initializeApp } from "firebase/app";
+import { Auth, connectAuthEmulator, getAuth } from "firebase/auth";
+import { connectFirestoreEmulator, enableMultiTabIndexedDbPersistence, Firestore, getFirestore } from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,16 +13,40 @@ const firebaseConfig: FirebaseOptions = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-export function initializeFirebaseApp(): FirebaseApp
+interface FirebaseServices
 {
-  if( !getApps().length ) {
-    let app = initializeApp( firebaseConfig );
-    
-    return app;
-  }
+  isConfigured: boolean;
+  app: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
+}
 
-  const app = getApp();
-  return app;
+function initializeServices(): FirebaseServices
+{
+  const isConfigured = getApp.length > 0;
+  const app = initializeApp( firebaseConfig, "tt-forms" );
+  const auth = getAuth( app );
+  const firestore = getFirestore( app );
+
+  return { isConfigured, app, auth, firestore };
+}
+
+export function connectToEmulators({ auth, firestore }: Pick<FirebaseServices, "auth" | "firestore">)
+{
+  if( process.env.APP_ENV === "local" ) {
+    connectFirestoreEmulator( firestore, "localhost", 8080 );
+    connectAuthEmulator( auth, "http://localhost:9099" );
+  }
+}
+
+export function getFirebase(): FirebaseServices
+{
+  const services = initializeServices();
+  if( !services.isConfigured ) {
+    // connectToEmulators( services );
+    // enableMultiTabIndexedDbPersistence( services.firestore );
+  }
+  return services;
 }
 
 export function analytics(): Analytics | undefined

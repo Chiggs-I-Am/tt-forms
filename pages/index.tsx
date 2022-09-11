@@ -9,10 +9,10 @@ import ActivityItem from "@components/activity-item";
 import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
 import Sidebar from "@components/layout/sidebar";
-import { auth } from "@libs/firebase/auth";
+import { getFirebase } from "@libs/firebase/firebaseApp";
 import { firestore } from "@libs/firebase/firestore";
 import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { NextPageWithLayout } from "./_app";
 
 interface HomePageProps
@@ -36,6 +36,8 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
   const [forms, setForms] = useState([] as { name: string; fee: number; slug: string }[]);
   const [isOpen, setIsOpen] = useState(false);
 
+  const { auth } = getFirebase();
+
   const emailSignIn = useCallback( async () => {
     if( isSignInWithEmailLink( auth, window.location.href ) ) {
       let email = window.localStorage.getItem( "emailForSignIn" );
@@ -52,7 +54,7 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
         console.log( error.code, error.message );
       }
     }
-  }, [])
+  }, [ auth ]);
 
   useEffect( () => {
     emailSignIn()
@@ -68,36 +70,40 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
     setActivityName(name)
   }, [])
 
-  const getFormsFromActivity = useCallback((forms: any) =>
-  {
+  const getFormsFromActivity = useCallback((forms: any[]) => {
     setForms(forms);
   }, []);
 
+  const handleOnClick = useCallback( ( name: string, forms: { name: string; fee: number; slug: string }[] ) => {
+    getActivityName( name );
+    
+    let sortedForms = forms.sort( ( a: any, b: any ) => (a.name > b.name) ? 1 : -1 );
+    forms.length > 1 ? getFormsFromActivity( sortedForms ) : getFormsFromActivity( forms );
+    getFormsFromActivity( forms );
+
+    toggleSidbar();
+  }, [ getActivityName, getFormsFromActivity, toggleSidbar ]);
+
   return (
     <Container>
-      <div className="mt-6">
-        <ActivitiesList>
-          { activities.map((activity, index: number) =>
-          {
-            const { name, imageURL, registryForms } = activity;
-            const numberOfForms = Object.keys(registryForms).length;
-            const forms = Object.values(registryForms);
+        <div className="mt-6">
+          <ActivitiesList>
+            { activities.map((activity, index: number) =>
+            {
+              const { name, imageURL, registryForms } = activity;
+              const numberOfForms = Object.keys(registryForms).length;
+              const forms = Object.values(registryForms);
 
-            return (
-              <ActivityItem
-                key={ index }
-                name={ name }
-                numberOfForms={ numberOfForms }
-                imageURL={ imageURL }
-                handleOnClick={ () =>
-                {
-                  toggleSidbar();
-                  getFormsFromActivity(forms);
-                  getActivityName(name);
-                } } />
-            )
-          }) }
-        </ActivitiesList>
+              return (
+                <ActivityItem
+                  key={ index }
+                  name={ name }
+                  numberOfForms={ numberOfForms }
+                  imageURL={ imageURL }
+                  handleOnClick={ () => handleOnClick( name, forms ) } />
+              )
+            }) }
+          </ActivitiesList>
       </div>
       { isOpen ? 
         <Sidebar
@@ -115,7 +121,8 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
 export async function getServerSideProps({ req, res }: { req: NextApiRequest, res: NextApiResponse })
 {
   let activitiesCollectionRef = collection(firestore, "activities");
-  let activitiesSnapshot = await getDocs(activitiesCollectionRef);
+  let queryActivities = query( activitiesCollectionRef, orderBy( "name", "asc" ) );
+  let activitiesSnapshot = await getDocs(queryActivities);
   let activities = activitiesSnapshot.docs.map( doc => doc.data() );
 
   /* let userSession = await unstable_getServerSession(req, res, authOptions);

@@ -2,19 +2,19 @@ import TextInputControl, { TextInputControlTester } from "@components/form/text-
 import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import { firestore } from "@libs/firebase/firestore";
-import { doc, getDoc, writeBatch } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, writeBatch } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useDeferredValue, useEffect, useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useAuthState } from "./user-auth-state";
 
 interface CreateUsernameFormProps
 {
   schema: JsonSchema7;
   uischema: UISchemaElement;
-  userID: string;
 }
 
-export default function CreateUsernameForm({ schema, uischema, userID }: CreateUsernameFormProps) 
+export default function CreateUsernameForm({ schema, uischema }: CreateUsernameFormProps) 
 {
   const [formData, setFormData] = useState<string>("");
 
@@ -28,6 +28,7 @@ export default function CreateUsernameForm({ schema, uischema, userID }: CreateU
   const router = useRouter();
 
   const usernameFormData = useDeferredValue(formData);
+  const { user } = useAuthState();
 
   const renderers = [
     ...vanillaRenderers,
@@ -64,13 +65,18 @@ export default function CreateUsernameForm({ schema, uischema, userID }: CreateU
 
     try
     {
-      let userDocRef = doc(firestore, "users", userID);
-      batch.update(userDocRef, { username });
-
-      let usernameDocRef = doc(firestore, "usernames", username.toLowerCase());
-      batch.set(usernameDocRef, { userID });
-
-      await batch.commit();
+      let usersCollectionRef = collection( firestore, "users" );
+      let usernamesCollectionRef = collection( firestore, "usernames" );
+      
+      await addDoc( usersCollectionRef, {
+        displayName: user?.displayName, 
+        email: user?.email, 
+        emailVerified: user?.emailVerified,
+        photoURL: user?.photoURL,
+        uid: user?.uid,
+        username
+      });
+      await addDoc( usernamesCollectionRef, { userID: user?.uid! });
 
       // show user created successfully
       toast.success("Username created successfully");
@@ -82,7 +88,7 @@ export default function CreateUsernameForm({ schema, uischema, userID }: CreateU
       console.log(`${ error }`);
     }
 
-  }, [formData, userID, router]);
+  }, [formData, router, user ]);
 
   function validateUsername(username: string)
   {

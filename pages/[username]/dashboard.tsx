@@ -3,10 +3,14 @@ import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
 import UserForms from "@components/user/user-forms";
 import UserProfile from "@components/user/user-profile";
-import { firestore } from "@libs/firebase/firestore";
+import { onAuth } from "@libs/firebase/auth";
+import { firestore, getDateFromTimestamp } from "@libs/firebase/firestore";
 import { NextPageWithLayout } from "@pages/_app";
-import { collection, doc, getDoc, getDocs, Timestamp } from "firebase/firestore";
-import { GetServerSidePropsContext } from "next";
+import { User } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { lowerCase, upperFirst } from "lodash";
+import { useRouter } from "next/router";
+import { useCallback, useEffect, useState } from "react";
 
 interface UsernamePageProps
 {
@@ -19,22 +23,64 @@ interface UsernamePageProps
   }[]
 }
 
-const UserDashboard: NextPageWithLayout<UsernamePageProps> = ( { forms }: UsernamePageProps ) =>
+const UserDashboard: NextPageWithLayout<UsernamePageProps> = () =>
 {
   const { user, username } = useAuthState();
+  const [ forms, setForms ] = useState<any[]>([]);
+
+  const router = useRouter();
+
+  const checkIfSignedIn = useCallback(( user: User ) => {
+    if( !user ) {
+      router.push("/");
+    }
+  }, [ router ]);
+
+  useEffect( () => {
+    const unsubscribe = onAuth( checkIfSignedIn );
+
+    return () => unsubscribe();
+  }, [ checkIfSignedIn ]);
+
+  const getUserForms = useCallback(async () => {
+    const formsCollectionRef = collection( firestore, "users", `${user?.uid}`, "forms");
+    const formsDocSnapshot = await getDocs( formsCollectionRef );
+    if( !formsDocSnapshot.empty ) {
+      let formsDocs = formsDocSnapshot.docs.map( ( doc ) => {
+        const data = doc.data();
+        let form = {
+          ...data,
+          name: upperFirst( lowerCase( doc.id )),
+          createdAt: getDateFromTimestamp( data.createdAt ),
+          updatedAt: getDateFromTimestamp( data.updatedAt ),
+        }
+        return form;
+      });
+      
+      setForms( formsDocs );
+    }
+  }, [ user ]);
+
+  useEffect( () => {
+    getUserForms();
+  }, [ getUserForms ]);
 
   return (
     <Container>
       <div className="flex flex-col w-full gap-6 items-center mt-6">
-        { user && <UserProfile user={{ ...user, username }} /> }
-        <div className="w-full max-w-sm px-4">
-          <h3 className="text-xs font-medium dark:text-on-surface-variant-dark text-on-surface-light py-4">Completed Forms</h3>
-          { forms.length === 0 ?
-            <div className="text-sm dark:text-on-surface-dark text-on-surface-light">👀 Nothing to see here...</div>
-            :
-            <UserForms forms={ forms } />
-          }
-        </div>
+        { user && 
+          <>
+            <UserProfile user={{ ...user, username }} />
+            <div className="w-full max-w-sm px-4">
+              <h3 className="text-xs font-medium dark:text-on-surface-variant-dark text-on-surface-light py-4">Completed Forms</h3>
+              { !forms ?
+                <div className="text-sm dark:text-on-surface-dark text-on-surface-light">👀 Nothing to see here...</div>
+                :
+                <UserForms forms={ forms } />
+              }
+            </div> 
+          </>
+        }
       </div>
     </Container>
   );
@@ -43,50 +89,3 @@ const UserDashboard: NextPageWithLayout<UsernamePageProps> = ( { forms }: Userna
 UserDashboard.Layout = AppLayout;
 
 export default UserDashboard;
-
-export async function getServerSideProps( { query }: GetServerSidePropsContext )
-{
-  const { username } = query;
-
-  const usernameDocRef = doc( firestore, "usernames", username as string );
-  const usernameDocSnapshot = await getDoc( usernameDocRef );
-  const usernameDoc = usernameDocSnapshot.data();
-
-  let userID = null;
-  let forms = null
-
-  if ( usernameDocSnapshot.exists() ) {
-    userID = usernameDoc?.userID;
-
-    // get all forms the user completed
-    const userFormsCollectionRef = collection( firestore, "users", userID, "forms" );
-    const userFormsDocSnapshot = await getDocs( userFormsCollectionRef );
-
-    forms = userFormsDocSnapshot.docs.map( doc =>
-    {
-      let data = doc.data();
-      let createdAt = getDateFromTimestamp( data.createdAt )
-      let updatedAt = getDateFromTimestamp( data.updatedAt )
-
-      let form = {
-        ...data,
-        name: doc.id,
-        createdAt,
-        updatedAt,
-      };
-
-      return form;
-    } );
-  }
-
-  return {
-    props: {
-      forms
-    }
-  };
-}
-
-function getDateFromTimestamp( time: Timestamp )
-{
-  return new Date( time.toMillis() ).toDateString();
-}
