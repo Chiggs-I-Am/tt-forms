@@ -56,13 +56,16 @@ export async function createUser( user: User )
 export async function createUserSession( sessionToken: string, userId: string ) 
 {
   const sessionCollectionRef = collection( firestore, "sessions" );
+
   const addDaysToCurrentDate = ( days: number ) => {
     const currentDate = new Date();
-    return new Date( new Date( currentDate ).setDate( currentDate.getDate() + days ) );
+    const addDaysToDate = new Date( new Date( currentDate ).setDate( currentDate.getDate() + days ) );
+    const options: Intl.DateTimeFormatOptions = { dateStyle: "full", timeStyle: "long", hour12: true };
+    return new Intl.DateTimeFormat("en-GB", options ).format( addDaysToDate );
   };
-  // const expires = 
+  
   await addDoc( sessionCollectionRef, {
-    expires: addDaysToCurrentDate( 5 ).toUTCString(),
+    expires: addDaysToCurrentDate( 5 ),
     sessionToken,
     userId
   });
