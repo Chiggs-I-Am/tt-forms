@@ -36,9 +36,9 @@ export default function RadioButtonGroup({ data, options, onChange }: RadioButto
                 key={ index } 
                 value={ option.value } 
                 className={ ({ active, checked }) => joinClassNames(
-                  `${ active ? "ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-primary-container-dark" : "" }`,
-                  `${ checked ? "bg-primary-container-light pl-4" : "" }`,
-                  "relative flex h-10 px-6 py-2 rounded-full overflow-hidden shadow-md cursor-pointer focus:outline-none"
+                  `${ active ? "ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-secondary-container-dark" : "" }`,
+                  `${ checked ? "dark:bg-secondary-container-dark bg-secondary-container-light pl-4" : "" }`,
+                  "relative flex h-10 px-6 py-2 rounded-full overflow-hidden shadow-md cursor-pointer focus:outline-none dark:bg-secondary-dark dark:text-on-secondary-dark"
                 )}>
                 { ({ active, checked }) =>
                   <>
