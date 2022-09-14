@@ -46,7 +46,7 @@ export default function AppToolbar( { children }: AppToolbarProps )
 
   return (
     <>
-      <nav className="z-50 flex items-center justify-between h-14 p-4 shadow-md dark:bg-primary-dark bg-primary-light">
+      <nav className="nav z-50 flex items-center justify-between h-14 p-4 shadow-md dark:bg-primary-dark bg-primary-light">
         <div>
           <Link href="/">
             <a className="text-lg font-medium text-on-surface-light select-none">TT Forms</a>

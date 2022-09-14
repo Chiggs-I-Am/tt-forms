@@ -2,7 +2,7 @@ import TextInputControl, { TextInputControlTester } from "@components/form/text-
 import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import { firestore } from "@libs/firebase/firestore";
-import { addDoc, collection, doc, getDoc, writeBatch } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useDeferredValue, useEffect, useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -57,18 +57,23 @@ export default function CreateUsernameForm({ schema, uischema }: CreateUsernameF
     if (usernameFormData.length >= 3) checkIfUsernameExists(usernameFormData);
   }, [usernameFormData, checkIfUsernameExists]);
 
+  const handleOnSuccess = useCallback( () => {
+    // show user created successfully
+    toast.success("Username created successfully");
+
+    router.push("/");
+    
+  }, [ router ]);
+
   const handleOnSubmit = useCallback(async () =>
   {
     let username = formData;
 
-    let batch = writeBatch(firestore);
+    // let batch = writeBatch(firestore);
 
     try
-    {
-      let usersCollectionRef = collection( firestore, "users" );
-      let usernamesCollectionRef = collection( firestore, "usernames" );
-      
-      await addDoc( usersCollectionRef, {
+    {      
+      await setDoc( doc( firestore, "users", user?.uid! ), {
         displayName: user?.displayName, 
         email: user?.email, 
         emailVerified: user?.emailVerified,
@@ -76,19 +81,15 @@ export default function CreateUsernameForm({ schema, uischema }: CreateUsernameF
         uid: user?.uid,
         username
       });
-      await addDoc( usernamesCollectionRef, { userID: user?.uid! });
-
-      // show user created successfully
-      toast.success("Username created successfully");
-
-      router.push("/");
+      await setDoc( doc( firestore, "usernames", username.toLowerCase() ), { userID: user?.uid! });
+      handleOnSuccess();
     }
     catch (error: any)
     {
       console.log(`${ error }`);
     }
 
-  }, [formData, router, user ]);
+  }, [formData, user, handleOnSuccess ]);
 
   function validateUsername(username: string)
   {

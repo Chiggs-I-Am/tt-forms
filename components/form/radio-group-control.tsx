@@ -1,7 +1,7 @@
+import RadioButtonGroup from "@components/form/radio-button-group";
 import { and, ControlProps, isOneOfEnumControl, optionIs, OwnPropsOfEnum, RankedTester, rankWith } from "@jsonforms/core";
 import { withJsonFormsOneOfEnumProps } from "@jsonforms/react";
 import { useCallback } from "react";
-import RadioButtonGroup from "@components/form/radio-button-group";
 
 interface RadioGroupControlProps extends ControlProps, OwnPropsOfEnum
 {
@@ -19,7 +19,7 @@ function RadioGroupControl( props: RadioGroupControlProps )
 
   return (
     <div className="grid gap-4" hidden={ !visible }>
-      <h3 className="text-sm">{ label }</h3>
+      {/* <h3 className="text-sm dark:text-on-surface-dark text-on-surface-light">{ label }</h3> */}
       <RadioButtonGroup data={ data } options={ options } onChange={ handleOnChange } />
     </div>
   );

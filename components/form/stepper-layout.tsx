@@ -1,5 +1,4 @@
 import { SelectedIndexContext, ShowPreviewContext } from "@components/form/dynamic-form";
-import Container from "@components/layout/container";
 import { Tab } from "@headlessui/react";
 import { and, Categorization, categorizationHasCategory, getAjv, isVisible, LayoutProps, optionIs, RankedTester, rankWith, uiTypeIs } from "@jsonforms/core";
 import { JsonFormsDispatch, useJsonForms, withJsonFormsLayoutProps } from "@jsonforms/react";
@@ -31,10 +30,10 @@ function StepperLayout( props: StepperLayoutProps )
   const ajv = getAjv({ jsonforms: { ...jsonFormState } });
 
   return (
-    <Container>
-      <div className="grid grid-rows-[auto_1fr_auto] w-full max-w-md h-screen max-h-[600px] mx-auto">
+    <>
+      <div className="grid h-full grid-rows-[auto_1fr_auto]">
         <Tab.Group selectedIndex={ selectedIndex } onChange={ setSelectedIndex }>
-          <Tab.List className="mb-6">
+          <Tab.List>
           { categorization.elements.map( ( category ) => (
               <Tab as="div"
                 key={ category.label } 
@@ -44,24 +43,25 @@ function StepperLayout( props: StepperLayoutProps )
               </Tab>
           ))}
           </Tab.List>
-          <Tab.Panels>
+          {/* <Tab.Panels className="h-screen max-h-[calc(600px-112px)]"> */}
+          <Tab.Panels className="">
             { categorization.elements.map( ( category ) => 
               isVisible( category, data, path, ajv ) && (
-                <Tab.Panel as="ul" className="flex flex-col gap-4 px-4" key={ category.label }>
+                <Tab.Panel className="flex flex-col h-full gap-7 p-4" key={ category.label }>
                   { category.elements.map( ( child, index ) => (
-                    <li key={`${ path }-${ index }`}>
+                    <div key={`${ path }-${ index }`} className="first:mb-2">
                       <JsonFormsDispatch
                         uischema={ child }
                         schema={ schema }
                         path={ path } />
-                    </li>
+                    </div>
                   ))}
                 </Tab.Panel>
               )
             )}
           </Tab.Panels>
         </Tab.Group>
-        <div className="flex p-4 items-center justify-between">
+        <div className="flex w-full h-14 px-4 items-center justify-between">
           <button 
             disabled={ selectedIndex === 0 }
             className="flex w-fit h-fit rounded-full overflow-hidden outline outline-2 dark:outline-primary-dark outline-outline-light"
@@ -94,7 +94,7 @@ function StepperLayout( props: StepperLayoutProps )
           </button>
         </div>
       </div>
-    </Container>
+    </>
   );
 }
 

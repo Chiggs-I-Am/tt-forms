@@ -84,11 +84,11 @@ export default function ArrayControl({
 
       <div className="flex items-center justify-between">
 
-        <div className="text-sm font-medium">{ label }</div>  
+        <div className="text-sm font-medium dark:text-on-surface-dark text-on-surface-light">{ label }</div>  
 
         <button 
           disabled={ data ? data.length === 2 : false }
-          className="h-10 px-6 text-sm bg-primary-light text-on-primary-light rounded-full shadow-lg"
+          className="h-10 px-6 text-sm dark:bg-tertiary-dark dark:text-on-tertiary-dark bg-primary-light text-on-primary-light rounded-full shadow-lg"
           onClick={ addItem( path, createDefaultValue( schema ) ) }>
           <PlusIcon className="w-6 h-6" />
         </button>
@@ -125,21 +125,18 @@ export default function ArrayControl({
                       peer h-14 w-full
                       border border-outline-light 
                       rounded-[4px]
-                      text-sm text-gray-900 
+                      text-sm dark:text-on-surface-dark text-on-surface-light
+                      bg-transparent
                       placeholder-transparent
-                      focus:outline-none focus:border-2 focus:border-primary-light"/>
+                      focus:outline-none focus:border-2 focus:dark:border-primary-dark focus:border-primary-light"/>
                   <label 
                     htmlFor={ `${id}-input` } 
-                    className={ joinClassNames(
-                      "absolute left-4 -top-2.5", 
-                      "text-gray-600 bg-on-primary-light transition-all",
-                      "peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4","peer-focus:-top-2.5 peer-focus:text-primary-light peer-focus:bg-white peer-focus:px-1 peer-focus:text-xs",
-                      `${ data[index].value && dirty ? "px-1 text-xs" : "text-base"}`)}>
+                    className="absolute left-2 -top-5 text-xs dark:text-on-surface-dark text-on-surface-light peer-focus:font-semibold">
                     { `Option ${ index + 1 }` }
                   </label>
 
                 <button
-                  className="h-10 px-2 text-sm bg-error-container-light text-on-error-container-light rounded-full shadow-lg"
+                  className="h-10 px-2 text-sm dark:bg-error-container-dark dark:text-on-error-container-dark bg-error-container-light text-on-error-container-light rounded-full shadow-lg"
                   onClick={ () => { showDialog( item ) }}>
                   <TrashIcon className="w-6 h-6" />
                 </button>

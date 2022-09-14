@@ -6,9 +6,7 @@ import { XCircleIcon } from "@heroicons/react/solid";
 import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { firestore } from "@libs/firebase/firestore";
 import { NextPageWithLayout } from "@pages/_app";
-import { DocumentData } from "firebase-admin/firestore";
-import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
-import { camelCase } from "lodash";
+import { collection, getDocs } from "firebase/firestore";
 import { useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -58,38 +56,19 @@ export default FormPage;
 export async function getStaticProps({ params }: any)
 {
   let { slug } = params;
-  /**
-   * Get document from firestore wth a query the using converted name from slug
-   * @param slug - e.g "name-search-reservation"
-   * converted @param slug to camelCase - e.g "nameSearchReservation"
-   * get collection e.g "activities/{DOCUMENT_RETURNED_FROM_QUERY}"
-   * @returns { DocumentData } - based on query
-   */
-  let colRef = query(
-    collection(firestore, "activities"),
-    orderBy(`registryForms.${ camelCase(slug) }`, "asc")
-  );
 
-  let queryDocSnapshot = await getDocs(colRef);
+  const formData = ( await import(`@components/form/schemas/${slug}`) );
+  
+  const form = {
+    name: formData.name,
+    schema: formData.schema,
+    uischema: formData.uischema
+  };
 
-  let docRefPath = queryDocSnapshot.docs[0].ref.path;
-  let formDocRef = doc(firestore, docRefPath, "forms", slug);
-  let formDoc = await getDoc(formDocRef);
-
-  if (formDoc.exists())
-  {
-    let data = formDoc.data();
-    let form = {
-      name: data.name,
-      schema: data.schema,
-      uischema: data.uischema
-    };
-
-    return {
-      props: {
-        form,
-      }
-    };
+  return {
+    props: {
+      form
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { ArrayControlProps, isObjectArrayControl, RankedTester, rankWith } from "@jsonforms/core";
+import { and, ArrayControlProps, isObjectArrayControl, optionIs, RankedTester, rankWith } from "@jsonforms/core";
 import { withJsonFormsArrayControlProps } from "@jsonforms/react";
 import ArrayControl from "@components/form/array-control";
 
@@ -38,6 +38,6 @@ function ArrayControlRenderer({
   )
 }
 
-export const ArrayControlRendererTester: RankedTester = rankWith(20, isObjectArrayControl );
+export const ArrayControlRendererTester: RankedTester = rankWith( 20, and(isObjectArrayControl, optionIs( "format", "array-input" )) );
 
 export default withJsonFormsArrayControlProps( ArrayControlRenderer )
