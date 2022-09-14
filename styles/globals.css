@@ -3,3 +3,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply h-screen;
+  }
+}
+
+@layer utilities {
+  .layout {
+    @apply grid h-screen;
+    grid-template:
+      "nav" 56px
+      "main" 1fr
+      "footer" auto 
+      / 1fr;
+  }
+  .nav { grid-area: nav; }
+  .main { grid-area: main; }
+  .footer { grid-area: footer; }
+}
