@@ -80,7 +80,7 @@ export default function PreviewForm({ open, formData, title, description, submit
                       let name = upperFirst( lowerCase( key ) );
 
                       return (
-                        <>
+                        <div key={ index }>
                           <div className="pb-1 outline outline-1 dark:outline-outline-dark outline-outline-light rounded-lg overflow-hidden">
                           <div className="flex px-4 py-2 items-center justify-between text-sm font-medium dark:bg-secondary-container-dark dark:text-on-secondary-container-dark bg-secondary-container-light text-on-secondary-container-light">
                             <h3>{ name }</h3>
@@ -101,6 +101,7 @@ export default function PreviewForm({ open, formData, title, description, submit
                                     <div key={ valueKey } className="px-4 py-1">
                                       <div className="flex text-xs">
                                         <h3 className="font-medium dark:text-on-surface-dark">{ `${ name }` }</h3>
+                                        <div className="flex flex-wrap">
                                         { 
                                           Array.isArray( objValue ) 
                                             ? objValue.map( ( item: any, index: number ) => {
@@ -110,13 +111,12 @@ export default function PreviewForm({ open, formData, title, description, submit
                                                 let itemValue = item[ itemKey ];
 
                                                 return (
-                                                  <div key={ index }>
-                                                    <span className="dark:text-on-surface-variant-dark text-on-surface-light">{ `${ itemValue }` }</span>
-                                                  </div>
+                                                  <p key={ index } className="ml-2 dark:text-on-surface-variant-dark text-on-surface-light">{ `${ itemValue }` }</p>
                                                 );
                                               })
                                             : <span className="dark:text-on-surface-variant-dark text-on-surface-light">{ `: ${ objValue }` }</span> 
                                         }
+                                        </div>
                                       </div>
                                     </div>
                                   );
@@ -124,7 +124,7 @@ export default function PreviewForm({ open, formData, title, description, submit
                               : <div className="px-4 py-1 text-xs dark:text-on-surface-variant-dark text-on-surface-light">{ value }</div>
                           }
                           </div>
-                        </>
+                        </div>
                       )
                     }) : null }
                   </div>
