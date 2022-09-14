@@ -7,6 +7,7 @@ import { createAjv, JsonSchema7, UISchemaElement } from "@jsonforms/core";
 import { JsonForms } from "@jsonforms/react";
 import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 
+import { useAuthState } from "@components/auth/user-auth-state";
 import ArraryControlRenderer, { ArrayControlRendererTester } from "@components/form/arrary-control-renderer";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import { firestore } from "@libs/firebase/firestore";
@@ -14,12 +15,12 @@ import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { kebabCase } from "lodash";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { createContext, useCallback, useEffect, useState } from 'react';
 import toast from "react-hot-toast";
+import DatePickerControl, { DatePickerControlTester } from "./date-picker-control";
+import FormArrayControl, { FormArrayControlTester } from "./form-array-control";
 import PreviewForm from "./preview-form";
-import { useAuthState } from "@components/auth/user-auth-state";
 
 interface DynamicFormProps
 {
@@ -65,6 +66,8 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     { tester: RadioGroupControlTester, renderer: RadioGroupControl },
     { tester: SelectControlTester, renderer: SelectControl },
     { tester: ArrayControlRendererTester, renderer: ArraryControlRenderer },
+    { tester: DatePickerControlTester, renderer: DatePickerControl },
+    { tester: FormArrayControlTester, renderer: FormArrayControl },
   ];
 
   const cells = [
@@ -76,7 +79,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     {
       name: "control",
       classNames: [ joinClassNames( "grid" ) ]
-    }
+    },
   ]};
 
   const ajv = ajvErrors( createAjv({ useDefaults: true }) );
@@ -84,7 +87,8 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const validateFormData = useCallback(( data: any ) => {
     const validate = ajv.compile( schema );
     const isValid = validate( data );
-
+    const errors = validate.errors?.map( error => error );
+    console.log( errors ?? "no errors" );
     setIsValid( isValid );
   }, [ ajv, schema ]);
 
