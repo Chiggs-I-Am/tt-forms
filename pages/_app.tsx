@@ -24,7 +24,7 @@ interface AppWithLayoutProps extends AppProps
   Component: NextPageWithLayout;
 }
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppWithLayoutProps)
+function MyApp({ Component, pageProps: { ...pageProps } }: AppWithLayoutProps)
 {
   const Layout = Component.Layout ?? (page => page);
   
