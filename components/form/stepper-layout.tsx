@@ -31,7 +31,7 @@ function StepperLayout( props: StepperLayoutProps )
 
   return (
     <>
-      <div className="grid h-full grid-rows-[auto_1fr_auto]">
+      <div className="grid min-w-[320px] max-w-md h-full grid-rows-[auto_1fr_auto] mx-auto">
         <Tab.Group selectedIndex={ selectedIndex } onChange={ setSelectedIndex }>
           <Tab.List>
           { categorization.elements.map( ( category ) => (
