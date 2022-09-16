@@ -10,6 +10,7 @@ import { JsonFormsStyleContext, useStyles, vanillaCells, vanillaRenderers } from
 import { useAuthState } from "@components/auth/user-auth-state";
 import ArraryControlRenderer, { ArrayControlRendererTester } from "@components/form/arrary-control-renderer";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/solid";
+import { getFirebase } from "@libs/firebase/firebaseApp";
 import { firestore } from "@libs/firebase/firestore";
 import useJoinClassNames from "@utils/joinClasses";
 import ajvErrors from "ajv-errors";
@@ -18,6 +19,7 @@ import { kebabCase } from "lodash";
 import { useRouter } from "next/router";
 import { createContext, useCallback, useEffect, useState } from 'react';
 import toast from "react-hot-toast";
+import useSWR from "swr";
 import DatePickerControl, { DatePickerControlTester } from "./date-picker-control";
 import FormArrayControl, { FormArrayControlTester } from "./form-array-control";
 import PreviewForm from "./preview-form";
@@ -43,6 +45,21 @@ interface SectionIndexContextProps
 export const ShowPreviewContext = createContext( {} as ShowPreviewContextProps );
 export const SelectedIndexContext = createContext( {} as SectionIndexContextProps );
 
+async function getUsername( endpoint: string ) {
+  let { auth } = getFirebase();
+  
+  let options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ uid: auth.currentUser?.uid })
+  };
+
+  let response = await fetch( endpoint, options );
+  return response.json();
+}
+
 export default function DynamicForm({ schema, uischema }: DynamicFormProps )
 {
   const [ formData, setFormData ] = useState<{} | null>(null);
@@ -58,6 +75,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const [ sectionIndex, setSectionIndex ] = useState<number | undefined>();
 
   const { user } = useAuthState();
+  const { data, error } = useSWR( "/api/user/username", getUsername );
   
   const renderers = [
     ...vanillaRenderers,
@@ -134,21 +152,20 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
       return
     }
     
-    let data = {
+    let userFormData = {
       formData,
       status: "Pending Approval",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      ticketNumber: "NSR-00001" // save a ticket number based on form e.g. Name Search Reservation = NSR-12345
+      ticketNumber: "NSR-00001", // save a ticket number based on form e.g. Name Search Reservation = NSR-12345
+      username: data?.username
     };
 
     let formName = schema.$id as string;
     
     try { 
       let userDocRef = doc( firestore, "users", user.uid, "forms", kebabCase(formName) );
-      await setDoc( userDocRef, data, { merge: true } );
-      
-      setShowPreview( false );
+      await setDoc( userDocRef, userFormData, { merge: true } );
       
       toast.custom((t) => (
         <div className={ `${ t.visible ? "animate-enter" : "animate-leave" } w-full max-w-xs rouned-lg shadow-lg overflow-hidden bg-secondary-container-light` }>
@@ -165,6 +182,8 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
     catch( error: any ) {
       console.log( error.message );
     }
+
+    setShowPreview( false );
   };
 
   return (
