@@ -1,0 +1,25 @@
+{
+  "title": "TT Forms",
+  "titleTemplate": "%s - TT Forms",
+  "description": "Web app for form sign-up flow - https://tt-forms.vercel.app/",
+  "openGraph": {
+    "title": "TT Forms | Powered by Next.js",
+    "description": "Web app for form sign-flow - https://tt-forms.vercel.app/",
+    "type": "website",
+    "url": "https://tt-forms.vercel.app/",
+    "site_name": "TT Forms",
+    "images": [
+      {
+        "url": "/forms.jpg",
+        "width": "740",
+        "height": "740",
+        "alt": "TT Forms"
+      }
+    ]
+  },
+  "twitter": {
+    "handle": "@chiggs-i-am",
+    "site": "@chiggs-i-am",
+    "cardType": "summary_large_image"
+  }
+}
