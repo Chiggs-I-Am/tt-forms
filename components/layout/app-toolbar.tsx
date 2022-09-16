@@ -2,9 +2,11 @@ import AuthCard from "@components/auth/auth-card";
 import { useAuthState } from "@components/auth/user-auth-state";
 import UserAvatar from "@components/user/user-avatar";
 import { Transition } from "@headlessui/react";
+import { firestore } from "@libs/firebase/firestore";
+import { collection, deleteDoc, getDocs, query, where } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 
 interface AppToolbarProps
 {
@@ -20,10 +22,17 @@ export default function AppToolbar( { children }: AppToolbarProps )
 
   const router = useRouter();
 
-  const onSignOut = useCallback( () =>
-  {
+  const onSignOut = useCallback( async () => {    
+    const sessionsCollectionRef = collection(firestore, "sessions");
+    const sessionsQuery = query( sessionsCollectionRef, where( "userID", "==", user?.uid! ) );
+    const sessionDocs = await getDocs( sessionsQuery );
+    if( !sessionDocs.empty ) {
+      let sessionDoc = sessionDocs.docs[0].ref;
+      deleteDoc( sessionDoc );
+    }
+    
     signOut();
-  }, [signOut] );
+  }, [signOut, user] );
 
   const checkIsNewUser = useCallback( () =>
   {
@@ -43,6 +52,10 @@ export default function AppToolbar( { children }: AppToolbarProps )
       router.push( "/auth/create-username" );
     }
   }, [signInWithGoogle, isNewUser, router] );
+
+  useEffect( () => {
+    checkIsNewUser();
+  }, [ checkIsNewUser ]);
 
   return (
     <>

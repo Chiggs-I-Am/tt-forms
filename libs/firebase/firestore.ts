@@ -53,7 +53,7 @@ export async function createUser( user: User )
   }
 }
 
-export async function createUserSession( sessionToken: string, userId: string ) 
+export async function createUserSession( sessionToken: string, userID: string ) 
 {
   const sessionCollectionRef = collection( firestore, "sessions" );
 
@@ -67,7 +67,7 @@ export async function createUserSession( sessionToken: string, userId: string )
   await addDoc( sessionCollectionRef, {
     expires: addDaysToCurrentDate( 5 ),
     sessionToken,
-    userId
+    userID
   });
 }
 

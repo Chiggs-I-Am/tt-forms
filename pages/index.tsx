@@ -86,7 +86,7 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
 
   return (
     <Container>
-        <div className="mt-6">
+        <div className="px-4 pt-6">
           <ActivitiesList>
             { activities.map((activity, index: number) =>
             {
@@ -124,39 +124,6 @@ export async function getServerSideProps({ req, res }: { req: NextApiRequest, re
   let queryActivities = query( activitiesCollectionRef, orderBy( "name", "asc" ) );
   let activitiesSnapshot = await getDocs(queryActivities);
   let activities = activitiesSnapshot.docs.map( doc => doc.data() );
-
-  /* let userSession = await unstable_getServerSession(req, res, authOptions);
-
-  if (!userSession)
-  {
-    return {
-      props: {
-        activities
-      }
-    };
-  } */
-
-  /* try
-  {
-    let userID = userSession.userID as string;
-    let usernamesCollectionRef = collection(firestore, "usernames");
-    let queryUsernameDoc = query(usernamesCollectionRef, where("userID", "==", userID));
-    let usernameDocSnapshot = await getDocs(queryUsernameDoc);
-    let isEmpty = usernameDocSnapshot.empty;
-
-    // if user is signed in and doesn't have a username then redirect to create-username page
-    if (userSession && isEmpty)
-    {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/auth/create-username",
-        },
-        props: {}
-      };
-    }
-  }
-  catch (error: any) { } */
 
   return {
     props: {

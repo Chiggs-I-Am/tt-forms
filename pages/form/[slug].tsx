@@ -32,7 +32,7 @@ const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => 
             <p className="text-sm font-medium">You have to be signed in to submit this form</p>
           </div>
         </div>
-      ));
+      ), { id: "noUser"});
     }
   }, [ user ]);
 
