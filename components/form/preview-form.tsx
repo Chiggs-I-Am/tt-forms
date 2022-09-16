@@ -20,8 +20,6 @@ export default function PreviewForm({ open, formData, title, description, submit
 
   const handleOnClick = useCallback( () => {
     if( submitForm ) submitForm();
-
-    setIsOpen( false );
   }, [ submitForm ]);
 
   const handleCloseDialog = useCallback( () => {
