@@ -99,7 +99,7 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
                   key={ index }
                   name={ name }
                   numberOfForms={ numberOfForms }
-                  imageURL={ imageURL }
+                  imageURL={ `/${imageURL}` }
                   handleOnClick={ () => handleOnClick( name, forms ) } />
               )
             }) }
