@@ -1,4 +1,5 @@
 import { UserAuthStateProvider } from "@components/auth/user-auth-state";
+import Head from "@components/layout/head";
 import '@styles/globals.css';
 import { NextPage } from "next";
 import type { AppProps } from 'next/app';
@@ -33,6 +34,7 @@ function MyApp({ Component, pageProps: { ...pageProps } }: AppWithLayoutProps)
       { 
         Layout(
           <>
+            <Head />
             <Component { ...pageProps } />
             <Toaster />
           </>
