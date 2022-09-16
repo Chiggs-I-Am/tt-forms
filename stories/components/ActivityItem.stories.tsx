@@ -10,7 +10,7 @@ export default
 const activityItemData = {
   numberOfForms: 4,
   name: "Company registry",
-  imageURL: "https://picsum.photos/320",
+  imageURL: "business.jpg",
   handleOnClick: () => console.log( "clicked" ),
 };
 
