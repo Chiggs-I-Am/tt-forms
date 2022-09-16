@@ -75,7 +75,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const [ sectionIndex, setSectionIndex ] = useState<number | undefined>();
 
   const { user } = useAuthState();
-  const { data, error } = useSWR( "/api/user/username", getUsername );
+  const { data, error } = useSWR( user ? "/api/user/username" : null, getUsername );
   
   const renderers = [
     ...vanillaRenderers,
