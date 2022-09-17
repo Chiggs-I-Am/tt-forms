@@ -72,7 +72,9 @@ function useAuthProvider()
   }
 
   async function signInWithPasswordLessEmail( email: string ) {
-    signInWithEmail( email );
+    await signInWithEmail( email, window.location.href );
+
+    router.push("/auth/verify-request");
   }
 
   useEffect( () => {
