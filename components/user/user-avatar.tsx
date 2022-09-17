@@ -35,12 +35,18 @@ export default function UserAvatar( { user, handleSignOut }: UserAvatarProps )
   return (
     <Popover className="relative h-8">
       <Popover.Button ref={ setRefElement }>
-        <div className="relative w-8 h-8 rounded-full overflow-hidden">
-          <Image
-            src={ `${ user.photoURL }` }
-            alt="profile image"
-            layout="fill" />
-        </div>
+        { user.photoURL ? 
+            <div className="relative w-8 h-8 rounded-full overflow-hidden">
+              <Image
+                src={ `${ user.photoURL }` }
+                alt="profile image"
+                layout="fill" />
+            </div>
+          :
+            <div className="grid w-8 h-8 place-items-center rounded-full overflow-hidden dark:bg-tertiary-light dark:text-on-tertiary-light">
+              <span>{ user.username?.charAt(0) }</span>
+            </div>
+        }
       </Popover.Button>
       <Popover.Panel
         ref={ setPopperElement }
@@ -50,13 +56,19 @@ export default function UserAvatar( { user, handleSignOut }: UserAvatarProps )
         { ( { close } ) => (
           <ul className="grid text-center">
             <li className="flex p-4 items-center justify-center">
-              <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                <Image
-                  src={ `${ user.photoURL }` }
-                  alt="Profile image"
-                  layout="fill"
-                  loading="lazy" />
-              </div>
+              { user.photoURL ? 
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                    <Image
+                      src={ `${ user.photoURL }` }
+                      alt="Profile image"
+                      layout="fill"
+                      loading="lazy" />
+                  </div>
+                :
+                  <div className="grid w-16 h-16 place-items-center rounded-full overflow-hidden dark:bg-tertiary-light dark:text-on-tertiary-light">
+                    <span className="text-2xl">{ user.username?.charAt(0) }</span>
+                  </div>
+              }
             </li>
             <li className="h-12 border-b dark:border-outline-dark border-outline-light">
               <h3 className="text-sm font-semibold dark:text-on-surface-variant-dark text-on-surface-light">{ user.username }</h3>

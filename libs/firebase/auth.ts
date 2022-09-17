@@ -1,4 +1,5 @@
-import { ActionCodeSettings, browserSessionPersistence, getAdditionalUserInfo, getIdToken, GoogleAuthProvider, onAuthStateChanged, sendSignInLinkToEmail, setPersistence, signInWithPopup, UserCredential } from "firebase/auth";
+import { ActionCodeSettings, browserSessionPersistence, getAdditionalUserInfo, getIdToken, GoogleAuthProvider, isSignInWithEmailLink, onAuthStateChanged, sendSignInLinkToEmail, setPersistence, signInWithEmailLink, signInWithPopup, UserCredential } from "firebase/auth";
+import { NextRouter } from "next/router";
 import { getFirebase } from "./firebaseApp";
 import { createUserSession } from "./firestore";
 
@@ -32,19 +33,42 @@ export function additionalUserInfo( userCredential: UserCredential )
   return userInfo;
 }
 
-const actionCodeSettings: ActionCodeSettings = {
-  // URL to redirect back to
-  url: "localhost:3000", // ? window.location.href
-  handleCodeInApp: true,
-};
 
-export async function signInWithEmail( email: string )
+export async function signInWithEmail( email: string, url: string )
 {
+  const actionCodeSettings: ActionCodeSettings = {
+    url,
+    handleCodeInApp: true,
+  };
+  
   try { 
     await sendSignInLinkToEmail( auth, email, actionCodeSettings );
     window.localStorage.setItem( "emailForSignIn", email );
   }
   catch( error: any ) {
     console.log( error.code, error.message );
+  }
+}
+
+export async function checkEmailSignIn( email: string, router: NextRouter )
+{
+  if( isSignInWithEmailLink( auth, window.location.href ) ) {
+    if( !email ) {
+      // prompt user for email address
+      console.log( "Sign in again!" );
+    }
+    try {
+      let userCredential = await signInWithEmailLink( auth, email!, window.location.href );
+
+      let additionalInfo = additionalUserInfo( userCredential );
+      if( additionalInfo?.isNewUser ) {
+        router.push("/auth/create-username");
+      }
+      
+      window.localStorage.removeItem( "emailForSignIn" );
+    }
+    catch( error: any ) {
+      console.log( error.code, error.message );
+    }
   }
 }

@@ -9,10 +9,10 @@ import ActivityItem from "@components/activity-item";
 import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
 import Sidebar from "@components/layout/sidebar";
-import { getFirebase } from "@libs/firebase/firebaseApp";
+import { checkEmailSignIn } from "@libs/firebase/auth";
 import { firestore } from "@libs/firebase/firestore";
-import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { useRouter } from "next/router";
 import { NextPageWithLayout } from "./_app";
 
 interface HomePageProps
@@ -35,30 +35,17 @@ const Home: NextPageWithLayout<HomePageProps> = ({ activities }: HomePageProps) 
   const [activityName, setActivityName] = useState<string>("");
   const [forms, setForms] = useState([] as { name: string; fee: number; slug: string }[]);
   const [isOpen, setIsOpen] = useState(false);
+  
+  const router = useRouter();
 
-  const { auth } = getFirebase();
-
-  const emailSignIn = useCallback( async () => {
-    if( isSignInWithEmailLink( auth, window.location.href ) ) {
-      let email = window.localStorage.getItem( "emailForSignIn" );
-      if( !email ) {
-        // prompt user for email address
-      }
-      try {
-        let userCredential = await signInWithEmailLink( auth, email!, window.location.href );
-        // userCredential.additionalUserInfo.isNewUser
-        console.log( userCredential );
-        window.localStorage.removeItem( "emailForSignIn" );
-      }
-      catch( error: any ) {
-        console.log( error.code, error.message );
-      }
-    }
-  }, [ auth ]);
+  const ifSignedInWithEmail = useCallback( async () => {
+    let email = window.localStorage.getItem("emailForSignIn" ) ?? "";
+    await checkEmailSignIn( email, router );
+  }, [ router ]);
 
   useEffect( () => {
-    emailSignIn()
-  }, [ emailSignIn ]);
+    ifSignedInWithEmail();
+  }, [ ifSignedInWithEmail ]);
 
   const toggleSidbar = useCallback(() =>
   {
