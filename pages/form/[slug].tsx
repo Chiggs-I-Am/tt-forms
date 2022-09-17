@@ -4,9 +4,11 @@ import AppLayout from "@components/layout/app-layout";
 import Container from "@components/layout/container";
 import { XCircleIcon } from "@heroicons/react/solid";
 import { JsonSchema7, UISchemaElement } from "@jsonforms/core";
+import { checkEmailSignIn } from "@libs/firebase/auth";
 import { firestore } from "@libs/firebase/firestore";
 import { NextPageWithLayout } from "@pages/_app";
 import { collection, getDocs } from "firebase/firestore";
+import { useRouter } from "next/router";
 import { useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -22,6 +24,7 @@ interface FormPageProps
 const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => {
   const { name, schema, uischema } = form;
   const { user } = useAuthState();
+  const router = useRouter();
 
   const checkForUser = useCallback(() => {
     if ( !user ) {
@@ -36,9 +39,15 @@ const FormPage:NextPageWithLayout<FormPageProps> = ({ form }: FormPageProps) => 
     }
   }, [ user ]);
 
+  const ifSignedInWithEmail = useCallback( async () => {
+    let email = window.localStorage.getItem("emailForSignIn" ) ?? "";
+    await checkEmailSignIn( email, router );
+  }, [ router ]);
+
   useEffect( () => {
     checkForUser();
-  }, [ checkForUser ]);
+    ifSignedInWithEmail();
+  }, [ checkForUser, ifSignedInWithEmail ]);
 
   return (
     <Container>
