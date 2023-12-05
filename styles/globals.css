@@ -1,25 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply h-screen;
+@layer utilities {
+  .app {
+    display: grid;
+    min-height: 100dvh;
+    min-height: 100vh;
+    place-items: center;
+    grid-template-rows:
+      [primary-nav] 4rem
+      [main] 1fr
+      [footer] auto
+    ;
+    grid-template-columns: [fullbleed-start] 1rem [main-start] auto [main-end] 1rem [fullbleed-end];
   }
 }
 
-@layer utilities {
-  .layout {
-    @apply grid h-screen;
-    grid-template:
-      "nav" 56px
-      "main" 1fr
-      "footer" auto 
-      / 1fr;
-  }
-  .nav { grid-area: nav; }
-  .main { grid-area: main; }
-  .footer { grid-area: footer; }
+.app > * {
+  display: grid;
+  grid: subgrid / subgrid;
 }
