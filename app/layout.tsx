@@ -1,11 +1,9 @@
 
 import ThemeProvider from "@/components/theme-provider";
 import AppToolbar from "@/components/ui/app-toolbar";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/nav-menu";
 import "@/styles/globals.css";
 import "@radix-ui/themes/styles.css";
 import { Metadata } from "next";
-import Link from "next/link";
 import React from "react";
 
 export const metadata: Metadata = {
