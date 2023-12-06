@@ -3,21 +3,20 @@
 @tailwind utilities;
 
 @layer utilities {
-  .app {
-    display: grid;
-    min-height: 100dvh;
-    min-height: 100vh;
-    place-items: center;
-    grid-template-rows:
-      [primary-nav] 4rem
-      [main] 1fr
-      [footer] auto
-    ;
-    grid-template-columns: [fullbleed-start] 1rem [main-start] auto [main-end] 1rem [fullbleed-end];
-  }
+	.app {
+		display: grid;
+		min-height: 100dvh;
+		min-height: 100vh;
+		place-items: center;
+		grid-template-rows:
+			[primary-nav] 4rem
+			[main] 1fr
+			[footer] auto;
+		grid-template-columns: [fullbleed-start] 1rem [main-start] auto [main-end] 1rem [fullbleed-end];
+	}
 }
 
 .app > * {
-  display: grid;
-  grid: subgrid / subgrid;
+	display: grid;
+	grid: subgrid / subgrid;
 }
