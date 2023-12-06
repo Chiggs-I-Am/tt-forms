@@ -1,5 +1,11 @@
 import FeaturedImage from "@/components/ui/featured-image";
 import FeaturedItem from "@/components/ui/featured-item";
+import { joinClasses } from "@/utils/joinClasses";
+import { Card } from "@radix-ui/themes";
+
+import { Anton } from "next/font/google";
+
+const anton = Anton({ weight: "400", display: "swap", subsets: ["latin"] });
 
 export default function Page() {
 	return (
@@ -11,23 +17,6 @@ export default function Page() {
 
 				<section className="@3xl:col-start-1">
 					<div className="grid gap-2 grid-cols-[repeat(2,minmax(140px,1fr))] max-w-[580px] grid-rows-2">
-						{/* <Link href="/registry/company">
-              <div className="relative grid w-full place-items-center text-xs uppercase aspect-video rounded-lg overflow-hidden [&>*]:col-span-full [&>*]:row-span-full group">
-                <div className="grid place-items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height="24"
-                    viewBox="0 -960 960 960"
-                    width="24"
-                    className="dark:fill-[#ede0de]">
-                    <path d="M160-720v-80h640v80H160Zm0 560v-240h-40v-80l40-200h640l40 200v80h-40v240h-80v-240H560v240H160Zm80-80h240v-160H240v160Zm-38-240h556-556Zm0 0h556l-24-120H226l-24 120Z"/>
-                  </svg>
-                  <h3 className="text-sm font-medium">Company Registry</h3>
-                </div>
-                <div className="w-full h-full dark:bg-[#111210]/60 -z-10 group-hover:dark:bg-[#111210]/40 transition-all" />
-                <Image src="/images/company_registry.png" alt="company registry" className="-z-20 group-hover:scale-125 transition-all" fill/>
-              </div>
-            </Link> */}
 						<FeaturedItem
 							href="/registry/company"
 							title="Company registry"
@@ -93,16 +82,18 @@ export default function Page() {
 					</div>
 				</section>
 
-				<div className="flex flex-col">
-					<div className="flex w-full h-full p-4 bg-blue-500 aspect-video rounded-lg overflow-hidden">
-						Appointment
+				<Card variant="classic">
+					<div className="flex w-full h-full aspect-video rounded-lg overflow-hidden text-3xl">
+						<h3 className={joinClasses(anton.className)}>Need to come in?</h3>
 					</div>
-				</div>
+				</Card>
 
 				<div className="flex flex-col gap-4 @2xl:flex-row @2xl:col-span-2 @3xl:col-span-1 @3xl:col-start-3 @3xl:row-start-1 @3xl:row-span-2">
-					<div className="flex w-full h-[minmax(320px,100%)] p-4 bg-blue-500 rounded-lg overflow-hidden">
-						Contact
-					</div>
+					<Card variant="surface">
+						<div className="flex w-full h-[minmax(320px,100%)] p-4 rounded-lg overflow-hidden">
+							<h3 className={joinClasses(anton.className, "text-3xl")}>Need to more info?</h3>
+						</div>
+					</Card>
 				</div>
 			</div>
 		</main>
