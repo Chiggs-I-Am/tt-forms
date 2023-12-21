@@ -1,8 +1,9 @@
 
 import ThemeProvider from "@/components/theme-provider";
 import AppToolbar from "@/components/ui/app-toolbar";
-import "@/styles/globals.css";
 import "@radix-ui/themes/styles.css";
+import "@/styles/globals.css";
+import "@/styles/theme-config.css";
 import { Metadata } from "next";
 import React from "react";
 
