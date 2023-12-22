@@ -11,13 +11,13 @@ export default function ThemeSwitcher()
   return (
 		<>
 			<IconButton
-        variant="outline"
-        className="cursor-pointer"
+        variant="ghost"
+        color="sky"
 				onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
         { theme !== "light" ? 
-          ( <SunIcon className="w-4 h-4" /> )
-          : 
           ( <MoonIcon className="w-4 h-4" /> )
+          : 
+          ( <SunIcon className="w-4 h-4" /> )
         }
       </IconButton>
 		</>
