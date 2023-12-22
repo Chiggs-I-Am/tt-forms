@@ -10,7 +10,7 @@ export default function ThemeProvider({ children, ...props }: ThemeProviderProps
     <>
       <NextThemesProvider attribute="class" { ...props }>
         <Theme
-          accentColor="red"
+          accentColor="ruby"
           panelBackground="solid"
           scaling="100%"
           radius="full"
