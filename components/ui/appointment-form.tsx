@@ -14,13 +14,21 @@ import
     Text,
     Theme,
   } from "@radix-ui/themes";
+import { addMonths } from "date-fns";
 import { Inter_Tight, Noto_Sans } from "next/font/google";
 import { useState } from "react";
 import { DayOfWeek } from "react-day-picker";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Calendar } from "./calendar";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "./form/form";
+import
+  {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
+  } from "./form/form";
 import
   {
     Sheet,
@@ -28,7 +36,7 @@ import
     SheetDescription,
     SheetFooter,
     SheetTitle,
-    SheetTrigger
+    SheetTrigger,
   } from "./sheet";
 
 const interTight = Inter_Tight({ subsets: ["latin"] });
@@ -66,7 +74,6 @@ export default function AppointmentForm() {
   const weekend: DayOfWeek = {
     dayOfWeek: [0, 6],
   };
-
 
   function onSubmit(data: Inputs) {
     const date = formatDate(data.date);
@@ -108,7 +115,13 @@ export default function AppointmentForm() {
             <Separator size="4" decorative />
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                <Heading as="h3" size="1" weight="medium" align="center" className="pt-4">
+                <Heading
+                  as="h3"
+                  size="1"
+                  weight="medium"
+                  align="center"
+                  className="pt-4"
+                >
                   Department and location
                 </Heading>
                 <FormField
@@ -198,8 +211,16 @@ export default function AppointmentForm() {
                       <FormItem className="m-auto h-16">
                         <FormControl>
                           <Popover.Root>
-                            <Popover.Trigger className="w-72" placeholder="Date">
-                              <Button variant="outline" size="3" color="gray" style={{ fontWeight: 400 }}>
+                            <Popover.Trigger
+                              className="w-72"
+                              placeholder="Date"
+                            >
+                              <Button
+                                variant="outline"
+                                size="3"
+                                color="gray"
+                                style={{ fontWeight: 400 }}
+                              >
                                 {field.value ? (
                                   formatDate(field.value)
                                 ) : (
@@ -213,7 +234,11 @@ export default function AppointmentForm() {
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
+                                disabled={weekend}
                                 fixedWeeks
+                                defaultMonth={defaultMonth}
+                                fromMonth={defaultMonth}
+                                toMonth={addMonths(defaultMonth, 1)}
                               />
                             </Popover.Content>
                           </Popover.Root>
@@ -245,7 +270,7 @@ export default function AppointmentForm() {
                                       <FormControl key={time}>
                                         <RadioGroup.Item
                                           value={time}
-                                          className="flex h-8 min-w-max items-center justify-center gap-2 rounded-lg border border-grayA-4 px-4 text-xs shadow-sm data-[state=checked]:pl-2 data-[state=checked]:transition-transform data-[state=checked]:dark:border-accent-6 data-[state=checked]:dark:bg-accent-4 data-[state=checked]:text-accent-11"
+                                          className="flex h-8 min-w-max items-center justify-center gap-2 rounded-lg border border-grayA-4 px-4 text-xs shadow-sm data-[state=checked]:pl-2 data-[state=checked]:text-accent-11 data-[state=checked]:transition-transform data-[state=checked]:dark:border-accent-6 data-[state=checked]:dark:bg-accent-4"
                                           id="r1"
                                         >
                                           <RadioGroup.Indicator asChild>
@@ -268,11 +293,9 @@ export default function AppointmentForm() {
                 />
                 <Separator size="4" decorative />
                 <SheetFooter className="p-4">
-                  {/* <SheetClose asChild> */}
-                    <Button variant="soft" size="3" type="submit">
-                      Make a reservation
-                    </Button>
-                  {/* </SheetClose> */}
+                  <Button variant="soft" size="3" type="submit">
+                    Make a reservation
+                  </Button>
                 </SheetFooter>
               </form>
             </Form>
