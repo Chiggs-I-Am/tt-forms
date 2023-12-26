@@ -72,7 +72,7 @@ export default function Page() {
               </Heading>
               <div className="grid h-full items-center gap-1">
                 <p className="text-sm">
-                  Feel free to come in and get the help you need.
+                  Come in and get the help you need.
                 </p>
                 <div className="flex items-center gap-1">
                   <span className="material-symbols-outlined">location_on</span>
