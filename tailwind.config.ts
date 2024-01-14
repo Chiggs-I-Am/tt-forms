@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
 
 const colorScale = 12;
@@ -34,12 +34,16 @@ const radixGrayColors = ["gray", "mauve", "slate", "sage", "olive", "sand"];
 
 const getColor = ( color: string, scale: number, alpha?: boolean ) =>
 {
-  const colors = Array.from( Array( scale ).keys() ).reduce( ( acc, _, i ) =>
+  const colors = Array.from( Array( scale ).keys() ).reduce(
+    ( acc, _, i ) =>
+    {
+      acc[i + 1] = `var(--${ color }-${ alpha ? "a" : "" }${ i + 1 })`;
+      return acc;
+    },
+    {} as Record<number | string, string>,
+  ) as Record<string | number, string>;
+  if ( !alpha )
   {
-    acc[i + 1] = `var(--${ color }-${ alpha ? "a" : "" }${ i + 1 })`;
-    return acc;
-  }, {} as Record<number | string, string> ) as Record<string | number, string>;
-  if ( !alpha ) {
     colors[`9-contrast`] = `var(--${ color }-9-contrast)`;
     colors["surface"] = `var(--${ color }-surface)`;
   }
@@ -49,11 +53,14 @@ const getColor = ( color: string, scale: number, alpha?: boolean ) =>
 
 const getGrayColor = ( color: string, scale: number, alpha?: boolean ) =>
 {
-  const colors = Array.from( Array( scale ).keys() ).reduce( ( acc, _, i ) =>
-  {
-    acc[i + 1] = `var(--${ color }-${ alpha ? "a" : "" }${ i + 1 })`;
-    return acc;
-  }, {} as Record<number | string, string> ) as Record<string | number, string>;
+  const colors = Array.from( Array( scale ).keys() ).reduce(
+    ( acc, _, i ) =>
+    {
+      acc[i + 1] = `var(--${ color }-${ alpha ? "a" : "" }${ i + 1 })`;
+      return acc;
+    },
+    {} as Record<number | string, string>,
+  ) as Record<string | number, string>;
   if ( !alpha ) colors[`2-translucent`] = `var(--${ color }-2-translucent)`;
 
   return colors;
@@ -61,21 +68,27 @@ const getGrayColor = ( color: string, scale: number, alpha?: boolean ) =>
 
 const getColors = ( arr: string[], isGray?: boolean ) =>
 {
-  const colors = arr.reduce( ( acc, color ) =>
-  {
-    acc[color] = isGray
-      ? getGrayColor( color, colorScale, false )
-      : getColor( color, colorScale, false );
-    return acc;
-  }, {} as Record<string, Record<number | string, string>> );
+  const colors = arr.reduce(
+    ( acc, color ) =>
+    {
+      acc[color] = isGray
+        ? getGrayColor( color, colorScale, false )
+        : getColor( color, colorScale, false );
+      return acc;
+    },
+    {} as Record<string, Record<number | string, string>>,
+  );
 
-  const alphaColors = arr.reduce( ( acc, color ) =>
-  {
-    acc[color + "A"] = isGray
-      ? getGrayColor( color, colorScale, true )
-      : getColor( color, colorScale, true );
-    return acc;
-  }, {} as Record<string, Record<number | string, string>> );
+  const alphaColors = arr.reduce(
+    ( acc, color ) =>
+    {
+      acc[color + "A"] = isGray
+        ? getGrayColor( color, colorScale, true )
+        : getColor( color, colorScale, true );
+      return acc;
+    },
+    {} as Record<string, Record<number | string, string>>,
+  );
   return { ...colors, ...alphaColors };
 };
 
@@ -83,7 +96,7 @@ export default {
   darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}"
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -182,7 +195,7 @@ export default {
           },
           to: {
             transform: "translateX(0%)",
-          }
+          },
         },
         "slide-out": {
           from: {
@@ -190,15 +203,39 @@ export default {
           },
           to: {
             transform: "translateX(100%)",
-          }
+          },
         },
         "fade-in": {
           from: { opacity: "0" },
-          to: { opacity: "1" }
+          to: { opacity: "1" },
         },
         "fade-out": {
           from: { opacity: "1" },
-          to: { opacity: "0" }
+          to: { opacity: "0" },
+        },
+        enterFromRight: {
+          from: { opacity: "0", transform: "translateX(200px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        enterFromLeft: {
+          from: { opacity: "0", transform: "translateX(-200px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        exitToRight: {
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(200px)" },
+        },
+        exitToLeft: {
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(-200px)" },
+        },
+        scaleIn: {
+          from: { opacity: "0", transform: "rotateX(-10deg) scale(0.9)" },
+          to: { opacity: "1", transform: "rotateX(0deg) scale(1)" },
+        },
+        scaleOut: {
+          from: { opacity: "1", transform: "rotateX(0deg) scale(1)" },
+          to: { opacity: "0", transform: "rotateX(-10deg) scale(0.95)" },
         },
       },
       animation: {
@@ -206,11 +243,19 @@ export default {
         "slide-out": "slide-out 300ms ease-out",
         "fade-in": "fade-in 300ms ease-in-out",
         "fade-out": "fade-out 300ms ease-out",
-      }
+        scaleIn: "scaleIn 200ms ease",
+        scaleOut: "scaleOut 200ms ease",
+        fadeIn: "fadeIn 200ms ease",
+        fadeOut: "fadeOut 200ms ease",
+        enterFromLeft: "enterFromLeft 250ms ease",
+        enterFromRight: "enterFromRight 250ms ease",
+        exitToLeft: "exitToLeft 250ms ease",
+        exitToRight: "exitToRight 250ms ease",
+      },
     },
     container: {
       center: true,
-    }
+    },
   },
   plugins: [
     require( "@tailwindcss/container-queries" ),
@@ -218,36 +263,43 @@ export default {
     {
       matchUtilities(
         {
-          'animate-duration': ( value ) => ( {
+          "animate-duration": ( value ) => ( {
             animationDuration: value,
           } ),
         },
-        { values: theme( 'transitionDuration' ) }
+        { values: theme( "transitionDuration" ) },
       );
     } ),
     plugin( function ( { matchUtilities, theme } )
     {
       matchUtilities(
         {
-          'animate-delay': ( value ) => ( {
+          "animate-delay": ( value ) => ( {
             animationDelay: value,
           } ),
         },
-        { values: theme( 'transitionDelay' ) }
+        { values: theme( "transitionDelay" ) },
       );
     } ),
     plugin( function ( { matchUtilities, theme } )
     {
       matchUtilities(
         {
-          'animate-ease': ( value ) => ( {
+          "animate-ease": ( value ) => ( {
             animationTimingFunction: value,
           } ),
         },
-        { values: theme( 'transitionTimingFunction' ) }
+        { values: theme( "transitionTimingFunction" ) },
       );
     } ),
+    plugin( ( { matchUtilities } ) =>
+    {
+      matchUtilities( {
+        perspective: ( value ) => ( {
+          perspective: value,
+        } ),
+      } );
+    } ),
   ],
-  tailwindFunctions: ["joinClasses"]
+  tailwindFunctions: ["joinClasses"],
 } as Config;
-
