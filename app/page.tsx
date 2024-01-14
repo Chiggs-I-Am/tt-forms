@@ -13,7 +13,7 @@ const interTight = Inter_Tight({ display: "swap", subsets: ["latin"] });
 export default function Page() {
   return (
     <main className="[grid-area:main/fullbleed]">
-      <section className="mx-auto w-[min(100%,992px)] @container/main [grid-area:main] lg:mt-16">
+      <section className="mx-auto w-[min(100%,992px)] @container/main [grid-area:main] lg:my-auto">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
           {/* Image */}
           <section className="@md/main:col-span-2">
