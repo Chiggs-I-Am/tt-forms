@@ -1,6 +1,7 @@
 "use client";
 
-import { NavLinks } from "@/data/links";
+import { navLinks } from "@/data/navLinks";
+import { Button } from "@radix-ui/themes";
 import Link from "next/link";
 import {
   NavigationMenu,
@@ -10,9 +11,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  NavigationMenuViewport,
 } from "./navigation-menu";
-import { Button, Card } from "@radix-ui/themes";
 import ThemeSwitcher from "./theme-switcher";
 
 export default function AppToolbar() {
@@ -29,7 +28,7 @@ export default function AppToolbar() {
             </NavigationMenuTrigger>
             <NavigationMenuContent>
               <ul className="grid list-none gap-x-[10px] rounded-lg bg-gray-2 py-6 sm:w-56">
-                {NavLinks.map((link, index) => (
+                {navLinks.map((link, index) => (
                   <li key={link.title}>
                     <NavigationMenuLink asChild>
                       <Link
