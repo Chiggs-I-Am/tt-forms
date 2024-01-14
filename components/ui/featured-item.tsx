@@ -21,23 +21,23 @@ export default function FeaturedItem({
 }: FeaturedItemProps) {
   return (
     <Link href={href}>
-      <div className="group relative grid aspect-video h-full w-full place-items-center overflow-hidden rounded-lg text-xs uppercase shadow-2 *:col-span-full *:row-span-full">
+      <div className="group relative grid aspect-video h-full w-full place-items-center overflow-hidden rounded-lg text-xs shadow-2 *:col-span-full *:row-span-full">
         <div className="grid place-items-center text-gray-12 dark:text-[#ede0de]">
           {children}
           <h3
             className={joinClasses(
               notoSans.className,
-              "text-center text-xs font-bold dark:font-medium",
+              "text-center text-sm font-bold dark:font-medium",
             )}
           >
             {title}
           </h3>
         </div>
-        <div className="-z-10 h-full w-full bg-[var(--gray-1)] opacity-55 group-hover:opacity-35 transition-colors dark:opacity-70 group-hover:dark:opacity-40" />
+        <div className="-z-10 h-full w-full bg-[var(--gray-1)] opacity-55 transition-colors group-hover:opacity-35 dark:opacity-70 group-hover:dark:opacity-40" />
         <Image
           src={imageSrc}
           alt="company registry"
-          className="oject-cover -z-20 transition-all group-hover:scale-125"
+          className="-z-20 object-cover transition-all group-hover:scale-125"
           fill
           priority
         />
