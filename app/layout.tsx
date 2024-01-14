@@ -1,34 +1,33 @@
-
 import ThemeProvider from "@/components/theme-provider";
 import AppToolbar from "@/components/ui/app-toolbar";
-import "@radix-ui/themes/styles.css";
 import "@/styles/globals.css";
+import "@radix-ui/themes/styles.css";
 import "@/styles/theme-config.css";
 import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-	title: "Home",
-	description: "Welcome to TT-Forms",
+  title: "Home",
+  description: "Welcome to TT-Forms",
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return (
-		<html lang="en" suppressHydrationWarning>
-			<body>
-				<ThemeProvider>
-					<div className="app">
-						<section className="[grid-area:primary-nav/fullbleed] [&>*]:grid [&>*]:[grid:subgrid/subgrid]">
-							<AppToolbar />
-						</section>
-						{ children }
-					</div>
-				</ThemeProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ThemeProvider>
+          <div className="app">
+            <section className="[grid-area:primary-nav/fullbleed]">
+              <AppToolbar />
+            </section>
+            {children}
+          </div>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }
