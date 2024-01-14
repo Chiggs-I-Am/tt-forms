@@ -1,53 +1,62 @@
-"use client"
+"use client";
 
+import { NavLinks } from "@/data/links";
 import Link from "next/link";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "./navigation-menu";
-import { NavigationMenuViewport } from "@radix-ui/react-navigation-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuIndicator,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  NavigationMenuViewport,
+} from "./navigation-menu";
+import { Button, Card } from "@radix-ui/themes";
+import ThemeSwitcher from "./theme-switcher";
 
 export default function AppToolbar() {
-	return (
-		<NavigationMenu className="[grid-area:main] relative">
-			<NavigationMenuList className="flex items-center list-none">
-				<NavigationMenuItem className="text-2xl font-medium" asChild>
-					<Link href="/">TT-Forms</Link>
-				</NavigationMenuItem>
-
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="relative flex px-4 select-none items-center justify-between text-sm font-medium">
-            Registries
-            {/* <CaretDownIcon /> */}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="absolute top-0 left-0 w-full sm:w-auto">
-            <ul className="grid list-none gap-x-[10px] p-[22px] sm:w-[500px] outline outline-1 outline-gray-50 rounded-lg">
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/registry/company">Company</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="#">Civil</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="#">Land</Link>
-                </NavigationMenuLink>
-              </li>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-
-				<NavigationMenuItem>
-					<NavigationMenuLink asChild>
-						<Link href="/registry">Registries</Link>
-					</NavigationMenuLink>
-				</NavigationMenuItem>
-			</NavigationMenuList>
-
-      <div className="perspective-[2000px] absolute top-full left-0 flex w-full justify-center origin-[top_center]">
-        <NavigationMenuViewport />
+  return (
+    <div className="flex items-center justify-between [grid-area:main]">
+      <Link href="/" className="text-sm font-medium text-gray-11">
+        TT-Forms
+      </Link>
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="font-medium text-gray-11">
+              Registries
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid list-none gap-x-[10px] rounded-lg bg-gray-2 py-6 sm:w-56">
+                {NavLinks.map((link, index) => (
+                  <li key={link.title}>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        className="flex h-10 items-center px-6 hover:bg-accent-3"
+                        href={link.href}
+                      >
+                        {link.title}
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuIndicator />
+        </NavigationMenuList>
+      </NavigationMenu>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" color="gray" asChild>
+          <Link href="/sign-in" className="text-sm font-medium">
+            Sign in
+          </Link>
+        </Button>
+        <div className="grid h-7 w-7 place-items-center">
+          <ThemeSwitcher />
+        </div>
       </div>
-		</NavigationMenu>
-	);
+    </div>
+  );
 }
