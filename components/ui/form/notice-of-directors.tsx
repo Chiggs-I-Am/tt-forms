@@ -10,7 +10,7 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Calendar } from "../calendar";
@@ -88,6 +88,7 @@ export default function NoticeOfDirectors() {
     if (!isFieldValid) return;
 
     await addDirectorForm.handleSubmit(onSubmitAddDirector)();
+    addDirectorForm.reset();
   }
 
   async function validateRemoveDirectorForm() {
@@ -96,25 +97,34 @@ export default function NoticeOfDirectors() {
     if (!isFieldValid) return;
 
     await removeDirectorForm.handleSubmit(onSubmitRemoveDirector)();
+    removeDirectorForm.reset();
   }
 
   function onSubmitAddDirector(data: AddDirectorInputs) {
     setAddDirectorFormData((prev) => [...prev, data]);
     setOpenDialog(false);
-    addDirectorForm.reset();
   }
 
   function onSubmitRemoveDirector(data: RemoveDirectorInputs) {
     setRemoveDirectorFormData((prev) => [...prev, data]);
     setOpenDialog(false);
-    removeDirectorForm.reset();
   }
 
   function submitDirectors() {
-    const directors = {
-      add: addDirectorFormData,
-      remove: removeDirectorFormData,
-    };
+    let directors;
+
+    if (addDirectorFormData.length > 0) {
+      directors = {
+        add: addDirectorFormData,
+      };
+    }
+
+    if (removeDirectorFormData.length > 0) {
+      directors = {
+        ...directors,
+        remove: removeDirectorFormData,
+      };
+    }
 
     console.log(directors);
   }
@@ -129,6 +139,11 @@ export default function NoticeOfDirectors() {
     setOpenDialog(open);
     addDirectorForm.reset();
     removeDirectorForm.reset();
+  }
+
+  function onDelete<T>(arr: T[], index: number) {
+    let filteredArray = arr.filter((value) => value !== arr[index]);
+    return filteredArray;
   }
 
   return (
@@ -362,7 +377,13 @@ export default function NoticeOfDirectors() {
             </Form>
           )}
           <div className="flex h-14 w-full items-end justify-between">
-            <Button variant="ghost" size="3" onClick={onCancel}>
+            <Button
+              variant="ghost"
+              size="3"
+              onClick={() => {
+                onOpenChange(false);
+              }}
+            >
               Cancel
             </Button>
             {addDirector ? (
@@ -388,7 +409,7 @@ export default function NoticeOfDirectors() {
       </Dialog.Root>
       {addDirectorFormData.length > 0 || removeDirectorFormData.length > 0 ? (
         <>
-          <table className="w-full text-sm">
+          <table className="w-full select-none text-sm">
             <thead className="sr-only">
               <tr>
                 <th>Directors</th>
@@ -429,7 +450,20 @@ export default function NoticeOfDirectors() {
                         {director.occupation}
                       </Text>
                     </div>
-                    <IconButton variant="ghost" color="red">
+                    <IconButton
+                      variant="ghost"
+                      color="red"
+                      onClick={() => {
+                        /* const toRemove = removeDirectorFormData.filter(
+                          (value) => value !== removeDirectorFormData[index],
+                        ); */
+                        const filteredArray = onDelete(
+                          removeDirectorFormData,
+                          index,
+                        );
+                        setRemoveDirectorFormData(filteredArray);
+                      }}
+                    >
                       <TrashIcon className="h-4 w-4" />
                     </IconButton>
                   </td>
