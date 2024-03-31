@@ -1,8 +1,8 @@
+import AuthSessionProvider from "@/components/auth/auth-session-provider";
 import ThemeProvider from "@/components/theme-provider";
-import AppToolbar from "@/components/ui/app-toolbar";
 import "@/styles/globals.css";
-import "@radix-ui/themes/styles.css";
 import "@/styles/theme-config.css";
+import "@radix-ui/themes/styles.css";
 import { Metadata } from "next";
 import React from "react";
 
@@ -17,17 +17,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider>
-          <div className="app">
-            <section className="[grid-area:primary-nav/fullbleed]">
-              <AppToolbar />
-            </section>
-            {children}
-          </div>
-        </ThemeProvider>
-      </body>
-    </html>
+    <AuthSessionProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          <AuthSessionProvider>
+            <ThemeProvider>
+              <div className="app">{children}</div>
+            </ThemeProvider>
+          </AuthSessionProvider>
+        </body>
+      </html>
+    </AuthSessionProvider>
   );
 }
