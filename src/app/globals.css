@@ -23,6 +23,7 @@
 	--surface-container-low: oklab(96.6% 0.01 0); /* #F9F5F3 */
 	--surface-container: oklab(94.2% 0.01 0); /* #F3ECE8 */
 	--surface-container-high: oklab(91.2% 0.01 0); /* #E7E0DB */
+	--surface-container-highest: oklab(88.2% 0.01 0); /* #E0E3E2 */
 	--primary: oklab(56.6% 0.27 0.13); /* #B3261E */
 	--on-primary: oklab(100% 0 0); /* #FFFFFF */
 	--primary-container: oklab(96.6% 0.03 0.01); /* #F9DEDC */
@@ -57,6 +58,7 @@
 	--surface-container-low: oklab(18.2% 0.01 0.01); /* #28262C */
 	--surface-container: oklab(22.2% 0.01 0.01); /* #322F35 */
 	--surface-container-high: oklab(26.2% 0.01 0.01); /* #3B383E */
+	--surface-container-highest: oklab(30.2% 0.01 0.01); /* #44414A */
 	--primary: oklab(86.2% 0.13 0.07); /* #FFB4A9 */
 	--on-primary: oklab(25.6% 0.16 0.08); /* #410E0B */
 	--primary-container: oklab(36.2% 0.03 0.01); /* #601410 */
@@ -91,6 +93,7 @@
 	--color-surface-container-low: var(--surface-container-low);
 	--color-surface-container: var(--surface-container);
 	--color-surface-container-high: var(--surface-container-high);
+	--color-surface-container-highest: var(--surface-container-highest);
 	--color-primary: var(--primary);
 	--color-on-primary: var(--on-primary);
 	--color-primary-container: var(--primary-container);
