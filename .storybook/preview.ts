@@ -18,26 +18,16 @@ const preview: Preview = {
 			// 'off' - skip a11y checks entirely
 			test: "todo",
 		},
-
-		backgrounds: {
-			options: {
-				dark: { name: "Light", value: "oklab(99.1% 0 0)" },
-				light: { name: "Dark", value: "oklab(13.2% 0.01 0.01)" },
-			}
-		}
 	},
-	initialGlobals: {
-		backgrounds: { value: "dark"},
-	}
 };
 
 export const decorators = [
 	withThemeByClassName({
 		themes: {
-			light: "",
+			light: "light",
 			dark: "dark",
 		},
-		defaultTheme: "dark",
+		defaultTheme: "light",
 	}),
 ];
 
