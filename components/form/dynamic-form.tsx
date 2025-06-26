@@ -1,6 +1,7 @@
 import RadioGroupControl, { RadioGroupControlTester } from "@components/form/radio-group-control";
 import SelectControl, { SelectControlTester } from "@components/form/select-control";
 import StepperLayout, { StepperLayoutTester } from "@components/form/stepper-layout";
+import ConversationalForm, { ConversationalFormTester } from "@components/form/conversational-form";
 import TextInputControl, { TextInputControlTester } from "@components/form/text-input";
 
 import { createAjv, JsonSchema7, UISchemaElement } from "@jsonforms/core";
@@ -80,6 +81,7 @@ export default function DynamicForm({ schema, uischema }: DynamicFormProps )
   const renderers = [
     ...vanillaRenderers,
     { tester: StepperLayoutTester, renderer: StepperLayout },
+    { tester: ConversationalFormTester, renderer: ConversationalForm },
     { tester: TextInputControlTester, renderer: TextInputControl },
     { tester: RadioGroupControlTester, renderer: RadioGroupControl },
     { tester: SelectControlTester, renderer: SelectControl },
