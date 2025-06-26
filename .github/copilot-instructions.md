@@ -10,6 +10,7 @@ applyTo: "**"
 - All styling is done with Tailwind CSS v4 and shadcn/ui.
 - All code should adhere to the project's ESLint and Prettier configurations.
 - Always use the `context7` MCP server for context-related operations and `github` for GitHub tasks.
+- Don't create new files or directories unless the previous ones are finished.
 
 ## Naming Conventions
 
@@ -33,6 +34,7 @@ applyTo: "**"
 
 ## Coding Conventions
 
+- **Functions**: Always use named functions instead of arrow functions for component and utility definitions where possible. This improves debuggability.
 - **Imports**:
   - Organize imports in the following order: React, external libraries, internal modules/components, styles.
   - Use absolute paths for imports (`@/components/...`) instead of relative paths (`../../components/...`).
