@@ -1,0 +1,62 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Personal Information",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "First name",
+          "scope": "#/properties/name/properties/firstName"
+        },
+        {
+          "type": "Control",
+          "label": "Last name",
+          "scope": "#/properties/name/properties/lastName"
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Address Details",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "Street",
+          "scope": "#/properties/address/properties/street"
+        },
+        {
+          "type": "Control",
+          "label": "City",
+          "scope": "#/properties/address/properties/city"
+        },
+        {
+          "type": "Control",
+          "label": "State / Province",
+          "scope": "#/properties/address/properties/state"
+        },
+        {
+          "type": "Control",
+          "label": "Zip code",
+          "scope": "#/properties/address/properties/zip"
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Contact Information",
+      "elements": [
+        {
+          "type": "Control",
+          "label": "Phone Number",
+          "scope": "#/properties/phoneNumber"
+        }
+      ]
+    }
+  ],
+  "options": { 
+    "variant": "conversational",
+    "showNavButtons": true
+  }
+}
