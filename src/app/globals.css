@@ -19,15 +19,15 @@
 
 :root {
 	--background: oklab(99.1% 0 0); /* #FFFBFF */
-	--surface: oklab(98.2% 0 0); /* #FFF8F6 */
-	--surface-container-low: oklab(96.6% 0.01 0); /* #F9F5F3 */
-	--surface-container: oklab(94.2% 0.01 0); /* #F3ECE8 */
-	--surface-container-high: oklab(91.2% 0.01 0); /* #E7E0DB */
-	--surface-container-highest: oklab(88.2% 0.01 0); /* #E0E3E2 */
-	--primary: oklab(56.6% 0.27 0.13); /* #B3261E */
+	--surface: oklab(98.84% -0.0017 -0.0043); /* #FFF8F6 */
+	--surface-container-low: oklab(96.53% -0.0014 -0.0035); /* #F9F5F3 */
+	--surface-container: oklab(94.2% -0.0011 -0.0028); /* #F3ECE8 */
+	--surface-container-high: oklab(91.2% -0.0009 -0.0022); /* #E7E0DB */
+	--surface-container-highest: oklab(88.2% -0.0007 -0.0018); /* #E0E3E2 */
+	--primary: oklab(48.59% 0.2239 0.1052); /* #B3261E */
 	--on-primary: oklab(100% 0 0); /* #FFFFFF */
-	--primary-container: oklab(96.6% 0.03 0.01); /* #F9DEDC */
-	--on-primary-container: oklab(25.6% 0.16 0.08); /* #410E0B */
+	--primary-container: oklab(95.69% 0.0176 0.0083); /* #F9DEDC */
+	--on-primary-container: oklab(25.49% 0.1321 0.0621); /* #410E0B */
 	--secondary: oklab(48.2% 0.1 0.05); /* #775651 */
 	--on-secondary: oklab(100% 0 0); /* #FFFFFF */
 	--secondary-container: oklab(95.2% 0.03 0.01); /* #F3D8D3 */
@@ -36,14 +36,14 @@
 	--on-tertiary: oklab(100% 0 0); /* #FFFFFF */
 	--tertiary-container: oklab(98.2% 0.01 0.01); /* #FFD8E4 */
 	--on-tertiary-container: oklab(19.2% 0.01 0.01); /* #31111D */
-	--error: oklab(56.6% 0.27 0.13); /* #B3261E */
+	--error: oklab(48.59% 0.2239 0.1052); /* #B3261E */
 	--on-error: oklab(100% 0 0); /* #FFFFFF */
-	--error-container: oklab(96.6% 0.03 0.01); /* #F9DEDC */
-	--on-error-container: oklab(25.6% 0.16 0.08); /* #410E0B */
+	--error-container: oklab(95.69% 0.0176 0.0083); /* #F9DEDC */
+	--on-error-container: oklab(25.49% 0.1321 0.0621); /* #410E0B */
 	--surface-variant: oklab(95.2% 0.03 0.01); /* #F3D8D3 */
-	--on-surface: oklab(20.2% 0.01 0.01); /* #1C1B1F */
-	--on-surface-variant: oklab(36.2% 0.03 0.01); /* #49454F */
-	--outline: oklab(53.2% 0.01 0); /* #79747E */
+	--on-surface: oklab(12.96% 0.0014 0.0041); /* #1C1B1F */
+	--on-surface-variant: oklab(46.27% 0.0092 0.0043); /* #49454F */
+	--outline: oklab(58.76% 0.0040 0.0019); /* #79747E */
 	--outline-variant: oklab(80.2% 0.01 0); /* #C4C7C5 */
 	--shadow: oklab(0% 0 0); /* #000000 */
 	--scrim: oklab(0% 0 0); /* #000000 */
@@ -53,38 +53,38 @@
 }
 
 .dark {
-	--background: oklab(13.2% 0.01 0.01); /* #1C1B1F */
-	--surface: oklab(15.2% 0.01 0.01); /* #211F26 */
-	--surface-container-low: oklab(18.2% 0.01 0.01); /* #28262C */
-	--surface-container: oklab(22.2% 0.01 0.01); /* #322F35 */
-	--surface-container-high: oklab(26.2% 0.01 0.01); /* #3B383E */
-	--surface-container-highest: oklab(30.2% 0.01 0.01); /* #44414A */
-	--primary: oklab(86.2% 0.13 0.07); /* #FFB4A9 */
-	--on-primary: oklab(25.6% 0.16 0.08); /* #410E0B */
-	--primary-container: oklab(36.2% 0.03 0.01); /* #601410 */
-	--on-primary-container: oklab(98.2% 0 0); /* #FFDAD6 */
-	--secondary: oklab(80.2% 0.07 0.03); /* #E7BDB6 */
-	--on-secondary: oklab(23.5% 0.07 0.04); /* #332D41 */
-	--secondary-container: oklab(36.2% 0.03 0.01); /* #4A4458 */
-	--on-secondary-container: oklab(95.2% 0.03 0.01); /* #E8DEF8 */
-	--tertiary: oklab(85.2% 0.04 0.01); /* #FFD8E4 */
-	--on-tertiary: oklab(23.5% 0.07 0.04); /* #492532 */
-	--tertiary-container: oklab(36.2% 0.03 0.01); /* #633B48 */
-	--on-tertiary-container: oklab(98.2% 0.01 0.01); /* #FFD8E4 */
-	--error: oklab(86.2% 0.13 0.07); /* #FFB4A9 */
-	--on-error: oklab(25.6% 0.16 0.08); /* #410E0B */
-	--error-container: oklab(36.2% 0.03 0.01); /* #601410 */
-	--on-error-container: oklab(98.2% 0 0); /* #FFDAD6 */
-	--surface-variant: oklab(36.2% 0.03 0.01); /* #4A4458 */
-	--on-surface: oklab(98.2% 0 0); /* #E6E1E5 */
-	--on-surface-variant: oklab(80.2% 0.01 0); /* #CAC4D0 */
-	--outline: oklab(53.2% 0.01 0); /* #938F99 */
-	--outline-variant: oklab(36.2% 0.03 0.01); /* #444746 */
+	--background: oklab(12.96% 0.0014 0.0041); /* #1C1B1F */
+	--surface: oklab(15.69% 0.0016 0.0046); /* #211F26 */
+	--surface-container-low: oklab(18.43% 0.0018 0.0051); /* #28262C */
+	--surface-container: oklab(21.18% 0.0020 0.0057); /* #322F35 */
+	--surface-container-high: oklab(23.92% 0.0023 0.0065); /* #3B383E */
+	--surface-container-highest: oklab(26.67% 0.0025 0.0071); /* #44414A */
+	--primary: oklab(80.49% 0.1458 0.0686); /* #FFB4A9 */
+	--on-primary: oklab(25.49% 0.1321 0.0621); /* #410E0B */
+	--primary-container: oklab(36.86% 0.1807 0.0849); /* #601410 */
+	--on-primary-container: oklab(95.69% 0.0176 0.0083); /* #FFDAD6 */
+	--secondary: oklab(80.39% 0.0582 0.0274); /* #E7BDB6 */
+	--on-secondary: oklab(23.53% 0.0582 0.0274); /* #332D41 */
+	--secondary-container: oklab(36.27% 0.0582 0.0274); /* #4A4458 */
+	--on-secondary-container: oklab(95.29% 0.0176 0.0083); /* #E8DEF8 */
+	--tertiary: oklab(85.29% 0.0348 0.0082); /* #FFD8E4 */
+	--on-tertiary: oklab(23.53% 0.0582 0.0274); /* #492532 */
+	--tertiary-container: oklab(36.27% 0.0348 0.0082); /* #633B48 */
+	--on-tertiary-container: oklab(95.29% 0.0348 0.0082); /* #FFD8E4 */
+	--error: oklab(80.49% 0.1458 0.0686); /* #FFB4A9 */
+	--on-error: oklab(25.49% 0.1321 0.0621); /* #410E0B */
+	--error-container: oklab(36.86% 0.1807 0.0849); /* #601410 */
+	--on-error-container: oklab(95.69% 0.0176 0.0083); /* #FFDAD6 */
+	--surface-variant: oklab(36.27% 0.0092 0.0043); /* #4A4458 */
+	--on-surface: oklab(90.20% -0.0017 -0.0043); /* #E6E1E5 */
+	--on-surface-variant: oklab(78.04% 0.0040 0.0019); /* #CAC4D0 */
+	--outline: oklab(60.78% 0.0040 0.0019); /* #938F99 */
+	--outline-variant: oklab(36.27% 0.0092 0.0043); /* #444746 */
 	--shadow: oklab(0% 0 0); /* #000000 */
 	--scrim: oklab(0% 0 0); /* #000000 */
-	--inverse-surface: oklab(98.2% 0 0); /* #E6E1E5 */
-	--inverse-on-surface: oklab(20.2% 0.01 0.01); /* #322F35 */
-	--inverse-primary: oklab(56.6% 0.27 0.13); /* #B3261E */
+	--inverse-surface: oklab(90.20% -0.0017 -0.0043); /* #E6E1E5 */
+	--inverse-on-surface: oklab(21.18% 0.0020 0.0057); /* #322F35 */
+	--inverse-primary: oklab(48.59% 0.2239 0.1052); /* #B3261E */
 }
 
 @theme {
