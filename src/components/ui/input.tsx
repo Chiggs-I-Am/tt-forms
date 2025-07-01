@@ -26,8 +26,9 @@ export interface InputProps
 	label: string;
 }
 
-export function Input({ className, variant, type, label, ...props }: InputProps) {
-	const id = props.id ?? React.useId();
+export function Input({ className, variant, type, label, id: propId, ...props }: InputProps) {
+	const generatedId = React.useId();
+	const id = propId ?? generatedId;
 
 	if (variant === "outlined") {
 		return (
