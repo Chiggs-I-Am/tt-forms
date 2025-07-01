@@ -74,7 +74,7 @@ export const Text: Story = {
 	},
 };
 
-export const xSmall: Story = {
+export const XSmall: Story = {
 	args: {
 		size: "xs",
 		children: "Button",
@@ -102,7 +102,7 @@ export const Large: Story = {
 	},
 };
 
-export const xLarge: Story = {
+export const XLarge: Story = {
 	args: {
 		size: "xl",
 		children: "Button",

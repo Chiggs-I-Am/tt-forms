@@ -261,7 +261,7 @@ export const FormGroup: Story = {
 				<div className="space-y-2">
 					<h3 className="text-sm font-medium">Email Preferences</h3>
 					<p className="text-sm text-on-surface-variant">
-						Choose which emails you'd like to receive.
+						Choose which emails you&apos;d like to receive.
 					</p>
 				</div>
 				<div className="space-y-3">
