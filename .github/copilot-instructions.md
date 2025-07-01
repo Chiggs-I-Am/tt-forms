@@ -11,6 +11,14 @@ applyTo: "**"
 - All code should adhere to the project's ESLint and Prettier configurations.
 - Always use the `context7` MCP server for context-related operations and `github` for GitHub tasks.
 - Don't create new files or directories unless the previous ones are finished.
+- Always `lint` after confirming changes
+
+## Development Workflow
+
+- **Single File Focus**: Work on ONE file at a time, complete it fully, and get user confirmation before moving to the next file.
+- **Sequential Development**: Never create multiple files simultaneously without explicit user approval for each one.
+- **Completion Confirmation**: Always wait for user confirmation that a component/file is complete before proceeding to create the next one.
+- **File Dependencies**: If a file depends on another file that doesn't exist yet, mention the dependency and ask which file to create first.
 
 ## Naming Conventions
 
