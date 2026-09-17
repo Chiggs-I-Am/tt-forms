@@ -1,4 +1,5 @@
 import js from "@eslint/js"
+import { plugin as shadcn } from "@shadcn/lint"
 import eslintConfigPrettier from "eslint-config-prettier"
 import onlyWarn from "eslint-plugin-only-warn"
 import turboPlugin from "eslint-plugin-turbo"
@@ -13,6 +14,12 @@ export const config = [
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    plugins: {
+      shadcn,
+    },
+  },
   {
     plugins: {
       turbo: turboPlugin,

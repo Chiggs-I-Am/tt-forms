@@ -1,0 +1,26 @@
+{
+  "name": "@workspace/database",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "codegen": "convex codegen",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p convex/tsconfig.json"
+  },
+  "devDependencies": {
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9",
+    "typescript": "^5"
+  },
+  "exports": {
+    "./api": "./convex/_generated/api.js",
+    "./data-model": "./convex/_generated/dataModel.d.ts"
+  },
+  "dependencies": {
+    "convex": "^1.46.0"
+  }
+}

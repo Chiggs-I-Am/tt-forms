@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Figtree, Nunito_Sans } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ConvexClientProvider } from "@/components/convex-provider"
 import { cn } from "@workspace/ui/lib/utils";
 
 const nunitoSansHeading = Nunito_Sans({subsets:['latin'],variable:'--font-heading'});
@@ -25,7 +26,9 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable, nunitoSansHeading.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ConvexClientProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   )
