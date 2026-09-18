@@ -8,13 +8,23 @@ export const dynamic = "force-dynamic"
 
 // Landing page for #34: anonymous browsing, local-only answers, and the
 // sign-in-to-save gate. This Server Component performs one query (the viewer)
-// and no mutations, per the cookie-auth rule.
+// and no mutations, per the cookie-auth rule. When the backend is unreachable
+// (e.g. no `convex dev` running), the page renders the anonymous landing
+// instead of crashing; browsing never needs the server.
+async function loadViewer() {
+  try {
+    return await fetchQuery(
+      api.users.viewer,
+      {},
+      { token: await convexAuthNextjsToken() }
+    )
+  } catch {
+    return null
+  }
+}
+
 export default async function Page() {
-  const viewer = await fetchQuery(
-    api.users.viewer,
-    {},
-    { token: await convexAuthNextjsToken() }
-  )
+  const viewer = await loadViewer()
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-6 p-6">
