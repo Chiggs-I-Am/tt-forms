@@ -1,23 +1,17 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
+import {
+  UiThemeProvider,
+  useUiTheme,
+} from "@workspace/ui/components/theme-context"
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
+    <UiThemeProvider defaultTheme="system" storageKey="tt-forms-theme">
       <ThemeHotkey />
       {children}
-    </NextThemesProvider>
+    </UiThemeProvider>
   )
 }
 
@@ -35,7 +29,7 @@ function isTypingTarget(target: EventTarget | null) {
 }
 
 function ThemeHotkey() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useUiTheme()
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {

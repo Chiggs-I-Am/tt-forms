@@ -3,6 +3,7 @@ import { Geist_Mono, Figtree, Nunito_Sans } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeScript } from "@/components/theme-script"
 import { ConvexClientProvider } from "@/components/convex-provider"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       )}
     >
       <body>
+        <ThemeScript />
         {/* Server auth state flows to client components through cookies.
             Queries may run in Server Components; mutations only from Server
             Actions or POST/PUT handlers (cookie-auth rule, #34). */}

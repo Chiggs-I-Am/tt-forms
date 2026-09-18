@@ -23,7 +23,7 @@ export function AuthStatus({ initialEmail }: { initialEmail: string | null }) {
         href="/signin"
         className="text-sm font-medium underline underline-offset-4"
       >
-        Sign in to save
+        Sign in
       </a>
     )
   }
