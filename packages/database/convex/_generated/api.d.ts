@@ -8,13 +8,25 @@
  * @module
  */
 
+import type * as ResendOTP from "../ResendOTP.js";
+import type * as auth from "../auth.js";
+import type * as authz from "../authz.js";
+import type * as http from "../http.js";
+import type * as users from "../users.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  ResendOTP: typeof ResendOTP;
+  auth: typeof auth;
+  authz: typeof authz;
+  http: typeof http;
+  users: typeof users;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

@@ -8,19 +8,28 @@
     "deploy": "convex deploy",
     "codegen": "convex codegen",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p convex/tsconfig.json"
+    "typecheck": "tsc --noEmit -p convex/tsconfig.json",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@types/node": "^26.6.1",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "convex-test": "^0.0.59",
     "eslint": "^9",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.1"
   },
   "exports": {
     "./api": "./convex/_generated/api.js",
     "./data-model": "./convex/_generated/dataModel.d.ts"
   },
   "dependencies": {
-    "convex": "^1.46.0"
+    "@auth/core": "0.41.1",
+    "@convex-dev/auth": "0.0.95",
+    "@oslojs/crypto": "^1.0.1",
+    "convex": "^1.46.0",
+    "resend": "^6.28.1"
   }
 }

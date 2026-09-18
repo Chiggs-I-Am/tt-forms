@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@convex-dev/auth": "0.0.95",
     "@workspace/database": "workspace:*",
     "@workspace/ui": "workspace:*",
     "convex": "^1.46.0",
