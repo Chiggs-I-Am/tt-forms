@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { PracticeField } from "@/components/practice-field"
-import { getForm, pilotForms } from "@/lib/forms"
+import { api } from "@workspace/database/api"
+import { fetchQuery } from "convex/nextjs"
+import { FormFiller } from "@/components/form-filler"
+import { getForm } from "@/lib/forms"
 
-export function generateStaticParams() {
-  return pilotForms.map((form) => ({ slug: form.slug }))
-}
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({
   params,
@@ -19,19 +19,30 @@ export async function generateMetadata({
   }
 }
 
-// Per-form intro page for #34. Cites the official source, previews the
-// sections the online version will ask, and states the fake-data rules up
-// front. The live fill-and-submit flow arrives in #36; until then the only
-// thing to type into is the local practice field.
-export default async function FormIntroPage({
+// The form itself is the page. Loads the latest published version from
+// Convex and renders every section and field from its definition, one
+// section at a time. Answers stay in this browser only (foundation rule);
+// server saving and submission arrive in #36/#37. Retired versions stop new
+// applications; withdrawn versions explain why and stay closed.
+async function loadVersion(slug: string) {
+  try {
+    return await fetchQuery(api.forms.getLatestVersion, { slug })
+  } catch {
+    return null
+  }
+}
+
+export default async function FormPage({
   params,
 }: {
   params: Promise<{ slug: string }>
 }) {
-  const form = getForm((await params).slug)
-  if (!form) {
+  const { slug } = await params
+  const intro = getForm(slug)
+  if (!intro) {
     notFound()
   }
+  const version = await loadVersion(slug)
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-8 p-6">
@@ -47,81 +58,79 @@ export default async function FormIntroPage({
             Sign in to save
           </Link>
         </div>
-        <p className="text-sm text-muted-foreground">{form.agency}</p>
-        <h1 className="text-2xl font-medium">{form.name}</h1>
+        <p className="text-sm text-muted-foreground">{intro.agency}</p>
+        <h1 className="text-2xl font-medium">{intro.name}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          {form.summary}
+          Invent every answer. Never type a real ID number, address, or
+          personal detail. Answers stay in this browser until you sign in.
         </p>
         <p className="text-sm">
           Official source:{" "}
           <a
-            href={form.sourceUrl}
+            href={version?.sourceUrl ?? intro.sourceUrl}
             target="_blank"
             rel="noreferrer"
             className="font-medium text-primary underline underline-offset-4"
           >
-            {form.sourceLabel}
+            {version?.sourceLabel ?? intro.sourceLabel}
           </a>
         </p>
       </header>
 
-      <section aria-labelledby="sections" className="flex flex-col gap-3">
-        <h2 id="sections" className="text-lg font-medium">
-          What the online version asks
-        </h2>
-        <ol className="flex flex-col gap-2">
-          {form.sections.map((section, index) => (
-            <li key={section} className="flex gap-3 text-sm">
-              <span
-                aria-hidden="true"
-                className="font-mono text-muted-foreground"
-              >
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span>{section}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section
-        aria-labelledby="practice"
-        className="flex flex-col gap-3 border border-border bg-card p-4"
-      >
-        <h2 id="practice" className="text-lg font-medium">
-          Fill the full form, no account needed
-        </h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Every question from the official form, one section at a time. Invent
-          every answer. Never type a real ID number, address, or personal
-          detail. Answers stay in this browser; signing in later keeps them for
-          your first save.
-        </p>
-        <Link
-          href={`/forms/${form.slug}/apply`}
-          className="text-sm font-medium text-primary underline underline-offset-4"
+      {!version ? (
+        <div
+          role="status"
+          className="flex flex-col gap-2 border border-dashed border-border p-6"
         >
-          Start the full form
-        </Link>
-        <PracticeField
-          storageKey={`form-${form.slug}`}
-          label={form.practiceLabel}
-          placeholder={form.practicePlaceholder}
+          <p className="text-sm font-medium">
+            This form is unavailable right now.
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            The live version could not be loaded. The demo backend may be
+            unreachable. Your browser kept any answers you already typed.
+          </p>
+        </div>
+      ) : version.status === "withdrawn" ? (
+        <div
+          role="status"
+          className="flex flex-col gap-2 border border-destructive/40 p-6"
+        >
+          <p className="text-sm font-medium">
+            Applications for this version are closed.
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {version.withdrawReason ?? "This version was withdrawn."} Answers
+            you already typed stay readable in this browser until they expire.
+          </p>
+        </div>
+      ) : version.status === "retired" ? (
+        <div
+          role="status"
+          className="flex flex-col gap-2 border border-dashed border-border p-6"
+        >
+          <p className="text-sm font-medium">
+            This version no longer accepts new applications.
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Existing drafts stay submittable under its rules until they
+            expire. Check back for the replacement version.
+          </p>
+        </div>
+      ) : (
+        <FormFiller
+          storageKey={`${slug}-v${version.version}`}
+          definition={version.definition}
         />
-        <Link
-          href="/signin"
-          className="text-sm font-medium underline underline-offset-4"
-        >
-          Sign in so this can save to the server
-        </Link>
-      </section>
+      )}
 
-      <Link
-        href="/"
-        className="text-sm text-muted-foreground underline underline-offset-4"
-      >
-        Back to all forms
-      </Link>
+      <footer className="flex flex-col gap-2 border-t border-border pt-4 pb-2">
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Version {version?.version ?? "—"} ·{" "}
+          <Link href="/forms" className="underline underline-offset-4">
+            Back to all forms
+          </Link>
+        </p>
+      </footer>
     </div>
   )
 }
