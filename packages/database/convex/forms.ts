@@ -225,6 +225,37 @@ export const withdraw = mutation({
   },
 })
 
+// Builder index for #35 (developer-admin only). Lists every working copy
+// with its slug, name, agency, sources, editable definition, and updatedAt,
+// plus the latest version number and status for the per-form state line on
+// /admin/forms. The editor loads its copy from this one query. Demo-admin
+// gets nothing here; preview-only access lives elsewhere. Denial is
+// server-side; UI hiding is cosmetic.
+export const listWorkingCopies = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireDeveloperAdmin(ctx)
+    const forms = await ctx.db.query("forms").collect()
+    const out = []
+    for (const form of forms) {
+      const version = await latestVersion(ctx, form._id)
+      out.push({
+        formId: form._id,
+        slug: form.slug,
+        name: form.name,
+        agency: form.agency,
+        sourceLabel: form.sourceLabel,
+        sourceUrl: form.sourceUrl,
+        definition: form.definition,
+        updatedAt: form.updatedAt,
+        latestVersion: version ? version.version : null,
+        latestStatus: version ? version.status : null,
+      })
+    }
+    return out
+  },
+})
+
 // Authenticated status line for the applicant flow (#36): which lifecycle
 // state governs a given version for new drafts and submissions.
 export const versionGate = query({
