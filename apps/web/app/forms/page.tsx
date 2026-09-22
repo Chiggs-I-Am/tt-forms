@@ -15,10 +15,6 @@ export default async function FormsPage() {
     <div className="flex min-h-svh flex-col">
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-12">
         <div className="flex max-w-2xl flex-col gap-2">
-          <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
-            {pilotForms.filter((form) => !form.alternate).length} pilots ·{" "}
-            {pilotForms.filter((form) => form.alternate).length} alternate
-          </p>
           <h1 className="font-heading text-4xl font-medium text-balance">
             Browse demo forms
           </h1>
