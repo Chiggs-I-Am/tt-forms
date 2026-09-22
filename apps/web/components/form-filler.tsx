@@ -12,7 +12,9 @@ import {
 } from "react-hook-form"
 import { Button, buttonVariants } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
+import type { Id } from "@workspace/database/data-model"
 import { FormFieldInput } from "@/components/field-input"
+import { DraftSync } from "@/components/draft-sync"
 import {
   deserialize,
   displayTitle,
@@ -147,14 +149,18 @@ function RepeatGroup({
 // Full 1:1 fill view on React Hook Form, per the shadcn pattern (useForm +
 // zodResolver + Controller + Field primitives). Sections render one at a
 // time; conditions evaluate locally (cosmetic); hidden answers stay in the
-// draft; everything persists to this browser only. Server saving and
-// submission arrive in #36/#37.
+// draft. Answers persist to this browser, and signed-in applicants autosave
+// to one server draft per form with merge prompts (#36).
 export function FormFiller({
   storageKey,
   definition,
+  formId,
+  versionId,
 }: {
   storageKey: string
   definition: VersionDefinition
+  formId?: Id<"forms"> | null
+  versionId?: Id<"formVersions"> | null
 }) {
   const schema = useMemo(
     () => buildFormSchema(definition.sections),
@@ -197,6 +203,15 @@ export function FormFiller({
 
   const values = watch()
   const answers = values as unknown as Answers
+  const labels = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const section of definition.sections) {
+      for (const field of section.fields) {
+        map[field.id] = field.label
+      }
+    }
+    return map
+  }, [definition])
   const sections = useMemo(
     () => visibleSections(definition, answers),
     // Recompute whenever any answer changes.
@@ -260,9 +275,9 @@ export function FormFiller({
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-medium">Review your answers</h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Hidden answers are kept but never submitted while hidden. Server
-            saving arrives in the next build; everything below lives in this
-            browser only.
+            Hidden answers are kept but never submitted while hidden. Signed-in
+            applicants autosave to one draft per form; anonymous answers live in
+            this browser only.
           </p>
         </div>
         {sections.map((s) => (
@@ -303,6 +318,15 @@ export function FormFiller({
   return (
     <FormProvider {...form}>
       <div className="flex flex-col gap-6">
+        <DraftSync
+          formId={formId ?? null}
+          versionId={versionId ?? null}
+          localAnswers={answers}
+          labels={labels}
+          onApplyAnswers={(serverAnswers) =>
+            reset(mergeBackup(definition, serverAnswers))
+          }
+        />
         <nav aria-label="Sections" className="flex flex-col gap-3">
           <div
             role="progressbar"

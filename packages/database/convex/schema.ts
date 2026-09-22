@@ -68,7 +68,11 @@ const schema = defineSchema({
     formId: v.id("forms"),
     formVersionId: v.id("formVersions"),
     answers: answersValidator,
-    status: v.union(v.literal("active")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("submitted"),
+      v.literal("retired")
+    ),
     expiresAt: v.number(),
     updatedAt: v.number(),
   })

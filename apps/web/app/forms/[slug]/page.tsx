@@ -21,14 +21,20 @@ export async function generateMetadata({
 
 // The form itself is the page. Loads the latest published version from
 // Convex and renders every section and field from its definition, one
-// section at a time. Answers stay in this browser only (foundation rule);
-// server saving and submission arrive in #36/#37. Retired versions stop new
-// applications; withdrawn versions explain why and stay closed.
-async function loadVersion(slug: string) {
+// section at a time. Answers stay in this browser while anonymous; signed-in
+// applicants autosave to one server draft per form (#36) and submit in #37.
+// Retired versions stop new applications; withdrawn versions explain why and
+// stay closed.
+async function loadForm(slug: string) {
   try {
-    return await fetchQuery(api.forms.getLatestVersion, { slug })
+    const [version, published] = await Promise.all([
+      fetchQuery(api.forms.getLatestVersion, { slug }),
+      fetchQuery(api.forms.listPublished, {}),
+    ])
+    const entry = published.find((form) => form.slug === slug)
+    return { version, formId: entry?.formId ?? null }
   } catch {
-    return null
+    return { version: null, formId: null }
   }
 }
 
@@ -42,7 +48,7 @@ export default async function FormPage({
   if (!intro) {
     notFound()
   }
-  const version = await loadVersion(slug)
+  const { version, formId } = await loadForm(slug)
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-8 p-6">
@@ -105,6 +111,8 @@ export default async function FormPage({
         <FormFiller
           storageKey={`${slug}-v${version.version}`}
           definition={version.definition}
+          formId={formId}
+          versionId={version.versionId}
         />
       )}
 
