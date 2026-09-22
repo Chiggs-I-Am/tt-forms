@@ -73,6 +73,16 @@ export function visibleSections(
   )
 }
 
+// Display titles strip paper numbering ("1. Names", "Part I. ...").
+// Numbering stays in the Convex definitions (the 1:1 record); the UI shows
+// plain names plus a position progress bar.
+export function displayTitle(title: string): string {
+  return title
+    .replace(/^\d+\.\s*/, "")
+    .replace(/^Part\s+[IVXLCDM]+\.?\s*/i, "")
+    .replace(/^Section\s+\d+\s*[:.\-]?\s*/i, "")
+    .trim()
+}
 // Sections hidden by their condition, shown locked in the nav so paper
 // numbering never jumps. The section help text doubles as the reason.
 export function hiddenSections(

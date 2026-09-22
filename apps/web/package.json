@@ -13,13 +13,16 @@
   },
   "dependencies": {
     "@convex-dev/auth": "0.0.95",
+    "@hookform/resolvers": "^5.9.1",
     "@workspace/database": "workspace:*",
     "@workspace/ui": "workspace:*",
     "convex": "^1.46.0",
     "lucide-react": "^1.47.0",
     "next": "16.3.3",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.88.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
