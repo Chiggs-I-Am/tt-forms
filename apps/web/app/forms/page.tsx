@@ -19,18 +19,12 @@ export default async function FormsPage() {
           </h1>
         </div>
         <ul className="flex max-w-2xl flex-col gap-3">
-          {pilotForms.map((form, index) => (
+          {pilotForms.map((form) => (
             <li key={form.slug}>
               <a
                 href={`/forms/${form.slug}`}
                 className="group flex gap-4 border border-border bg-card p-4 transition-colors outline-none hover:border-primary focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
               >
-                <span
-                  aria-hidden="true"
-                  className="font-mono text-sm text-muted-foreground"
-                >
-                  {String(index + 1).padStart(2, "0")}
-                </span>
                 <span className="flex flex-1 flex-col gap-1">
                   <span className="flex items-baseline justify-between gap-3">
                     <span className="font-medium">
