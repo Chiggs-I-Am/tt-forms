@@ -4,6 +4,7 @@ import { mutation, query } from "./_generated/server"
 import type { DatabaseReader } from "./_generated/server"
 import type { Id } from "./_generated/dataModel"
 import { requireUserId } from "./authz"
+import { rateLimiter } from "./rateLimits"
 import type { FormDefinition } from "./formModel"
 
 // Uploads for #38. Standard three-step flow: `generateUploadUrl` is the
@@ -96,6 +97,7 @@ export const generateUploadUrl = mutation({
   args: { draftId: v.id("drafts") },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx)
+    await rateLimiter.limit(ctx, "uploadUrl", { key: userId, throws: true })
     await loadOwnedDraft(ctx, userId, args.draftId)
     const uploadUrl = await ctx.storage.generateUploadUrl()
     return { uploadUrl, draftId: args.draftId }
@@ -114,6 +116,7 @@ export const saveFile = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx)
+    await rateLimiter.limit(ctx, "saveFile", { key: userId, throws: true })
     const { version } = await loadOwnedDraft(ctx, userId, args.draftId)
     const row = await ctx.db.system.get("_storage", args.storageId)
     if (!row) {

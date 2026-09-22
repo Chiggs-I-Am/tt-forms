@@ -1,4 +1,5 @@
 import { convexTest, type TestConvex } from "convex-test"
+import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test"
 import { describe, expect, it } from "vitest"
 import { api, internal } from "./_generated/api"
 import type { MutationCtx } from "./_generated/server"
@@ -66,6 +67,7 @@ async function publishedForm(t: TestConvex<typeof schema>) {
 describe("draft ownership", () => {
   it("denies anonymous reads and writes", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId, versionId } = await publishedForm(t)
     await expect(t.query(api.drafts.getDraft, { formId })).rejects.toThrow(
       "Not authenticated"
@@ -85,6 +87,7 @@ describe("draft ownership", () => {
 
   it("isolates drafts per owner", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     const b = await applicant(t, "b@example.com")
@@ -107,6 +110,7 @@ describe("draft ownership", () => {
 describe("one active draft", () => {
   it("reuses the draft and keeps the pinned version", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { dev, formId, versionId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     const first = await a.authed.mutation(api.drafts.saveDraft, {
@@ -139,6 +143,7 @@ describe("one active draft", () => {
 
   it("blocks new drafts when the latest version is not active", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { dev, formId, versionId } = await publishedForm(t)
     await dev.mutation(api.forms.retire, { versionId })
     const a = await applicant(t, "a@example.com")
@@ -154,6 +159,7 @@ describe("one active draft", () => {
 describe("optimistic concurrency", () => {
   it("rejects stale bases instead of silently overwriting", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     await a.authed.mutation(api.drafts.saveDraft, {
@@ -191,6 +197,7 @@ describe("optimistic concurrency", () => {
 describe("replaceDraft", () => {
   it("requires confirm and retires the old pinned draft", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { dev, formId, versionId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     await a.authed.mutation(api.drafts.saveDraft, {
@@ -231,6 +238,7 @@ describe("replaceDraft", () => {
 
   it("refuses to retire another owner's draft", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId, versionId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     const b = await applicant(t, "b@example.com")
@@ -252,6 +260,7 @@ describe("replaceDraft", () => {
 describe("expiry", () => {
   it("filters expired drafts and purges them with their files", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     const draftId = await a.authed.mutation(api.drafts.saveDraft, {
@@ -293,6 +302,7 @@ describe("expiry", () => {
 describe("submitted drafts", () => {
   it("lets a new save start after submission", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t)
     const a = await applicant(t, "a@example.com")
     const draftId = await a.authed.mutation(api.drafts.saveDraft, {

@@ -91,6 +91,7 @@ const certificateOfCharacter: PilotSeed = {
             label: "ID number",
             required: true,
             maxLength: 40,
+            placeholder: "e.g. FAKE-482913",
             hint: FAKE_ID_HINT,
           },
         ],
@@ -397,6 +398,7 @@ const passportRenewal: PilotSeed = {
             label: "Passport number",
             required: true,
             maxLength: 40,
+            placeholder: "e.g. FAKE-T482913",
             hint: FAKE_ID_HINT,
           },
           {
@@ -457,6 +459,7 @@ const passportRenewal: PilotSeed = {
             kind: "short_text",
             label: "Certificate number",
             maxLength: 40,
+            placeholder: "e.g. FAKE-C771204",
             hint: FAKE_ID_HINT,
           },
           {
@@ -532,6 +535,7 @@ const passportRenewal: PilotSeed = {
             label: "I.D. / Passport number of parent / legal guardian",
             required: true,
             maxLength: 40,
+            placeholder: "e.g. FAKE-905517",
             hint: FAKE_ID_HINT,
           },
           {
@@ -595,6 +599,7 @@ const passportRenewal: PilotSeed = {
             label: "I.D. / Passport number",
             required: true,
             maxLength: 40,
+            placeholder: "e.g. FAKE-318840",
             hint: FAKE_ID_HINT,
           },
           {
@@ -608,12 +613,16 @@ const passportRenewal: PilotSeed = {
             kind: "short_text",
             label: "Marriage certificate number",
             maxLength: 40,
+            placeholder: "e.g. FAKE-M552010",
+            hint: FAKE_ID_HINT,
           },
           {
             id: "marriage_entry_no",
             kind: "short_text",
             label: "Marriage entry number",
             maxLength: 40,
+            placeholder: "e.g. FAKE-E209874",
+            hint: FAKE_ID_HINT,
           },
           {
             id: "marriage_cert_issue_date",
@@ -625,6 +634,8 @@ const passportRenewal: PilotSeed = {
             kind: "short_text",
             label: "Deed poll number",
             maxLength: 40,
+            placeholder: "e.g. FAKE-D664102",
+            hint: FAKE_ID_HINT,
           },
           { id: "deed_poll_dated", kind: "date", label: "Deed poll dated" },
           {
@@ -739,6 +750,7 @@ const birthCertificate: PilotSeed = {
             label: "Identification number",
             required: true,
             maxLength: 40,
+            placeholder: "e.g. FAKE-730195",
             hint: FAKE_ID_HINT,
           },
         ],
@@ -1114,6 +1126,7 @@ const nisRegistration: PilotSeed = {
             label: "N.I. number",
             required: true,
             maxLength: 40,
+            placeholder: "e.g. FAKE-NI884201",
             hint: FAKE_ID_HINT,
             condition: {
               mode: "any",
@@ -1182,6 +1195,8 @@ const nisRegistration: PilotSeed = {
             kind: "short_text",
             label: "Employer's registration number",
             maxLength: 40,
+            placeholder: "e.g. FAKE-R110987",
+            hint: FAKE_ID_HINT,
           },
           {
             id: "designation",

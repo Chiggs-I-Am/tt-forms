@@ -62,6 +62,7 @@ export function FormFieldInput({
                 id={id}
                 type={type}
                 value={(controller.value as string) ?? ""}
+                placeholder={field.placeholder}
                 maxLength={
                   field.kind === "short_text" ? field.maxLength : undefined
                 }
@@ -91,6 +92,7 @@ export function FormFieldInput({
                 id={id}
                 rows={3}
                 value={(controller.value as string) ?? ""}
+                placeholder={field.placeholder}
                 maxLength={field.maxLength}
                 aria-invalid={fieldState.invalid}
                 aria-required={field.required || undefined}

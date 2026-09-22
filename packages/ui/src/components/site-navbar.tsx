@@ -28,7 +28,12 @@ export function SiteNavbar({
           >
             TT-FORMS
           </a>
-          <Badge variant="outline">Demo</Badge>
+          <Badge
+            variant="outline"
+            title="Demo, not a government service. Your sign-in email is real; every form answer must be fake."
+          >
+            Demo
+          </Badge>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button

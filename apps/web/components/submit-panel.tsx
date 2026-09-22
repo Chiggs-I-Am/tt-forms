@@ -42,7 +42,8 @@ export function SubmitPanel({
       <div className="flex flex-col gap-2 border border-border bg-card p-4">
         <p className="text-sm leading-relaxed">
           Nothing has been sent anywhere. Sign in to keep these answers for the
-          first server save.
+          first server save. Your sign-in email is real; every form answer must
+          be fake.
         </p>
         <div className="flex flex-wrap gap-2">
           <Link href="/signin" className={cn(buttonVariants())}>

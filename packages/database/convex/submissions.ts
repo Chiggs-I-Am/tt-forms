@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server"
 import type { DatabaseReader } from "./_generated/server"
 import type { Id } from "./_generated/dataModel"
 import { requireUserId } from "./authz"
+import { rateLimiter } from "./rateLimits"
 import { splitSection, validateAnswers } from "./formModel"
 import type { Answers } from "./formModel"
 
@@ -116,6 +117,7 @@ export const submitDraft = mutation({
   args: { formId: v.id("forms") },
   handler: async (ctx, args) => {
     const ownerId = await requireUserId(ctx)
+    await rateLimiter.limit(ctx, "submit", { key: ownerId, throws: true })
     const now = Date.now()
     const rows = await ownedDrafts(ctx, ownerId, args.formId)
     const draft = rows.find((d) => d.status === "active" && d.expiresAt >= now)

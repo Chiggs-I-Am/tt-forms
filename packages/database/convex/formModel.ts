@@ -19,6 +19,11 @@ const baseField = {
   id: v.string(),
   label: v.string(),
   hint: v.optional(v.string()),
+  // Guided-fake-input placeholder for #40: an invented example shown inside
+  // the input (e.g. "e.g. FAKE-482913"). Optional and cosmetic; the server
+  // never validates answer shape against it, and real-looking numbers are
+  // never blocked or masked.
+  placeholder: v.optional(v.string()),
   required: v.optional(v.boolean()),
   condition: v.optional(conditionValidator),
 }

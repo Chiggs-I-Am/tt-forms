@@ -1,4 +1,5 @@
 import { convexTest, type TestConvex } from "convex-test"
+import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test"
 import { describe, expect, it } from "vitest"
 import { api } from "./_generated/api"
 import type { MutationCtx } from "./_generated/server"
@@ -32,6 +33,7 @@ async function user(
 describe("createInvite", () => {
   it("denies anonymous, applicant, and demo-admin callers", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     const demo = await user(t, "demo@example.com", "demo-admin")
     const applicant = await user(t, "a@example.com")
@@ -63,6 +65,7 @@ describe("createInvite", () => {
 
   it("stores an unguessable token with 7-day expiry and the issuer", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     const before = Date.now()
     const { token } = await dev.authed.mutation(api.invites.createInvite, {
@@ -85,6 +88,7 @@ describe("createInvite", () => {
 
   it("rejects invalid email addresses and roles", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     await expect(
       dev.authed.mutation(api.invites.createInvite, {
@@ -105,6 +109,7 @@ describe("createInvite", () => {
 describe("claimInvite", () => {
   it("denies anonymous callers", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     await expect(t.mutation(api.invites.claimInvite, {})).rejects.toThrow(
       "Not authenticated"
     )
@@ -112,6 +117,7 @@ describe("claimInvite", () => {
 
   it("grants the role and marks single-use; redeeming twice throws", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     const newcomer = await user(t, "newcomer@example.com")
     await dev.authed.mutation(api.invites.createInvite, {
@@ -138,6 +144,7 @@ describe("claimInvite", () => {
 
   it("throws for expired invites", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     const stale = await user(t, "stale@example.com")
     const { token } = await dev.authed.mutation(api.invites.createInvite, {
@@ -158,6 +165,7 @@ describe("claimInvite", () => {
 
   it("throws when no invite matches the sign-in email", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     const stranger = await user(t, "stranger@example.com")
     await dev.authed.mutation(api.invites.createInvite, {
@@ -171,6 +179,7 @@ describe("claimInvite", () => {
 
   it("throws without a verified email on the users row", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     await dev.authed.mutation(api.invites.createInvite, {
       email: "unverified@example.com",
@@ -186,6 +195,7 @@ describe("claimInvite", () => {
 describe("listInvites", () => {
   it("denies anonymous and demo-admin callers and never exposes tokens", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const dev = await user(t, "dev@example.com", "developer-admin")
     const demo = await user(t, "demo@example.com", "demo-admin")
     await dev.authed.mutation(api.invites.createInvite, {

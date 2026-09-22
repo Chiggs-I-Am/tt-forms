@@ -8,12 +8,12 @@ const steps = [
     body: "Search the pilot catalog by name, agency, or keyword.",
   },
   {
-    title: "Open it and try a field",
-    body: "Each form previews its sections with one local-only practice field.",
+    title: "Open it and fill it in",
+    body: "Every section renders from the published version. Answers stay in this browser until you sign in.",
   },
   {
     title: "Sign in to save",
-    body: "Google or an email code. Server saves arrive with the full flow.",
+    body: "Google or an email code lands on one account. The first server save needs sign-in.",
   },
 ]
 
@@ -60,11 +60,7 @@ export interface OfficialSource {
   url: string
 }
 
-export function OfficialSources({
-  sources,
-}: {
-  sources: OfficialSource[]
-}) {
+export function OfficialSources({ sources }: { sources: OfficialSource[] }) {
   return (
     <section aria-labelledby="sources" className="flex flex-col gap-4">
       <h2 id="sources" className="font-heading text-lg font-medium">
@@ -102,8 +98,8 @@ export function SiteFooter() {
   return (
     <footer className="flex flex-col gap-2 border-t border-border pt-4 pb-2">
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Demo, not a government service. Your sign-in email is real and only
-        used for authentication. Every form answer must be fake.
+        Demo, not a government service. Your sign-in email is real and only used
+        for authentication. Every form answer must be fake.
       </p>
     </footer>
   )

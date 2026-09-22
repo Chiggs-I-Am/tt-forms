@@ -4,6 +4,7 @@ import type { DatabaseReader } from "./_generated/server"
 import type { Id } from "./_generated/dataModel"
 import { requireUserId } from "./authz"
 import { answersValidator } from "./formModel"
+import { rateLimiter } from "./rateLimits"
 
 // Applicant draft lifecycle for #36. One active draft per owner and form,
 // autosaved from the browser after sign-in, expiring 30 days after the last
@@ -88,6 +89,7 @@ export const saveDraft = mutation({
   },
   handler: async (ctx, args) => {
     const ownerId = await requireUserId(ctx)
+    await rateLimiter.limit(ctx, "draftSave", { key: ownerId, throws: true })
     const now = Date.now()
     const [existing] = await activeDraftsFor(ctx, ownerId, args.formId)
     if (existing) {
@@ -143,6 +145,7 @@ export const replaceDraft = mutation({
   },
   handler: async (ctx, args) => {
     const ownerId = await requireUserId(ctx)
+    await rateLimiter.limit(ctx, "draftReplace", { key: ownerId, throws: true })
     if (args.confirm !== true) {
       throw new ConvexError("Replacing a draft needs explicit confirmation.")
     }

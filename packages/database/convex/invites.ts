@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { requireDeveloperAdmin, requireUserId } from "./authz"
+import { rateLimiter } from "./rateLimits"
 
 // Admin invites for #39. Growth stays invite-only: a developer-admin issues an
 // email-bound, single-use, 7-day invite, and the recipient redeems it by
@@ -37,6 +38,10 @@ export const createInvite = mutation({
   args: { email: v.string(), role: inviteRole },
   handler: async (ctx, args) => {
     const createdBy = await requireDeveloperAdmin(ctx)
+    await rateLimiter.limit(ctx, "inviteCreate", {
+      key: createdBy,
+      throws: true,
+    })
     const email = normalizeEmail(args.email)
     if (!EMAIL_RE.test(email)) {
       throw new ConvexError("Invite needs a valid email address.")
@@ -65,6 +70,7 @@ export const claimInvite = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx)
+    await rateLimiter.limit(ctx, "inviteClaim", { key: userId, throws: true })
     const user = await ctx.db.get(userId)
     const email = user?.email?.trim().toLowerCase()
     if (!email) {

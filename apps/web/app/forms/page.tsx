@@ -17,6 +17,10 @@ export default async function FormsPage() {
           <h1 className="font-heading text-4xl font-medium text-balance">
             Browse demo forms
           </h1>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Demonstration only. Nothing typed here reaches the government; every
+            answer must be fake.
+          </p>
         </div>
         <ul className="flex max-w-2xl flex-col gap-3">
           {pilotForms.map((form) => (
@@ -27,9 +31,7 @@ export default async function FormsPage() {
               >
                 <span className="flex flex-1 flex-col gap-1">
                   <span className="flex items-baseline justify-between gap-3">
-                    <span className="font-medium">
-                      {form.name}
-                    </span>
+                    <span className="font-medium">{form.name}</span>
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {form.agency}

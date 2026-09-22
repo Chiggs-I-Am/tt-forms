@@ -1,4 +1,5 @@
 import { convexTest, type TestConvex } from "convex-test"
+import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test"
 import { describe, expect, it } from "vitest"
 import { api } from "./_generated/api"
 import type { MutationCtx } from "./_generated/server"
@@ -111,6 +112,7 @@ const pdfBytes = (size: number): Uint8Array<ArrayBuffer> => {
 describe("generateUploadUrl", () => {
   it("hands the draft owner an upload URL", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const out = await authed.mutation(api.uploads.generateUploadUrl, {
@@ -122,6 +124,7 @@ describe("generateUploadUrl", () => {
 
   it("denies anonymous callers", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     await expect(
@@ -131,6 +134,7 @@ describe("generateUploadUrl", () => {
 
   it("denies non-owners", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const other = await user(t, "other@example.com")
@@ -141,6 +145,7 @@ describe("generateUploadUrl", () => {
 
   it("denies expired drafts", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId, {
       expiresAt: Date.now() - 1000,
@@ -152,6 +157,7 @@ describe("generateUploadUrl", () => {
 
   it("denies withdrawn versions but allows retired ones", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const withdrawn = await draftFor(t, userId, { status: "withdrawn" })
     await expect(
@@ -180,6 +186,7 @@ describe("saveFile", () => {
   //    draft-linkage test, which deletes and shows serving revoked.
   it("saves a valid upload linked to the draft", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(t, pdfBytes(1024), "application/pdf")
@@ -203,6 +210,7 @@ describe("saveFile", () => {
 
   it("rejects oversized uploads on direct call", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId, { maxSizeBytes: 1024 })
     const storageId = await storeBlob(t, pdfBytes(2048), "application/pdf")
@@ -225,6 +233,7 @@ describe("saveFile", () => {
 
   it("rejects the default 5MB limit without a field cap", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(
@@ -244,6 +253,7 @@ describe("saveFile", () => {
 
   it("rejects a disallowed extension", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(
@@ -263,6 +273,7 @@ describe("saveFile", () => {
 
   it("denies non-owners and anonymous callers", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(t, pdfBytes(64), "application/pdf")
@@ -295,6 +306,7 @@ describe("saveFile", () => {
 describe("fileUrl", () => {
   it("denies non-owners, demo-admins, and anonymous callers", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(t, pdfBytes(128), "application/pdf")
@@ -319,6 +331,7 @@ describe("fileUrl", () => {
 
   it("serves the owner and a developer-admin", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(t, pdfBytes(128), "image/png")
@@ -339,6 +352,7 @@ describe("fileUrl", () => {
 describe("draft linkage for expiry cleanup", () => {
   it("links file rows to their draft for purgeExpired to walk", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { userId, authed } = await user(t, "owner@example.com")
     const { draftId } = await draftFor(t, userId)
     const storageId = await storeBlob(t, pdfBytes(256), "application/pdf")

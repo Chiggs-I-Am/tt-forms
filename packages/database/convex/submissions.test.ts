@@ -1,4 +1,5 @@
 import { convexTest, type TestConvex } from "convex-test"
+import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test"
 import { describe, expect, it } from "vitest"
 import { api } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
@@ -101,6 +102,7 @@ const goodAnswers = {
 describe("submitDraft validation", () => {
   it("rejects invalid answers listing errors, then succeeds when fixed", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t, "test-form", "Test Form")
     const a = await user(t, "a@example.com")
     await a.authed.mutation(api.drafts.saveDraft, {
@@ -133,6 +135,7 @@ describe("submitDraft validation", () => {
 
   it("excludes hidden answers from the snapshot but keeps them in the draft", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t, "test-form", "Test Form")
     const a = await user(t, "a@example.com")
     // "not-a-phone" would fail validation while visible; hidden it is skipped.
@@ -164,6 +167,7 @@ describe("submitDraft validation", () => {
 describe("retire versus withdraw", () => {
   it("blocks withdrawn versions with the reason", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { dev, formId, versionId } = await publishedForm(
       t,
       "test-form",
@@ -188,6 +192,7 @@ describe("retire versus withdraw", () => {
 
   it("lets retired versions submit", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { dev, formId, versionId } = await publishedForm(
       t,
       "test-form",
@@ -210,6 +215,7 @@ describe("retire versus withdraw", () => {
 describe("submit lifecycle", () => {
   it("rejects double-submit but allows a fresh post-submit draft", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t, "test-form", "Test Form")
     const a = await user(t, "a@example.com")
     await a.authed.mutation(api.drafts.saveDraft, {
@@ -231,6 +237,7 @@ describe("submit lifecycle", () => {
 
   it("lists the owner's submissions newest-first", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const first = await publishedForm(t, "form-one", "Form One")
     const second = await publishedForm(t, "form-two", "Form Two")
     const a = await user(t, "a@example.com")
@@ -262,6 +269,7 @@ describe("submit lifecycle", () => {
 describe("ownership and read-only", () => {
   it("denies anonymous callers on every path", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { formId } = await publishedForm(t, "test-form", "Test Form")
     const a = await user(t, "a@example.com")
     await a.authed.mutation(api.drafts.saveDraft, {
@@ -285,6 +293,7 @@ describe("ownership and read-only", () => {
 
   it("isolates submissions per owner but lets developer-admin read", async () => {
     const t = convexTest(schema, modules)
+    registerRateLimiter(t)
     const { dev, formId } = await publishedForm(t, "test-form", "Test Form")
     const a = await user(t, "a@example.com")
     const b = await user(t, "b@example.com")

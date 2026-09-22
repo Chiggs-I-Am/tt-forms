@@ -274,9 +274,10 @@ export function FormFiller({
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-medium">Review your answers</h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Hidden answers are kept but never submitted while hidden. Signed-in
-            applicants autosave to one draft per form; anonymous answers live in
-            this browser only.
+            Demo submission. Nothing here reaches the government; every answer
+            must be fake. Hidden answers are kept but never submitted while
+            hidden. Signed-in applicants autosave to one draft per form;
+            anonymous answers live in this browser only.
           </p>
         </div>
         {sections.map((s) => (

@@ -1,9 +1,7 @@
 // Pilot-form catalog for #34. Static data: the three official forms this demo
 // is modeled on, plus the swap-in alternate. Sources are the real government
-// pages and PDFs the questions come from (spec user story 1). The structured
-// builder (#35) and applicant flow (#36) will replace these stubs with live
-// versions; until then every card leads to an intro page with a local-only
-// practice field, never a fake submission.
+// pages and PDFs the questions come from (spec user story 1). Cards link to
+// the full applicant fill view; answers stay local until sign-in (#36).
 
 export interface PilotForm {
   slug: string

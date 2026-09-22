@@ -55,6 +55,10 @@ export default async function FormPage({
       <header className="flex flex-col gap-2">
         <p className="text-sm text-muted-foreground">{intro.agency}</p>
         <h1 className="text-2xl font-medium">{intro.name}</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Demo form. Nothing typed here reaches the government. Your sign-in
+          email is real; every answer must be fake.
+        </p>
         <p className="text-sm">
           Official source:{" "}
           <a
