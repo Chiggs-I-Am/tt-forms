@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { ArrowRight } from "lucide-react"
-import { Badge } from "@workspace/ui/components/badge"
 import { SiteFooter } from "@workspace/ui/components/site-sections"
 import { pilotForms } from "@/lib/forms"
 
@@ -37,9 +36,6 @@ export default async function FormsPage() {
                     <span className="font-medium group-hover:text-primary">
                       {form.name}
                     </span>
-                    {form.alternate ? (
-                      <Badge variant="outline">Alternate</Badge>
-                    ) : null}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {form.agency}
