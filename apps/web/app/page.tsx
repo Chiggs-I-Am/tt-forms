@@ -1,38 +1,16 @@
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
 import { FormSearch } from "@workspace/ui/components/form-search"
 import {
   HowItWorks,
   OfficialSources,
   SiteFooter,
 } from "@workspace/ui/components/site-sections"
-import { SiteNavbar } from "@workspace/ui/components/site-navbar"
-import { AuthStatus } from "@/components/auth-status"
 import { pilotForms } from "@/lib/forms"
 
-export const dynamic = "force-dynamic"
-
-// Landing page: navbar, hero search band, then steps and official sources.
-// This Server Component performs one query (the viewer) and no mutations,
-// per the cookie-auth rule. When the backend is unreachable the page renders
-// the anonymous homepage instead of crashing; browsing never needs the
-// server.
-async function loadViewer() {
-  try {
-    return await fetchQuery(
-      api.users.viewer,
-      {},
-      { token: await convexAuthNextjsToken() }
-    )
-  } catch {
-    return null
-  }
-}
+// Landing page: hero search band, then steps and official sources. The
+// navbar is global (see layout); this page is static and server-mutation
+// free.
 
 export default async function Page() {
-  const viewer = await loadViewer()
-
   const forms = pilotForms.map((form) => ({
     slug: form.slug,
     name: form.name,
@@ -48,10 +26,6 @@ export default async function Page() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <SiteNavbar
-        auth={<AuthStatus initialEmail={viewer?.email ?? null} />}
-        width="wide"
-      />
       <main className="flex flex-1 flex-col">
         <section className="border-b border-border bg-muted/50">
           <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-14 text-center">

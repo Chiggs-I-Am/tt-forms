@@ -47,17 +47,6 @@ export default async function FormPage({
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-8 p-6">
       <header className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-4">
-          <p className="text-xs tracking-widest text-muted-foreground uppercase">
-            Demo · not a government service
-          </p>
-          <Link
-            href="/signin"
-            className="shrink-0 text-sm font-medium underline underline-offset-4"
-          >
-            Sign in to save
-          </Link>
-        </div>
         <p className="text-sm text-muted-foreground">{intro.agency}</p>
         <h1 className="text-2xl font-medium">{intro.name}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">

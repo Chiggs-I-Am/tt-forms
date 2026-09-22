@@ -12,9 +12,6 @@ export default function SignInPage() {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <p className="text-xs tracking-widest text-muted-foreground uppercase">
-          Demo · not a government service
-        </p>
         <h1 className="text-2xl font-medium">Sign in to save your progress</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
           Browsing and trying fields is anonymous and stays in this browser. The

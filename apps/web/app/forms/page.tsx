@@ -1,43 +1,18 @@
 import type { Metadata } from "next"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
 import { ArrowRight } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { SiteFooter } from "@workspace/ui/components/site-sections"
-import { SiteNavbar } from "@workspace/ui/components/site-navbar"
-import { AuthStatus } from "@/components/auth-status"
 import { pilotForms } from "@/lib/forms"
-
-export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Browse forms · TT Forms Demo",
 }
 
-// Full pilot catalog. Static data, same Server Component pattern as the
-// homepage: one viewer query, no mutations, null-on-unreachable-backend.
-async function loadViewer() {
-  try {
-    return await fetchQuery(
-      api.users.viewer,
-      {},
-      { token: await convexAuthNextjsToken() }
-    )
-  } catch {
-    return null
-  }
-}
+// Full pilot catalog. Static data; the navbar is global (see layout).
 
 export default async function FormsPage() {
-  const viewer = await loadViewer()
-
   return (
     <div className="flex min-h-svh flex-col">
-      <SiteNavbar
-        auth={<AuthStatus initialEmail={viewer?.email ?? null} />}
-        width="wide"
-      />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-12">
         <div className="flex max-w-2xl flex-col gap-2">
           <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
@@ -48,8 +23,8 @@ export default async function FormsPage() {
             Browse demo forms
           </h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Every form previews its sections with one local-only practice field.
-            Official sources are cited on each form page.
+            Every form fills the full official questionnaire locally, with no
+            account needed. Official sources are cited on each form page.
           </p>
         </div>
         <ul className="flex max-w-2xl flex-col gap-3">
