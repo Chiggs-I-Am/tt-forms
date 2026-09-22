@@ -18,6 +18,7 @@ import type * as forms from "../forms.js";
 import type * as http from "../http.js";
 import type * as pilotDefinitions from "../pilotDefinitions.js";
 import type * as seed from "../seed.js";
+import type * as uploads from "../uploads.js";
 import type * as users from "../users.js";
 
 import type {
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   pilotDefinitions: typeof pilotDefinitions;
   seed: typeof seed;
+  uploads: typeof uploads;
   users: typeof users;
 }>;
 
