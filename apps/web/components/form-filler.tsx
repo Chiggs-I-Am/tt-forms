@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
   FormProvider,
@@ -10,11 +9,11 @@ import {
   type Control,
   type FieldValues,
 } from "react-hook-form"
-import { Button, buttonVariants } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
+import { Button } from "@workspace/ui/components/button"
 import type { Id } from "@workspace/database/data-model"
 import { FormFieldInput } from "@/components/field-input"
 import { DraftSync } from "@/components/draft-sync"
+import { SubmitPanel } from "@/components/submit-panel"
 import {
   deserialize,
   displayTitle,
@@ -290,19 +289,11 @@ export function FormFiller({
             <SectionReview section={s} answers={answers} />
           </section>
         ))}
-        <div className="flex flex-col gap-2 border border-border bg-card p-4">
-          <p className="text-sm leading-relaxed">
-            Nothing has been sent anywhere. Sign in to keep these answers for
-            the first server save.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/signin" className={cn(buttonVariants())}>
-              Sign in to save
-            </Link>
-            <Button variant="outline" onClick={() => setReviewing(false)}>
-              Back to editing
-            </Button>
-          </div>
+        <SubmitPanel formId={formId} localAnswers={answers} />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setReviewing(false)}>
+            Back to editing
+          </Button>
         </div>
       </div>
     )
