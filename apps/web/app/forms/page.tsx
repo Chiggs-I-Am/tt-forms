@@ -33,7 +33,7 @@ export default async function FormsPage() {
                 </span>
                 <span className="flex flex-1 flex-col gap-1">
                   <span className="flex items-baseline justify-between gap-3">
-                    <span className="font-medium group-hover:text-primary">
+                    <span className="font-medium">
                       {form.name}
                     </span>
                   </span>
