@@ -73,6 +73,10 @@ export const sectionDefValidator = v.object({
   helpText: v.optional(v.string()),
   condition: v.optional(conditionValidator),
   repeat: v.optional(v.object({ min: v.number(), max: v.number() })),
+  // Subset of field ids that repeat per row. Absent with repeat means every
+  // field repeats; the rest are asked once above the rows (e.g. present
+  // marriage details with a previous-marriages table below).
+  repeatFields: v.optional(v.array(v.string())),
   fields: v.array(fieldDefValidator),
 })
 
@@ -289,7 +293,9 @@ function checkScalar(
 
 // Server-side answer validation. Hidden answers are skipped entirely: they
 // stay in the saved draft but never block progress and never reach the
-// submission while hidden. Returns every error plus the visible field paths.
+// submission while hidden. Repeated sections validate their once-asked fields
+// from top-level answers and their row fields per entry. Returns every error
+// plus the visible field paths.
 export function validateAnswers(
   definition: FormDefinition,
   answers: Answers
@@ -303,6 +309,14 @@ export function validateAnswers(
       continue
     }
     if (section.repeat) {
+      const { once, rows: rowFields } = splitSection(section)
+      for (const field of once) {
+        if (!isVisible(field.condition, getAnswer)) {
+          continue
+        }
+        visible.push(field.id)
+        checkScalar(field, getAnswer(field.id), field.id, errors)
+      }
       const rows = answers[section.id]
       const list = Array.isArray(rows) ? rows : []
       if (list.length < section.repeat.min) {
@@ -325,7 +339,7 @@ export function validateAnswers(
           })
           return
         }
-        for (const field of section.fields) {
+        for (const field of rowFields) {
           const path = `${section.id}[${index}].${field.id}`
           visible.push(path)
           checkScalar(
@@ -347,6 +361,25 @@ export function validateAnswers(
     }
   }
   return { errors, visible }
+}
+
+// Splits a repeated section into once-asked fields (top-level answers) and
+// per-row fields. Without repeatFields every field repeats.
+export function splitSection(section: SectionDef): {
+  once: FieldDef[]
+  rows: FieldDef[]
+} {
+  if (!section.repeat) {
+    return { once: section.fields, rows: [] }
+  }
+  if (!section.repeatFields) {
+    return { once: [], rows: section.fields }
+  }
+  const repeating = new Set(section.repeatFields)
+  return {
+    once: section.fields.filter((f) => !repeating.has(f.id)),
+    rows: section.fields.filter((f) => repeating.has(f.id)),
+  }
 }
 
 // Publish checks for #35: invalid rules, missing labels or options, broken
@@ -378,6 +411,23 @@ export function validateDefinition(definition: FormDefinition): string[] {
           `Section "${section.title}" repeats a minimum more times than its maximum.`
         )
       }
+      if (section.repeatFields) {
+        if (section.repeatFields.length === 0) {
+          problems.push(`Section "${section.title}" names no repeating fields.`)
+        }
+        const fieldIds = new Set(section.fields.map((f) => f.id))
+        for (const id of section.repeatFields) {
+          if (!fieldIds.has(id)) {
+            problems.push(
+              `Section "${section.title}" repeats unknown field "${id}".`
+            )
+          }
+        }
+      }
+    } else if (section.repeatFields) {
+      problems.push(
+        `Section "${section.title}" names repeating fields without a repeat count.`
+      )
     }
     if (section.fields.length === 0) {
       problems.push(`Section "${section.title}" has no fields.`)
@@ -428,6 +478,14 @@ export function validateDefinition(definition: FormDefinition): string[] {
             `Upload field "${field.label || field.id}" has an impossible size limit.`
           )
         }
+      }
+    }
+    const { rows: rowFields } = splitSection(section)
+    for (const field of rowFields) {
+      if (field.condition) {
+        problems.push(
+          `Row field "${field.label || field.id}" cannot carry its own condition; gate the section instead.`
+        )
       }
     }
   }

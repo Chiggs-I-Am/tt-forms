@@ -50,8 +50,8 @@ export default async function FormPage({
         <p className="text-sm text-muted-foreground">{intro.agency}</p>
         <h1 className="text-2xl font-medium">{intro.name}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Invent every answer. Never type a real ID number, address, or
-          personal detail. Answers stay in this browser until you sign in.
+          Invent every answer. Never type a real ID number, address, or personal
+          detail. Answers stay in this browser until you sign in.
         </p>
         <p className="text-sm">
           Official source:{" "}
@@ -101,8 +101,8 @@ export default async function FormPage({
             This version no longer accepts new applications.
           </p>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Existing drafts stay submittable under its rules until they
-            expire. Check back for the replacement version.
+            Existing drafts stay submittable under its rules until they expire.
+            Check back for the replacement version.
           </p>
         </div>
       ) : (

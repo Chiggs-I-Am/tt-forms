@@ -321,7 +321,8 @@ const passportRenewal: PilotSeed = {
       {
         id: "married_women",
         title: "3. Married women",
-        helpText: "This section appears for married women only.",
+        helpText:
+          "This section appears for married women only. Previous marriages follow below, one entry each, up to three.",
         condition: {
           mode: "all",
           rules: [
@@ -329,6 +330,8 @@ const passportRenewal: PilotSeed = {
             { fieldId: "sex", values: ["Female"] },
           ],
         },
+        repeat: { min: 0, max: 3 },
+        repeatFields: ["pm_date", "pm_husband", "pm_place", "pm_nationality"],
         fields: [
           {
             id: "present_marriage_date",
@@ -359,42 +362,27 @@ const passportRenewal: PilotSeed = {
             label: "Husband's nationality",
             maxLength: 60,
           },
-        ],
-      },
-      {
-        id: "previous_marriages",
-        title: "3b. Previous marriages",
-        helpText: "One entry per previous marriage, up to three.",
-        condition: {
-          mode: "all",
-          rules: [
-            { fieldId: "marital_status", values: ["Married"] },
-            { fieldId: "sex", values: ["Female"] },
-          ],
-        },
-        repeat: { min: 0, max: 3 },
-        fields: [
           {
             id: "pm_date",
             kind: "date",
-            label: "Date of marriage (day/month/year)",
+            label: "Previous marriage: date of marriage (day/month/year)",
           },
           {
             id: "pm_husband",
             kind: "short_text",
-            label: "Husband's name in full",
+            label: "Previous marriage: husband's name in full",
             maxLength: 120,
           },
           {
             id: "pm_place",
             kind: "short_text",
-            label: "Place of marriage",
+            label: "Previous marriage: place of marriage",
             maxLength: 120,
           },
           {
             id: "pm_nationality",
             kind: "short_text",
-            label: "Husband's nationality",
+            label: "Previous marriage: husband's nationality",
             maxLength: 60,
           },
         ],
@@ -441,7 +429,9 @@ const passportRenewal: PilotSeed = {
       },
       {
         id: "citizenship_details",
-        title: "5b. Other citizenship details",
+        title: "5. Citizenship details (continued)",
+        helpText:
+          "Part of paper section 5. Appears only when other citizenship is declared, one entry per country.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "other_citizenship", values: ["true"] }],
@@ -478,9 +468,9 @@ const passportRenewal: PilotSeed = {
       },
       {
         id: "age_band",
-        title: "6. Age band",
+        title: "Age check",
         helpText:
-          "Applicants under 18 need a parent or legal guardian's permission. Choose explicitly; the demo never checks your date of birth.",
+          "Demo gate, not a paper section: the paper has no such question and officers check age from documents. Applicants under 18 need a parent or legal guardian's permission, so choose explicitly; the demo never checks your date of birth.",
         fields: [
           {
             id: "under_18",
@@ -493,7 +483,8 @@ const passportRenewal: PilotSeed = {
       },
       {
         id: "guardian",
-        title: "6b. Permission from parent / legal guardian",
+        title: "6. Permission from parent / legal guardian",
+        helpText: "Appears for applicants under 18 only.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "under_18", values: ["Yes, I am under 18"] }],
@@ -941,6 +932,7 @@ const nisRegistration: PilotSeed = {
       {
         id: "siblings",
         title: "Multiple-birth siblings",
+        helpText: "Appears for multiple births only, one entry per sibling.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "multiple_birth", values: ["true"] }],
@@ -977,6 +969,7 @@ const nisRegistration: PilotSeed = {
       {
         id: "same_name_details",
         title: "Same-name details",
+        helpText: "Appears only when a family member shares your name.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "same_name", values: ["true"] }],

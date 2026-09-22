@@ -94,6 +94,48 @@ describe("validateDefinition", () => {
     expect(problems).toHaveLength(2)
   })
 
+  it("validates mixed once-plus-rows sections", () => {
+    const mixed: FormDefinition = {
+      sections: [
+        {
+          id: "s",
+          title: "S",
+          repeat: { min: 0, max: 2 },
+          repeatFields: ["row_note"],
+          fields: [
+            {
+              id: "headline",
+              kind: "short_text",
+              label: "Headline",
+              required: true,
+            },
+            { id: "row_note", kind: "short_text", label: "Note" },
+          ],
+        },
+      ],
+    }
+    expect(validateDefinition(mixed)).toEqual([])
+    // Once-field missing blocks; empty rows are fine at min 0.
+    expect(validateAnswers(mixed, { s: [] }).errors.map((e) => e.path)).toEqual(
+      ["headline"]
+    )
+    expect(validateAnswers(mixed, { headline: "Hi", s: [] }).errors).toEqual([])
+    // Unknown repeat fields and row-level conditions are rejected.
+    expect(
+      validateDefinition({
+        sections: [
+          {
+            id: "s",
+            title: "S",
+            repeat: { min: 0, max: 1 },
+            repeatFields: ["ghost"],
+            fields: [{ id: "a", kind: "short_text", label: "A" }],
+          },
+        ],
+      }).join(" ")
+    ).toMatch(/unknown field/)
+  })
+
   it("rejects conditions on later or non-choice fields", () => {
     const bad: FormDefinition = {
       sections: [

@@ -8,6 +8,10 @@ import { FieldInput } from "@/components/field-input"
 import { useLocalAnswers } from "@/components/use-local-answers"
 import {
   ensureRows,
+  hiddenSections,
+  isVisible,
+  sectionReason,
+  splitSection,
   topAnswer,
   visibleFields,
   visibleSections,
@@ -34,13 +38,27 @@ function sectionErrors(
 ): Record<string, string> {
   const errors: Record<string, string> = {}
   if (section.repeat) {
+    const { once, rows: rowFields } = splitSection(section)
+    for (const field of once) {
+      if (!isVisible(field.condition, answers)) {
+        continue
+      }
+      const missing = checkField(
+        field,
+        topAnswer(answers, field.id),
+        files[field.id]
+      )
+      if (missing) {
+        errors[field.id] = missing
+      }
+    }
     const rows = ensureRows(answers, section)
     if (rows.length < section.repeat.min) {
       errors[section.id] =
         `Add at least ${section.repeat.min} ${section.repeat.min === 1 ? "entry" : "entries"}.`
     }
     rows.forEach((row, index) => {
-      for (const field of section.fields) {
+      for (const field of rowFields) {
         const missing = checkField(
           field,
           row[field.id],
@@ -106,6 +124,56 @@ function formatValue(value: Scalar | File[] | undefined): string {
   return String(value)
 }
 
+function SectionReview({
+  section,
+  answers,
+}: {
+  section: SectionDef
+  answers: Answers
+}) {
+  if (!section.repeat) {
+    return (
+      <>
+        {visibleFields(section, answers).map((f) => (
+          <p key={f.id} className="text-sm">
+            <span className="text-muted-foreground">{f.label}: </span>
+            {formatValue(topAnswer(answers, f.id))}
+          </p>
+        ))}
+      </>
+    )
+  }
+  const { once, rows: rowFields } = splitSection(section)
+  return (
+    <>
+      {once
+        .filter((f) => isVisible(f.condition, answers))
+        .map((f) => (
+          <p key={f.id} className="text-sm">
+            <span className="text-muted-foreground">{f.label}: </span>
+            {formatValue(topAnswer(answers, f.id))}
+          </p>
+        ))}
+      {ensureRows(answers, section).map((row, i) => (
+        <div
+          key={i}
+          className="flex flex-col gap-1 border-l-2 border-border pl-3"
+        >
+          <p className="font-mono text-xs text-muted-foreground">
+            Entry {i + 1}
+          </p>
+          {rowFields.map((f) => (
+            <p key={f.id} className="text-sm">
+              <span className="text-muted-foreground">{f.label}: </span>
+              {formatValue(row[f.id])}
+            </p>
+          ))}
+        </div>
+      ))}
+    </>
+  )
+}
+
 // Full 1:1 fill view. Renders every section of the live version one at a
 // time with per-field hints, evaluates conditions locally (cosmetic), keeps
 // hidden answers in the draft, and stores everything in this browser only.
@@ -128,6 +196,10 @@ export function FormFiller({
 
   const sections = useMemo(
     () => visibleSections(definition, answers),
+    [definition, answers]
+  )
+  const hidden = useMemo(
+    () => hiddenSections(definition, answers),
     [definition, answers]
   )
   const clamped = Math.min(index, Math.max(sections.length - 1, 0))
@@ -175,31 +247,7 @@ export function FormFiller({
             className="flex flex-col gap-2"
           >
             <h3 className="text-sm font-medium">{s.title}</h3>
-            {s.repeat
-              ? ensureRows(answers, s).map((row, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col gap-1 border-l-2 border-border pl-3"
-                  >
-                    <p className="font-mono text-xs text-muted-foreground">
-                      Entry {i + 1}
-                    </p>
-                    {s.fields.map((f) => (
-                      <p key={f.id} className="text-sm">
-                        <span className="text-muted-foreground">
-                          {f.label}:{" "}
-                        </span>
-                        {formatValue(row[f.id])}
-                      </p>
-                    ))}
-                  </div>
-                ))
-              : visibleFields(s, answers).map((f) => (
-                  <p key={f.id} className="text-sm">
-                    <span className="text-muted-foreground">{f.label}: </span>
-                    {formatValue(topAnswer(answers, f.id))}
-                  </p>
-                ))}
+            <SectionReview section={s} answers={answers} />
           </section>
         ))}
         <div className="flex flex-col gap-2 border border-border bg-card p-4">
@@ -221,6 +269,9 @@ export function FormFiller({
   }
 
   const rows = section.repeat ? ensureRows(answers, section) : []
+  const { once, rows: rowFields } = section.repeat
+    ? splitSection(section)
+    : { once: visibleFields(section, answers), rows: [] }
 
   return (
     <div className="flex flex-col gap-6">
@@ -246,6 +297,17 @@ export function FormFiller({
               >
                 {s.title}
               </button>
+            </li>
+          ))}
+          {hidden.map((s) => (
+            <li key={s.id}>
+              <span
+                aria-disabled="true"
+                title={sectionReason(s)}
+                className="inline-block cursor-not-allowed border border-dashed border-border px-2 py-1 text-xs text-muted-foreground"
+              >
+                {s.title} · hidden
+              </span>
             </li>
           ))}
         </ol>
@@ -277,6 +339,20 @@ export function FormFiller({
 
         {section.repeat ? (
           <div className="flex flex-col gap-5">
+            {once.map((field) => (
+              <FieldInput
+                key={field.id}
+                field={field}
+                value={topAnswer(answers, field.id)}
+                files={files[field.id]}
+                onChange={(value) => setScalar(field.id, value)}
+                onFiles={(next) =>
+                  setFiles((prev) => ({ ...prev, [field.id]: next }))
+                }
+                error={errors[field.id]}
+                idPrefix={section.id}
+              />
+            ))}
             {rows.map((row, rowIndex) => (
               <div
                 key={rowIndex}
@@ -296,7 +372,7 @@ export function FormFiller({
                     </Button>
                   )}
                 </div>
-                {section.fields.map((field) => (
+                {rowFields.map((field) => (
                   <FieldInput
                     key={field.id}
                     field={field}

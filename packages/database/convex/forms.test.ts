@@ -223,6 +223,52 @@ describe("catalog", () => {
   })
 })
 
+describe("seedSync", () => {
+  it("converges code-managed pilots without rewriting history", async () => {
+    const t = convexTest(schema, modules)
+    // Fresh database: sync seeds and publishes v1 like seedPilots.
+    const first = await t.mutation(internal.seed.seedSync, {})
+    expect(first).toHaveLength(4)
+    expect(first.every((r: { version: number }) => r.version === 1)).toBe(true)
+    // No drift: second run publishes nothing.
+    expect(await t.mutation(internal.seed.seedSync, {})).toEqual([])
+    // A builder-published v2 with custom content: sync preserves it and
+    // publishes v3 converging back to the code-managed seed.
+    const dev = await devAdmin(t)
+    await dev.mutation(api.forms.saveWorkingCopy, {
+      slug: "certificate-of-character",
+      name: "Certificate of Character",
+      agency: "TTPS",
+      sourceLabel: "Portal",
+      sourceUrl: "https://example.com/coc",
+      definition: {
+        sections: [
+          {
+            id: "s1",
+            title: "Changed",
+            fields: [{ id: "a", kind: "short_text", label: "A" }],
+          },
+        ],
+      } satisfies FormDefinition,
+    })
+    const v2 = await dev.mutation(api.forms.publish, {
+      slug: "certificate-of-character",
+    })
+    const synced = await t.mutation(internal.seed.seedSync, {})
+    expect(synced.map((r: { slug: string }) => r.slug)).toEqual([
+      "certificate-of-character",
+    ])
+    expect(synced[0]?.version).toBe(3)
+    const kept = await t.query(api.forms.getVersion, { versionId: v2 })
+    expect(kept?.definition.sections[0]?.id).toBe("s1")
+    const latest = await t.query(api.forms.getLatestVersion, {
+      slug: "certificate-of-character",
+    })
+    expect(latest?.version).toBe(3)
+    expect(await t.mutation(internal.seed.seedSync, {})).toEqual([])
+  })
+})
+
 describe("seedPilots", () => {
   it("publishes the four 1:1 pilots and skips on re-run", async () => {
     const t = convexTest(schema, modules)

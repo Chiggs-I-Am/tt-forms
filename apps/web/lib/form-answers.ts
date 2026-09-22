@@ -73,11 +73,45 @@ export function visibleSections(
   )
 }
 
+// Sections hidden by their condition, shown locked in the nav so paper
+// numbering never jumps. The section help text doubles as the reason.
+export function hiddenSections(
+  definition: VersionDefinition,
+  answers: Answers
+): SectionDef[] {
+  return definition.sections.filter(
+    (section) => !isVisible(section.condition, answers)
+  )
+}
+
+export function sectionReason(section: SectionDef): string {
+  return section.helpText ?? "Answer earlier questions to reveal it."
+}
+
 export function visibleFields(
   section: SectionDef,
   answers: Answers
 ): FieldDef[] {
   return section.fields.filter((field) => isVisible(field.condition, answers))
+}
+
+// Mirrors splitSection in convex/formModel.ts (duplicated because the web
+// app cannot import Convex server modules; the server re-checks everything).
+export function splitSection(section: SectionDef): {
+  once: FieldDef[]
+  rows: FieldDef[]
+} {
+  if (!section.repeat) {
+    return { once: section.fields, rows: [] }
+  }
+  if (!section.repeatFields) {
+    return { once: [], rows: section.fields }
+  }
+  const repeating = new Set(section.repeatFields)
+  return {
+    once: section.fields.filter((f) => !repeating.has(f.id)),
+    rows: section.fields.filter((f) => repeating.has(f.id)),
+  }
 }
 
 // Rows a repeated section must hold: pad with empty rows up to the minimum.
