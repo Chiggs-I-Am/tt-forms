@@ -18,10 +18,6 @@ export default async function FormsPage() {
           <h1 className="font-heading text-4xl font-medium text-balance">
             Browse demo forms
           </h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Every form fills the full official questionnaire locally, with no
-            account needed. Official sources are cited on each form page.
-          </p>
         </div>
         <ul className="flex max-w-2xl flex-col gap-3">
           {pilotForms.map((form, index) => (
