@@ -9,6 +9,7 @@
  */
 
 import type * as ResendOTP from "../ResendOTP.js";
+import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as authz from "../authz.js";
 import type * as crons from "../crons.js";
@@ -16,6 +17,7 @@ import type * as drafts from "../drafts.js";
 import type * as formModel from "../formModel.js";
 import type * as forms from "../forms.js";
 import type * as http from "../http.js";
+import type * as invites from "../invites.js";
 import type * as pilotDefinitions from "../pilotDefinitions.js";
 import type * as seed from "../seed.js";
 import type * as submissions from "../submissions.js";
@@ -30,6 +32,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ResendOTP: typeof ResendOTP;
+  admin: typeof admin;
   auth: typeof auth;
   authz: typeof authz;
   crons: typeof crons;
@@ -37,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   formModel: typeof formModel;
   forms: typeof forms;
   http: typeof http;
+  invites: typeof invites;
   pilotDefinitions: typeof pilotDefinitions;
   seed: typeof seed;
   submissions: typeof submissions;
