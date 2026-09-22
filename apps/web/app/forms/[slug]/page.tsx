@@ -89,13 +89,20 @@ export default async function FormIntroPage({
         className="flex flex-col gap-3 border border-border bg-card p-4"
       >
         <h2 id="practice" className="text-lg font-medium">
-          Try one field now, no account needed
+          Fill the full form, no account needed
         </h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Invent every answer. Never type a real ID number, address, or personal
-          detail. This field stays in this browser; signing in later keeps it
-          for your first save.
+          Every question from the official form, one section at a time. Invent
+          every answer. Never type a real ID number, address, or personal
+          detail. Answers stay in this browser; signing in later keeps them for
+          your first save.
         </p>
+        <Link
+          href={`/forms/${form.slug}/apply`}
+          className="text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Start the full form
+        </Link>
         <PracticeField
           storageKey={`form-${form.slug}`}
           label={form.practiceLabel}

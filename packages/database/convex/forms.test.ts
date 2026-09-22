@@ -203,6 +203,24 @@ describe("catalog", () => {
     await dev.mutation(api.forms.publish, { slug: "test-form" })
     expect(await t.query(api.forms.listPublished, {})).toHaveLength(1)
   })
+
+  it("serves the latest version detail by slug", async () => {
+    const t = convexTest(schema, modules)
+    expect(
+      await t.query(api.forms.getLatestVersion, { slug: "nope" })
+    ).toBeNull()
+    const dev = await devAdmin(t)
+    await dev.mutation(api.forms.saveWorkingCopy, workingCopy)
+    const v1 = await dev.mutation(api.forms.publish, { slug: "test-form" })
+    const detail = await t.query(api.forms.getLatestVersion, {
+      slug: "test-form",
+    })
+    expect(detail?.versionId).toEqual(v1)
+    expect(detail?.version).toBe(1)
+    expect(detail?.status).toBe("active")
+    expect(detail?.definition.sections).toHaveLength(1)
+    expect(detail?.form.slug).toBe("test-form")
+  })
 })
 
 describe("seedPilots", () => {

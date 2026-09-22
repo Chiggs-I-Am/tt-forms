@@ -48,8 +48,8 @@ export default async function FormsPage() {
             Browse demo forms
           </h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Every form previews its sections with one local-only practice
-            field. Official sources are cited on each form page.
+            Every form previews its sections with one local-only practice field.
+            Official sources are cited on each form page.
           </p>
         </div>
         <ul className="flex max-w-2xl flex-col gap-3">

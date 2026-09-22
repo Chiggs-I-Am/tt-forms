@@ -19,6 +19,33 @@ async function latestVersion(ctx: { db: DatabaseReader }, formId: Id<"forms">) {
     .first()
 }
 
+async function versionDetail(
+  ctx: { db: DatabaseReader },
+  versionId: Id<"formVersions"> | undefined
+) {
+  if (!versionId) {
+    return null
+  }
+  const version = await ctx.db.get(versionId)
+  if (!version) {
+    return null
+  }
+  const form = await ctx.db.get(version.formId)
+  if (!form) {
+    return null
+  }
+  return {
+    versionId: version._id,
+    version: version.version,
+    status: version.status,
+    withdrawReason: version.withdrawReason,
+    definition: version.definition,
+    sourceLabel: version.sourceLabel,
+    sourceUrl: version.sourceUrl,
+    form: { slug: form.slug, name: form.name, agency: form.agency },
+  }
+}
+
 // Public catalog: forms whose latest version is active. Retired forms stop
 // new drafts (hidden here); withdrawn forms additionally block submission of
 // existing drafts (#37) while staying readable to their owners.
@@ -53,23 +80,25 @@ export const getVersion = query({
   args: { versionId: v.id("formVersions") },
   handler: async (ctx, args) => {
     const version = await ctx.db.get(args.versionId)
-    if (!version) {
-      return null
-    }
-    const form = await ctx.db.get(version.formId)
+    return await versionDetail(ctx, version?._id)
+  },
+})
+
+// Public latest-version detail by slug. Powers the applicant fill view: one
+// anonymous query returns everything the renderer needs. Returns null when
+// the form or version does not exist.
+export const getLatestVersion = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const form = await ctx.db
+      .query("forms")
+      .withIndex("slug", (q) => q.eq("slug", args.slug))
+      .first()
     if (!form) {
       return null
     }
-    return {
-      versionId: version._id,
-      version: version.version,
-      status: version.status,
-      withdrawReason: version.withdrawReason,
-      definition: version.definition,
-      sourceLabel: version.sourceLabel,
-      sourceUrl: version.sourceUrl,
-      form: { slug: form.slug, name: form.name, agency: form.agency },
-    }
+    const version = await latestVersion(ctx, form._id)
+    return await versionDetail(ctx, version?._id)
   },
 })
 
