@@ -49,10 +49,6 @@ export default async function FormPage({
       <header className="flex flex-col gap-2">
         <p className="text-sm text-muted-foreground">{intro.agency}</p>
         <h1 className="text-2xl font-medium">{intro.name}</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Invent every answer. Never type a real ID number, address, or personal
-          detail. Answers stay in this browser until you sign in.
-        </p>
         <p className="text-sm">
           Official source:{" "}
           <a
