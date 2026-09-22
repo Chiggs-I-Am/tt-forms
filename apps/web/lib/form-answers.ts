@@ -80,7 +80,7 @@ export function displayTitle(title: string): string {
   return title
     .replace(/^\d+\.\s*/, "")
     .replace(/^Part\s+[IVXLCDM]+\.?\s*/i, "")
-    .replace(/^Section\s+\d+\s*[:.\-]?\s*/i, "")
+    .replace(/^Section\s+\d+\s*[:.-]?\s*/i, "")
     .trim()
 }
 // Sections hidden by their condition, shown locked in the nav so paper
