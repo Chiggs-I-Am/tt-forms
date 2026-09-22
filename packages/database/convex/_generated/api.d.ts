@@ -11,7 +11,11 @@
 import type * as ResendOTP from "../ResendOTP.js";
 import type * as auth from "../auth.js";
 import type * as authz from "../authz.js";
+import type * as formModel from "../formModel.js";
+import type * as forms from "../forms.js";
 import type * as http from "../http.js";
+import type * as pilotDefinitions from "../pilotDefinitions.js";
+import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
 import type {
@@ -24,7 +28,11 @@ declare const fullApi: ApiFromModules<{
   ResendOTP: typeof ResendOTP;
   auth: typeof auth;
   authz: typeof authz;
+  formModel: typeof formModel;
+  forms: typeof forms;
   http: typeof http;
+  pilotDefinitions: typeof pilotDefinitions;
+  seed: typeof seed;
   users: typeof users;
 }>;
 
