@@ -42,6 +42,7 @@ async function versionDetail(
     definition: version.definition,
     sourceLabel: version.sourceLabel,
     sourceUrl: version.sourceUrl,
+    formId: version.formId,
     form: { slug: form.slug, name: form.name, agency: form.agency },
   }
 }

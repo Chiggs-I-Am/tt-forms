@@ -8,21 +8,25 @@ import type { FieldDef, SectionDef } from "@/lib/form-answers"
 
 const emptyToUndefined = (value: unknown) => (value === "" ? undefined : value)
 
-function textSchema(field: FieldDef) {
-  let schema = z.preprocess(emptyToUndefined, z.string())
-  if (field.required) {
-    schema = z.preprocess(
-      emptyToUndefined,
-      z.string().min(1, `${field.label} is required.`)
-    )
-  }
+function textSchema(field: FieldDef): z.ZodTypeAny {
+  // Optional text accepts untouched (undefined) and cleared ("") equally:
+  // the preprocessor maps "" to undefined and the inner optional accepts
+  // it. Required text rejects both.
+  let schema: z.ZodTypeAny = field.required
+    ? z.preprocess(
+        emptyToUndefined,
+        z.string().min(1, `${field.label} is required.`)
+      )
+    : z.preprocess(emptyToUndefined, z.string().optional())
   if (
     (field.kind === "short_text" || field.kind === "long_text") &&
     field.maxLength !== undefined
   ) {
     const max = field.maxLength
     schema = schema.refine(
-      (value) => value === undefined || value.length <= max,
+      (value: unknown) =>
+        value === undefined ||
+        (typeof value === "string" && value.length <= max),
       `${field.label} must be at most ${max} characters.`
     )
   }

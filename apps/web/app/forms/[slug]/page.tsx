@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { api } from "@workspace/database/api"
+import type { Id } from "@workspace/database/data-model"
 import { fetchQuery } from "convex/nextjs"
 import { FormFiller } from "@/components/form-filler"
 import { getForm } from "@/lib/forms"
@@ -32,7 +33,12 @@ async function loadForm(slug: string) {
       fetchQuery(api.forms.listPublished, {}),
     ])
     const entry = published.find((form) => form.slug === slug)
-    return { version, formId: entry?.formId ?? null }
+    // listPublished only covers active forms, so retired versions resolve
+    // their form id from the version detail itself.
+    const versionFormId = (version as unknown as { formId?: Id<"forms"> } | null)
+      ?.formId
+    const formId = versionFormId ?? entry?.formId ?? null
+    return { version, formId }
   } catch {
     return { version: null, formId: null }
   }
@@ -99,17 +105,25 @@ export default async function FormPage({
           </p>
         </div>
       ) : version.status === "retired" ? (
-        <div
-          role="status"
-          className="flex flex-col gap-2 border border-dashed border-border p-6"
-        >
-          <p className="text-sm font-medium">
-            This version no longer accepts new applications.
-          </p>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Existing drafts stay submittable under its rules until they expire.
-            Check back for the replacement version.
-          </p>
+        <div className="flex flex-col gap-6">
+          <div
+            role="status"
+            className="flex flex-col gap-2 border border-dashed border-border p-6"
+          >
+            <p className="text-sm font-medium">
+              This version no longer accepts new applications.
+            </p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Existing drafts stay submittable under its rules until they
+              expire. Check back for the replacement version.
+            </p>
+          </div>
+          <FormFiller
+            storageKey={`${slug}-v${version.version}`}
+            definition={version.definition}
+            formId={formId}
+            versionId={version.versionId}
+          />
         </div>
       ) : (
         <FormFiller

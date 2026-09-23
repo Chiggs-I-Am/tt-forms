@@ -153,7 +153,9 @@ export function ensureRows(answers: Answers, section: SectionDef): StoredRow[] {
 }
 
 // Strip File objects before the localStorage backup; uploads stay in memory
-// for the session and are flagged as such in the UI.
+// for the session and are flagged as such in the UI. Scalar arrays
+// (multiple_choice string selections) are preserved as-is; only row arrays
+// are filtered to object entries.
 export function serialize(answers: Answers): string {
   const clean: Record<string, Scalar | StoredRow[]> = {}
   for (const [key, value] of Object.entries(answers)) {
@@ -161,6 +163,17 @@ export function serialize(answers: Answers): string {
       continue
     }
     if (Array.isArray(value)) {
+      if (value.length === 0) {
+        clean[key] = []
+        continue
+      }
+      if (value.some((item) => item instanceof File)) {
+        continue
+      }
+      if (value.every((item) => typeof item !== "object")) {
+        clean[key] = value as Scalar
+        continue
+      }
       clean[key] = value.filter(
         (row): row is StoredRow =>
           typeof row === "object" && !(row instanceof File)

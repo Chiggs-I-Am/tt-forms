@@ -57,6 +57,45 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value ?? null)
 }
 
+// True when the answer map holds anything a user typed or picked: a
+// non-empty scalar, a non-empty selection, a file, or a repeat row with a
+// filled cell. Structural defaults ({}, [], [{}]) count as empty.
+function hasMeaningfulContent(answers: Record<string, unknown>): boolean {
+  for (const value of Object.values(answers)) {
+    if (value === undefined || value === null || value === "") {
+      continue
+    }
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        continue
+      }
+      if (
+        value.every(
+          (item) =>
+            typeof item === "object" &&
+            item !== null &&
+            !(item instanceof File) &&
+            Object.values(item).every(
+              (cell) =>
+                cell === undefined ||
+                cell === null ||
+                cell === "" ||
+                (Array.isArray(cell) && cell.length === 0)
+            )
+        )
+      ) {
+        continue
+      }
+      return true
+    }
+    if (typeof value === "object") {
+      continue
+    }
+    return true
+  }
+  return false
+}
+
 export function diffKeys(
   localAnswers: Record<string, unknown>,
   serverAnswers: Record<string, unknown>
@@ -93,6 +132,11 @@ export function useServerDraft({
   const [picks, setPicks] = useState<Record<string, "mine" | "server">>({})
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const justSavedRef = useRef(false)
+  // First-load resolution: when a populated server draft arrives and the
+  // local form differs, autosave must not overwrite it. The merge prompt
+  // stays up until the applicant picks, merges, or the two copies match.
+  const [initialResolved, setInitialResolved] = useState(false)
+  const serverArrivedRef = useRef(false)
 
   // Sanitized answers for server comparison and saving. Upload File objects
   // live in memory only and never reach the validator.
@@ -142,12 +186,66 @@ export function useServerDraft({
     return serverDraft.updatedAt !== saveBase
   }, [serverDraft, saveBase])
 
-  const conflictFields = useMemo(() => {
-    if (!serverDraft || versionMismatch || !staleBase) {
+  // Decide once per draft arrival whether the first load needs a merge
+  // prompt. No draft, an empty server draft, or matching copies resolve
+  // immediately. A populated server draft that differs from the local form
+  // (new browser, missing backup) stays unresolved until the applicant
+  // merges, picks, or the copies match, and autosave stays off meanwhile.
+  useEffect(() => {
+    if (serverDraft === undefined || serverArrivedRef.current) {
+      return
+    }
+    if (!serverDraft) {
+      setInitialResolved(true)
+      return
+    }
+    serverArrivedRef.current = true
+    const serverHasContent = hasMeaningfulContent(
+      serverDraft.answers as Record<string, unknown>
+    )
+    if (!serverHasContent) {
+      setInitialResolved(true)
+      return
+    }
+    setInitialResolved(
+      stableJson(sanitized) ===
+        stableJson(serverDraft.answers as Record<string, unknown>)
+    )
+    // Decide once on arrival; later keystrokes resolve through merge/pick
+    // actions or by matching the server copy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverDraft])
+
+  // A later match also resolves: adopting the saved copy or typing it out
+  // clears the prompt without forcing a pick.
+  useEffect(() => {
+    if (!serverArrivedRef.current || initialResolved || !serverDraft) {
+      return
+    }
+    if (stableJson(sanitized) === stableJson(serverAnswers)) {
+      setInitialResolved(true)
+    }
+  }, [sanitized, serverAnswers, serverDraft, initialResolved])
+
+  const initialConflict = useMemo(() => {
+    if (initialResolved || !serverDraft || versionMismatch) {
+      return []
+    }
+    if (!hasMeaningfulContent(serverAnswers)) {
       return []
     }
     return diffKeys(sanitized, serverAnswers)
-  }, [serverDraft, versionMismatch, staleBase, serverAnswers, sanitized])
+  }, [initialResolved, serverDraft, versionMismatch, serverAnswers, sanitized])
+
+  const conflictFields = useMemo(() => {
+    if (!serverDraft || versionMismatch) {
+      return []
+    }
+    if (staleBase) {
+      return diffKeys(sanitized, serverAnswers)
+    }
+    return initialConflict
+  }, [serverDraft, versionMismatch, staleBase, serverAnswers, sanitized, initialConflict])
 
   const inConflict = conflictFields.length > 0
 
@@ -168,6 +266,7 @@ export function useServerDraft({
       })
       justSavedRef.current = true
       setSaveError(null)
+      setInitialResolved(true)
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Autosave failed."
@@ -230,6 +329,7 @@ export function useServerDraft({
       justSavedRef.current = true
       setPicks({})
       setSaveError(null)
+      setInitialResolved(true)
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "Merged save failed."
@@ -254,6 +354,7 @@ export function useServerDraft({
       justSavedRef.current = true
       setConfirmDiscard(false)
       setSaveError(null)
+      setInitialResolved(true)
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "Version pick failed."
@@ -268,6 +369,7 @@ export function useServerDraft({
     setPicks({})
     setConfirmDiscard(false)
     setSaveError(null)
+    setInitialResolved(true)
   }
 
   let status: DraftStatus = "synced"

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useConvexAuth, useMutation } from "convex/react"
+import { useConvexAuth, useMutation, useQuery } from "convex/react"
 import { api } from "@workspace/database/api"
 import type { Id } from "@workspace/database/data-model"
 import { Button, buttonVariants } from "@workspace/ui/components/button"
@@ -33,6 +33,13 @@ export function SubmitPanel({
   const submitDraft = useMutation(api.submissions.submitDraft)
   const generateUploadUrl = useMutation(api.uploads.generateUploadUrl)
   const saveFile = useMutation(api.uploads.saveFile)
+  // Merge base for the final save: another tab may have written while this
+  // tab sat on the review screen, so the save carries baseUpdatedAt and the
+  // server rejects a stale write instead of silently overwriting it.
+  const serverDraft = useQuery(
+    api.drafts.getDraft,
+    isAuthenticated && formId ? { formId } : "skip"
+  )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,11 +76,18 @@ export function SubmitPanel({
     setSubmitting(true)
     setError(null)
     try {
-      // Ensure the draft exists first: uploads attach to it by id.
-      const draftId = await saveDraft({
-        formId,
-        answers: toServerAnswers(localAnswers) as never,
-      })
+      // Reuse the existing draft when there is one so uploads have a draft
+      // id without an extra blind save. A first save creates the draft
+      // only when nothing exists yet.
+      let draftId = serverDraft?._id as Id<"drafts"> | undefined
+      let baseUpdatedAt = serverDraft?.updatedAt as number | undefined
+      if (!draftId) {
+        draftId = (await saveDraft({
+          formId,
+          answers: toServerAnswers(localAnswers) as never,
+        })) as Id<"drafts">
+        baseUpdatedAt = undefined
+      }
       // Upload every attached file, then point the answers at the stored
       // file ids. Without this step the server would see empty upload
       // answers and required uploads could never submit.
@@ -123,7 +137,14 @@ export function SubmitPanel({
         }
         finalAnswers[fieldId] = stored
       }
-      await saveDraft({ formId, answers: finalAnswers as never })
+      // Final save carries the merge base, so a concurrent write from
+      // another tab fails here with "Draft changed elsewhere" instead of
+      // being silently overwritten before submission.
+      await saveDraft({
+        formId,
+        answers: finalAnswers as never,
+        baseUpdatedAt,
+      })
       await submitDraft({ formId })
       router.push("/applications")
     } catch (submitError) {
