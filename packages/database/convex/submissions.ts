@@ -1,27 +1,24 @@
 import { ConvexError, v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import type { DatabaseReader } from "./_generated/server"
-import type { Id } from "./_generated/dataModel"
 import { requireUserId } from "./authz"
 import { rateLimiter } from "./rateLimits"
 import { splitSection, validateAnswers } from "./formModel"
+import { labelsFor } from "./labels"
 import type { Answers } from "./formModel"
+import type { DraftKey } from "./drafts"
 
 // Applicant submission lifecycle for #37. `submitDraft` pins the draft's
-// starting version, re-validates server-side, snapshots only visible answers
-// with rendered labels and file refs, then marks the draft submitted.
-// Submitted applications are read-only: this module exports no update or
-// delete path (view-only administration is #39).
+// starting version and re-validates server-side. It then snapshots only
+// visible answers with rendered labels and file refs. The final step marks
+// the draft submitted. Submitted applications are read-only: this module
+// exports no update or delete path. View-only administration is #39.
 
-async function ownedDrafts(
-  ctx: { db: DatabaseReader },
-  ownerId: Id<"users">,
-  formId: Id<"forms">
-) {
+async function ownedDrafts(ctx: { db: DatabaseReader }, key: DraftKey) {
   const rows = await ctx.db
     .query("drafts")
     .withIndex("owner_form", (q) =>
-      q.eq("ownerId", ownerId).eq("formId", formId)
+      q.eq("ownerId", key.ownerId).eq("formId", key.formId)
     )
     .collect()
   return rows.sort((a, b) => b.updatedAt - a.updatedAt)
@@ -78,38 +75,6 @@ function visibleSnapshot(
   return out
 }
 
-// Field id to label for every stored answer. Row fields share the label map
-// since labels live on the definition, not on the row.
-function labelsFor(
-  definition: Parameters<typeof validateAnswers>[0],
-  snapshot: Answers
-): Record<string, string> {
-  const byId = new Map<string, string>()
-  for (const section of definition.sections) {
-    for (const field of section.fields) {
-      byId.set(field.id, field.label)
-    }
-  }
-  const labels: Record<string, string> = {}
-  for (const [key, value] of Object.entries(snapshot)) {
-    if (byId.has(key)) {
-      labels[key] = byId.get(key)!
-    }
-    if (Array.isArray(value)) {
-      for (const row of value) {
-        if (row !== null && typeof row === "object" && !Array.isArray(row)) {
-          for (const fieldId of Object.keys(row as Record<string, unknown>)) {
-            if (byId.has(fieldId) && !(fieldId in labels)) {
-              labels[fieldId] = byId.get(fieldId)!
-            }
-          }
-        }
-      }
-    }
-  }
-  return labels
-}
-
 // Submit the caller's active, unexpired draft for one form. Retired versions
 // stay submittable until expiry; withdrawn versions block with their reason.
 // Success returns only after the snapshot commits and the draft flips.
@@ -119,7 +84,7 @@ export const submitDraft = mutation({
     const ownerId = await requireUserId(ctx)
     await rateLimiter.limit(ctx, "submit", { key: ownerId, throws: true })
     const now = Date.now()
-    const rows = await ownedDrafts(ctx, ownerId, args.formId)
+    const rows = await ownedDrafts(ctx, { ownerId, formId: args.formId })
     const draft = rows.find((d) => d.status === "active" && d.expiresAt >= now)
     if (!draft) {
       const submitted = rows.find((d) => d.status === "submitted")

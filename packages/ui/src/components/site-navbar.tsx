@@ -32,7 +32,7 @@ export function SiteNavbar({
             variant="outline"
             title="Demo, not a government service. Your sign-in email is real; every form answer must be fake."
           >
-            Demo
+            Demo · fake answers only
           </Badge>
         </div>
         <div className="flex flex-wrap items-center gap-3">

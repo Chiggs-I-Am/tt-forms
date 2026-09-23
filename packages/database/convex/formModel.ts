@@ -132,7 +132,9 @@ function ruleMatches(
 
 // Visibility of one field or section against top-level answers. Conditions
 // may only reference top-level (non-repeated) choice fields; row-local
-// conditions are not supported (one repeat level only).
+// conditions are not supported (one repeat level only). This is the canonical
+// copy: apps/web/lib/form-answers.ts mirrors it for cosmetic client checks,
+// and the server re-decides at submit time.
 export function isVisible(
   condition: Condition | undefined,
   getAnswer: (fieldId: string) => Scalar | undefined
@@ -173,6 +175,168 @@ export interface AnswerError {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function checkText(
+  field: Extract<FieldDef, { kind: "short_text" } | { kind: "long_text" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "string") {
+    errors.push({ path, message: `${field.label} must be text.` })
+  } else if (field.maxLength !== undefined && value.length > field.maxLength) {
+    errors.push({
+      path,
+      message: `${field.label} must be at most ${field.maxLength} characters.`,
+    })
+  }
+}
+
+function checkNumber(
+  field: Extract<FieldDef, { kind: "number" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    errors.push({ path, message: `${field.label} must be a number.` })
+  } else {
+    if (field.min !== undefined && value < field.min) {
+      errors.push({
+        path,
+        message: `${field.label} must be at least ${field.min}.`,
+      })
+    }
+    if (field.max !== undefined && value > field.max) {
+      errors.push({
+        path,
+        message: `${field.label} must be at most ${field.max}.`,
+      })
+    }
+  }
+}
+
+function checkDate(
+  field: Extract<FieldDef, { kind: "date" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
+    errors.push({ path, message: `${field.label} must be a valid date.` })
+  } else {
+    if (field.min !== undefined && value < field.min) {
+      errors.push({
+        path,
+        message: `${field.label} must be on or after ${field.min}.`,
+      })
+    }
+    if (field.max !== undefined && value > field.max) {
+      errors.push({
+        path,
+        message: `${field.label} must be on or before ${field.max}.`,
+      })
+    }
+  }
+}
+
+function checkEmail(
+  field: Extract<FieldDef, { kind: "email" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "string" || !EMAIL_RE.test(value)) {
+    errors.push({
+      path,
+      message: `${field.label} must be a valid email address.`,
+    })
+  }
+}
+
+function checkPhone(
+  field: Extract<FieldDef, { kind: "phone" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "string" || value.replace(/\D/g, "").length < 7) {
+    errors.push({
+      path,
+      message: `${field.label} must be a valid phone number.`,
+    })
+  }
+}
+
+function checkSingleChoice(
+  field: Extract<FieldDef, { kind: "single_choice" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "string" || !field.options.includes(value)) {
+    errors.push({
+      path,
+      message: `${field.label} must be one of the listed options.`,
+    })
+  }
+}
+
+function checkMultipleChoice(
+  field: Extract<FieldDef, { kind: "multiple_choice" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (
+    !Array.isArray(value) ||
+    value.some((item) => !field.options.includes(item))
+  ) {
+    errors.push({
+      path,
+      message: `${field.label} must only use the listed options.`,
+    })
+  }
+}
+
+function checkYesNo(
+  field: Extract<FieldDef, { kind: "yes_no" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (typeof value !== "boolean") {
+    errors.push({ path, message: `${field.label} must be yes or no.` })
+  }
+}
+
+function checkUpload(
+  field: Extract<FieldDef, { kind: "upload" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (
+    !Array.isArray(value) ||
+    value.some((item) => typeof item !== "string")
+  ) {
+    errors.push({
+      path,
+      message: `${field.label} holds invalid file references.`,
+    })
+  }
+}
+
+function checkDeclaration(
+  field: Extract<FieldDef, { kind: "declaration" }>,
+  value: Scalar | undefined,
+  path: string,
+  errors: AnswerError[]
+): void {
+  if (value !== true) {
+    errors.push({ path, message: `${field.label} must be accepted.` })
+  }
+}
+
 function checkScalar(
   field: FieldDef,
   value: Scalar | undefined,
@@ -189,118 +353,43 @@ function checkScalar(
   switch (field.kind) {
     case "short_text":
     case "long_text":
-      if (typeof value !== "string") {
-        errors.push({ path, message: `${field.label} must be text.` })
-      } else if (
-        field.maxLength !== undefined &&
-        value.length > field.maxLength
-      ) {
-        errors.push({
-          path,
-          message: `${field.label} must be at most ${field.maxLength} characters.`,
-        })
-      }
+      checkText(field, value, path, errors)
       break
     case "number":
-      if (typeof value !== "number" || Number.isNaN(value)) {
-        errors.push({ path, message: `${field.label} must be a number.` })
-      } else {
-        if (field.min !== undefined && value < field.min) {
-          errors.push({
-            path,
-            message: `${field.label} must be at least ${field.min}.`,
-          })
-        }
-        if (field.max !== undefined && value > field.max) {
-          errors.push({
-            path,
-            message: `${field.label} must be at most ${field.max}.`,
-          })
-        }
-      }
+      checkNumber(field, value, path, errors)
       break
     case "date":
-      if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
-        errors.push({ path, message: `${field.label} must be a valid date.` })
-      } else {
-        if (field.min !== undefined && value < field.min) {
-          errors.push({
-            path,
-            message: `${field.label} must be on or after ${field.min}.`,
-          })
-        }
-        if (field.max !== undefined && value > field.max) {
-          errors.push({
-            path,
-            message: `${field.label} must be on or before ${field.max}.`,
-          })
-        }
-      }
+      checkDate(field, value, path, errors)
       break
     case "email":
-      if (typeof value !== "string" || !EMAIL_RE.test(value)) {
-        errors.push({
-          path,
-          message: `${field.label} must be a valid email address.`,
-        })
-      }
+      checkEmail(field, value, path, errors)
       break
     case "phone":
-      if (typeof value !== "string" || value.replace(/\D/g, "").length < 7) {
-        errors.push({
-          path,
-          message: `${field.label} must be a valid phone number.`,
-        })
-      }
+      checkPhone(field, value, path, errors)
       break
     case "single_choice":
-      if (typeof value !== "string" || !field.options.includes(value)) {
-        errors.push({
-          path,
-          message: `${field.label} must be one of the listed options.`,
-        })
-      }
+      checkSingleChoice(field, value, path, errors)
       break
     case "multiple_choice":
-      if (
-        !Array.isArray(value) ||
-        value.some((item) => !field.options.includes(item))
-      ) {
-        errors.push({
-          path,
-          message: `${field.label} must only use the listed options.`,
-        })
-      }
+      checkMultipleChoice(field, value, path, errors)
       break
     case "yes_no":
-      if (typeof value !== "boolean") {
-        errors.push({ path, message: `${field.label} must be yes or no.` })
-      }
+      checkYesNo(field, value, path, errors)
       break
     case "upload":
-      if (
-        !Array.isArray(value) ||
-        value.some((item) => typeof item !== "string")
-      ) {
-        errors.push({
-          path,
-          message: `${field.label} holds invalid file references.`,
-        })
-      }
+      checkUpload(field, value, path, errors)
       break
     case "declaration":
-      if (value !== true) {
-        errors.push({ path, message: `${field.label} must be accepted.` })
-      }
+      checkDeclaration(field, value, path, errors)
       break
   }
 }
 
-// Server-side answer validation. Hidden answers are skipped entirely: they
-// stay in the saved draft but never block progress and never reach the
-// submission while hidden. Repeated sections validate their once-asked fields
-// from top-level answers and their row fields per entry. Returns every error
-// plus the visible field paths.
+// Server-side answer validation. The validator skips hidden answers
+// entirely: they stay in the saved draft but never block progress and never
+// reach the submission while hidden. Repeated sections validate their
+// once-asked fields from top-level answers and their row fields per entry.
+// Returns every error plus the visible field paths.
 export function validateAnswers(
   definition: FormDefinition,
   answers: Answers

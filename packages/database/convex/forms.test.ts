@@ -169,9 +169,25 @@ describe("retire versus withdraw", () => {
     await expect(dev.mutation(api.forms.retire, { versionId })).rejects.toThrow(
       "Only active versions retire"
     )
+    // A retired version can still be emergency-withdrawn; withdrawing twice
+    // throws.
+    await dev.mutation(api.forms.withdraw, { versionId, reason: "x" })
     await expect(
       dev.mutation(api.forms.withdraw, { versionId, reason: "x" })
-    ).rejects.toThrow("Only active versions withdraw")
+    ).rejects.toThrow("already withdrawn")
+  })
+
+  it("withdraws a retired version directly", async () => {
+    const t = convexTest(schema, modules)
+    const { dev, versionId } = await published(t)
+    await dev.mutation(api.forms.retire, { versionId })
+    await dev.mutation(api.forms.withdraw, {
+      versionId,
+      reason: "Urgent takedown.",
+    })
+    const gate = await dev.query(api.forms.versionGate, { versionId })
+    expect(gate.status).toBe("withdrawn")
+    expect(gate.submissions).toBe(false)
   })
 
   it("denies anonymous versionGate reads", async () => {

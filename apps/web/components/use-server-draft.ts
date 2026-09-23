@@ -53,16 +53,21 @@ export function toServerAnswers(local: Answers): Record<string, unknown> {
   return clean
 }
 
-function stable(value: unknown): string {
+function stableJson(value: unknown): string {
   return JSON.stringify(value ?? null)
 }
 
 export function diffKeys(
-  mine: Record<string, unknown>,
-  theirs: Record<string, unknown>
+  localAnswers: Record<string, unknown>,
+  serverAnswers: Record<string, unknown>
 ): string[] {
-  const keys = new Set([...Object.keys(mine), ...Object.keys(theirs)])
-  return [...keys].filter((key) => stable(mine[key]) !== stable(theirs[key]))
+  const keys = new Set([
+    ...Object.keys(localAnswers),
+    ...Object.keys(serverAnswers),
+  ])
+  return [...keys].filter(
+    (key) => stableJson(localAnswers[key]) !== stableJson(serverAnswers[key])
+  )
 }
 
 export function useServerDraft({
@@ -125,9 +130,9 @@ export function useServerDraft({
 
   const differs = useMemo(() => {
     if (!serverDraft) {
-      return stable(sanitized) !== stable({})
+      return stableJson(sanitized) !== stableJson({})
     }
-    return stable(sanitized) !== stable(serverAnswers)
+    return stableJson(sanitized) !== stableJson(serverAnswers)
   }, [serverDraft, serverAnswers, sanitized])
 
   const staleBase = useMemo(() => {

@@ -22,7 +22,7 @@ import {
   isVisible,
   serialize,
   splitSection,
-  topAnswer,
+  topLevelAnswer,
   visibleFields,
   visibleSections,
   type Answers,
@@ -290,7 +290,11 @@ export function FormFiller({
             <SectionReview section={s} answers={answers} />
           </section>
         ))}
-        <SubmitPanel formId={formId} localAnswers={answers} />
+        <SubmitPanel
+          formId={formId}
+          localAnswers={answers}
+          definition={definition}
+        />
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setReviewing(false)}>
             Back to editing
@@ -453,7 +457,7 @@ function SectionReview({
         {visibleFields(section, answers).map((f) => (
           <p key={f.id} className="text-sm">
             <span className="text-muted-foreground">{f.label}: </span>
-            {formatValue(topAnswer(answers, f.id))}
+            {formatValue(topLevelAnswer(answers, f.id))}
           </p>
         ))}
       </>
@@ -467,7 +471,7 @@ function SectionReview({
         .map((f) => (
           <p key={f.id} className="text-sm">
             <span className="text-muted-foreground">{f.label}: </span>
-            {formatValue(topAnswer(answers, f.id))}
+            {formatValue(topLevelAnswer(answers, f.id))}
           </p>
         ))}
       {ensureRows(answers, section).map((row, i) => (

@@ -32,12 +32,23 @@ export default async function FormsPage() {
                 <span className="flex flex-1 flex-col gap-1">
                   <span className="flex items-baseline justify-between gap-3">
                     <span className="font-medium">{form.name}</span>
+                    {form.alternate && (
+                      <span className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+                        Alternate
+                      </span>
+                    )}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {form.agency}
                   </span>
                   <span className="text-sm leading-relaxed">
                     {form.summary}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Official source:{" "}
+                    <span className="underline underline-offset-4">
+                      {form.sourceLabel}
+                    </span>
                   </span>
                   <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest text-primary uppercase">
                     Open form

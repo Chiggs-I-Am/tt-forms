@@ -236,6 +236,36 @@ describe("replaceDraft", () => {
     expect(oldRow?.status).toBe("retired")
   })
 
+  it("keeps the old draft when the latest version no longer accepts drafts", async () => {
+    const t = convexTest(schema, modules)
+    registerRateLimiter(t)
+    const { dev, formId, versionId } = await publishedForm(t)
+    const a = await applicant(t, "a@example.com")
+    await a.authed.mutation(api.drafts.saveDraft, {
+      formId,
+      answers: { name: "Old" },
+    })
+    const latest = await t.run(async (ctx: MutationCtx) => {
+      return await ctx.db
+        .query("formVersions")
+        .withIndex("form", (q) => q.eq("formId", formId))
+        .order("desc")
+        .first()
+    })
+    await dev.mutation(api.forms.retire, { versionId: latest!._id })
+    await expect(
+      a.authed.mutation(api.drafts.replaceDraft, {
+        formId,
+        answers: { name: "Mine" },
+        retireVersionId: versionId,
+        confirm: true,
+      })
+    ).rejects.toThrow("New drafts are blocked")
+    const kept = await a.authed.query(api.drafts.getDraft, { formId })
+    expect(kept?.formVersionId).toEqual(versionId)
+    expect(kept?.answers).toEqual({ name: "Old" })
+  })
+
   it("refuses to retire another owner's draft", async () => {
     const t = convexTest(schema, modules)
     registerRateLimiter(t)

@@ -14,19 +14,31 @@ const inviteRole = v.union(
   v.literal("demo-admin")
 )
 
+// Domain strings with validation bundled in. Normalization and generation
+// are the only constructors; the rest of this module passes these around
+// instead of bare strings.
+export type InviteEmail = string & { readonly __inviteEmail: unique symbol }
+export type InviteToken = string & { readonly __inviteToken: unique symbol }
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase()
+function normalizeEmail(email: string): InviteEmail {
+  return email.trim().toLowerCase() as InviteEmail
 }
 
-// Unguessable token: 32 random bytes as 64 hex chars. The token is returned
-// once to the issuing admin for out-of-band delivery (email or chat) and is
-// never logged or exposed elsewhere, including listInvites.
-function newToken(): string {
+// Unguessable delivery secret: 32 random bytes as 64 hex chars. The token is
+// returned once to the issuing admin for out-of-band delivery (email or chat)
+// and is never logged or exposed elsewhere, including listInvites.
+// Redemption itself is email-bound per the spec: the recipient signs in with
+// the matching address through the same Google or OTP flow, and claimInvite
+// matches that verified email. The token proves the invite row is
+// unguessable; it is not presented at claim time.
+function newToken(): InviteToken {
   const bytes = new Uint8Array(32)
   crypto.getRandomValues(bytes)
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
+  return Array.from(bytes, (b) =>
+    b.toString(16).padStart(2, "0")
+  ).join("") as InviteToken
 }
 
 export const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
@@ -61,11 +73,12 @@ export const createInvite = mutation({
 
 // Redeem the caller's invite. The caller must be signed in with a verified
 // email matching an unexpired, unused invite; the users row is the email
-// source of truth, not the JWT. Single-use is enforced by setting usedAt in
-// the same mutation (check-then-set: correct under normal use, soft under a
-// truly concurrent double-claim since Convex has no unique constraint;
-// accepted for a demo). Sets the caller's role and returns it. Redeeming
-// twice throws, as do expired invites and wrong-email sign-ins.
+// source of truth, not the JWT. The mutation sets usedAt in the same call,
+// which enforces single-use (check-then-set: correct under normal use, soft
+// under a truly concurrent double-claim since Convex has no unique
+// constraint; accepted for a demo). It sets the caller's role and returns
+// it. Redeeming twice throws, as do expired invites and wrong-email
+// sign-ins.
 export const claimInvite = mutation({
   args: {},
   handler: async (ctx) => {

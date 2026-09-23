@@ -75,9 +75,11 @@ export const seedPilots = internalMutation({
 // Deploy sync for definition fixes (e.g. numbering corrections): upserts
 // each working copy and publishes a new immutable version wherever the
 // latest snapshot drifted from code. History is preserved, so in-flight
-// drafts stay pinned to their version's rules. Pilot definitions are
-// code-managed: if a builder-published version holds custom content, sync
-// preserves it and converges the next version back to code.
+// drafts stay pinned to their version's rules. This is deploy maintenance
+// for the code-managed pilot definitions only, run explicitly from the
+// dashboard or CLI. It is not a publish path: custom builder content goes
+// through the explicit publish mutation with its checks (#35), and sync
+// converges the next version back to code.
 export const seedSync = internalMutation({
   args: {},
   handler: async (ctx) => {

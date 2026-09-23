@@ -12,8 +12,6 @@ export interface PilotForm {
   summary: string
   sections: string[]
   keywords: string[]
-  practiceLabel: string
-  practicePlaceholder: string
   alternate?: boolean
 }
 
@@ -40,8 +38,6 @@ export const pilotForms: PilotForm[] = [
       "record",
       "employment",
     ],
-    practiceLabel: "Practice field: full name",
-    practicePlaceholder: "Invent a name, e.g. Anya Bhim",
   },
   {
     slug: "adult-passport-renewal",
@@ -59,8 +55,6 @@ export const pilotForms: PilotForm[] = [
       "Declaration",
     ],
     keywords: ["passport", "renewal", "travel", "immigration", "references"],
-    practiceLabel: "Practice field: place of birth",
-    practicePlaceholder: "Invent a place, e.g. San Fernando",
   },
   {
     slug: "computerized-birth-certificate",
@@ -77,8 +71,6 @@ export const pilotForms: PilotForm[] = [
       "ID type and purpose",
     ],
     keywords: ["birth", "certificate", "rgd", "registrar", "14a"],
-    practiceLabel: "Practice field: purpose of request",
-    practicePlaceholder: "Invent a purpose, e.g. school enrollment",
   },
   {
     slug: "nis-ni4",
@@ -90,8 +82,6 @@ export const pilotForms: PilotForm[] = [
       "Register as an employed person. Held as the swap-in alternate if one of the three pilots proves awkward to model.",
     sections: ["Employment details", "Personal details", "Declaration"],
     keywords: ["nis", "nib", "insurance", "employed", "ni4"],
-    practiceLabel: "Practice field: occupation",
-    practicePlaceholder: "Invent an occupation, e.g. machinist",
     alternate: true,
   },
 ]

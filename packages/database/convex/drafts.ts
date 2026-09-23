@@ -8,8 +8,10 @@ import { rateLimiter } from "./rateLimits"
 
 // Applicant draft lifecycle for #36. One active draft per owner and form,
 // autosaved from the browser after sign-in, expiring 30 days after the last
-// edit. The server pins each draft to its starting version; cross-version
-// moves never migrate silently (replaceDraft retires only on confirm).
+// edit. The server pins each draft to its starting version.
+// Cross-version moves never migrate silently: replaceDraft retires the old
+// draft only on explicit confirm, and only after checking the latest version
+// accepts new drafts.
 //
 // Convex has no true unique constraint, so the composite owner_form index
 // plus check-and-reuse inside every write-path mutation is the enforcement.
@@ -17,6 +19,12 @@ import { rateLimiter } from "./rateLimits"
 // accepted for a demo.
 
 export const DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+// One active draft per owner and form, addressed by this key.
+export interface DraftKey {
+  ownerId: Id<"users">
+  formId: Id<"forms">
+}
 
 async function latestVersion(ctx: { db: DatabaseReader }, formId: Id<"forms">) {
   return await ctx.db
@@ -28,13 +36,12 @@ async function latestVersion(ctx: { db: DatabaseReader }, formId: Id<"forms">) {
 
 async function activeDraftsFor(
   ctx: { db: DatabaseReader },
-  ownerId: Id<"users">,
-  formId: Id<"forms">
+  key: DraftKey
 ) {
   const rows = await ctx.db
     .query("drafts")
     .withIndex("owner_form", (q) =>
-      q.eq("ownerId", ownerId).eq("formId", formId)
+      q.eq("ownerId", key.ownerId).eq("formId", key.formId)
     )
     .collect()
   const now = Date.now()
@@ -45,14 +52,14 @@ async function activeDraftsFor(
 
 // Authenticated owner's draft for one form. Returns null when there is no
 // active draft, when it expired, or when it left active status (submitted by
-// #37, retired by replaceDraft). Anonymous callers are denied, never given
-// a row. The pinned version detail rides along so the UI can tell
+// #37, retired by replaceDraft). The query denies anonymous callers and never
+// gives them a row. The pinned version detail rides along so the UI can tell
 // same-version conflicts from cross-version picks.
 export const getDraft = query({
   args: { formId: v.id("forms") },
   handler: async (ctx, args) => {
     const ownerId = await requireUserId(ctx)
-    const [draft] = await activeDraftsFor(ctx, ownerId, args.formId)
+    const [draft] = await activeDraftsFor(ctx, { ownerId, formId: args.formId })
     if (!draft) {
       return null
     }
@@ -91,7 +98,10 @@ export const saveDraft = mutation({
     const ownerId = await requireUserId(ctx)
     await rateLimiter.limit(ctx, "draftSave", { key: ownerId, throws: true })
     const now = Date.now()
-    const [existing] = await activeDraftsFor(ctx, ownerId, args.formId)
+    const [existing] = await activeDraftsFor(ctx, {
+      ownerId,
+      formId: args.formId,
+    })
     if (existing) {
       if (
         args.baseUpdatedAt !== undefined &&
@@ -161,8 +171,8 @@ export const replaceDraft = mutation({
     if (!old) {
       throw new ConvexError("Draft to retire was not found for this account.")
     }
-    const now = Date.now()
-    await ctx.db.patch(old._id, { status: "retired" })
+    // Check the target first: when the latest version no longer accepts new
+    // drafts, the call fails here and the caller's active draft is untouched.
     const latest = await latestVersion(ctx, args.formId)
     if (!latest) {
       throw new ConvexError(
@@ -174,6 +184,8 @@ export const replaceDraft = mutation({
         `New drafts are blocked: version ${latest.version} is ${latest.status}.`
       )
     }
+    const now = Date.now()
+    await ctx.db.patch(old._id, { status: "retired" })
     return await ctx.db.insert("drafts", {
       ownerId,
       formId: args.formId,
@@ -186,11 +198,13 @@ export const replaceDraft = mutation({
   },
 })
 
-// Daily expiry sweep. Deletes each expired active draft plus its file rows
+// Daily expiry sweep. Deletes each expired ACTIVE draft plus its file rows
 // and storage blobs explicitly, since Convex has no cascade delete or
-// built-in expiry. This is the contract the #38 uploads track relies on:
-// every files row under the draft goes away and each storageId blob is
-// deleted. Returns the number of drafts removed.
+// built-in expiry. Submitted drafts are untouched, so submission file refs
+// (#37) never dangle: their files survive with the submitted draft. This is
+// the contract the #38 uploads track relies on: every files row under an
+// expired active draft goes away and each storageId blob is deleted. Returns
+// the number of drafts removed.
 export const purgeExpired = internalMutation({
   args: {},
   handler: async (ctx) => {

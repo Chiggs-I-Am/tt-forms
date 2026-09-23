@@ -18,7 +18,10 @@ export type SectionDef = VersionDefinition["sections"][number]
 export type FieldDef = SectionDef["fields"][number]
 export type Condition = NonNullable<SectionDef["condition"]>
 
-export function topAnswer(
+// Mirrors topLevelAnswer in convex/formModel.ts for cosmetic client checks;
+// the server re-decides applicability at submit time (#37) and never trusts
+// these answers.
+export function topLevelAnswer(
   answers: Answers,
   fieldId: string
 ): Scalar | undefined {
@@ -42,6 +45,21 @@ export function topAnswer(
   return value
 }
 
+// Mirrors ruleMatches in convex/formModel.ts.
+function ruleMatches(
+  rule: { fieldId: string; values: string[] },
+  getAnswer: (fieldId: string) => Scalar | undefined
+): boolean {
+  const answer = getAnswer(rule.fieldId)
+  if (answer === undefined) {
+    return false
+  }
+  if (Array.isArray(answer)) {
+    return answer.some((item) => rule.values.includes(item))
+  }
+  return rule.values.includes(String(answer))
+}
+
 export function isVisible(
   condition: Condition | undefined,
   answers: Answers
@@ -49,16 +67,8 @@ export function isVisible(
   if (!condition) {
     return true
   }
-  const results = condition.rules.map((rule) => {
-    const answer = topAnswer(answers, rule.fieldId)
-    if (answer === undefined) {
-      return false
-    }
-    if (Array.isArray(answer)) {
-      return answer.some((item) => rule.values.includes(item))
-    }
-    return rule.values.includes(String(answer))
-  })
+  const getAnswer = (fieldId: string) => topLevelAnswer(answers, fieldId)
+  const results = condition.rules.map((rule) => ruleMatches(rule, getAnswer))
   return condition.mode === "all"
     ? results.every(Boolean)
     : results.some(Boolean)

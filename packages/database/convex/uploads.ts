@@ -49,6 +49,10 @@ function extensionOf(fileName: string): string {
   return fileName.slice(dot + 1).toLowerCase()
 }
 
+// Per-field size limit from the pinned definition. Every field lives in
+// section.fields, including fields that repeat per row (repeatFields only
+// selects which of them repeat), so this scan covers top-level and repeat-row
+// upload fields alike.
 function limitForField(definition: FormDefinition, fieldId: string): number {
   for (const section of definition.sections) {
     for (const field of section.fields) {

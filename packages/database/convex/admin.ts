@@ -3,7 +3,8 @@ import { internalMutation, query } from "./_generated/server"
 import type { Id } from "./_generated/dataModel"
 import { requireDeveloperAdmin } from "./authz"
 import { validateAnswers } from "./formModel"
-import type { Answers, FormDefinition } from "./formModel"
+import { labelsFor } from "./labels"
+import type { Answers } from "./formModel"
 import { pilotSeeds } from "./pilotDefinitions"
 
 // View-only administration for #39. Applicants and submissions are listed but
@@ -98,166 +99,146 @@ const SEED_UPLOAD_PLACEHOLDER = "seeded-example-no-file"
 // stay hidden (single marital status, no second citizenship, adult age band)
 // except where a variant exercises a visible branch. Every row must pass
 // validateAnswers on the latest active version; seedExamples throws otherwise.
-function seedAnswers(slug: string, variant: 0 | 1): Answers {
-  const who = variant === 0 ? 0 : 1
-  switch (slug) {
-    case "certificate-of-character":
-      return {
-        first_name: ["Keston", "Marlene"][who]!,
-        last_name: ["Reyes", "Belfon"][who]!,
-        home_address: ["14 Hibiscus Drive, San Fernando", "8 Palm Road, Arima"][
-          who
-        ]!,
-        phone: ["868-555-0142", "868-555-0188"][who]!,
-        email: ["keston.reyes@example.com", "marlene.belfon@example.com"][who]!,
-        id_type: ["National ID", "Driver's Permit"][who]!,
-        id_number: ["FAKE-100001", "FAKE-100002"][who]!,
-        occupation: ["Bus driver", "Primary school teacher"][who]!,
-        purpose: ["Job application screening", "Volunteer onboarding check"][
-          who
-        ]!,
-        photo_upload: [SEED_UPLOAD_PLACEHOLDER],
-        appointment_date: "2026-03-10",
-        police_station: ["Port of Spain", "San Fernando"][who]!,
-      }
-    case "adult-passport-renewal":
-      return {
-        surname: ["Maraj", "Quashie"][who]!,
-        first_name: ["Devi", "Andre"][who]!,
-        date_of_birth: ["1990-05-14", "1987-09-30"][who]!,
-        sex: ["Female", "Male"][who]!,
-        place_of_birth: ["San Fernando", "Port of Spain"][who]!,
-        country_of_birth: "Trinidad and Tobago",
-        marital_status: ["Single", "Married"][who]!,
-        home_address: [
-          "7 Palmiste Road, San Fernando",
-          "3 Sierra Vista, Diego Martin",
-        ][who]!,
-        passport_number: ["FAKE-T200001", "FAKE-T200002"][who]!,
-        passport_issue_date: "2016-02-01",
-        passport_issue_place: "Port of Spain",
-        other_citizenship: false,
-        under_18: "No, I am 18 or over",
-        references: [
-          { ref_name: "Ravi Persad", ref_tel: "868-555-0111" },
-          { ref_name: "Anya Ali", ref_tel: "868-555-0122" },
-        ],
-        declarant_name: ["Devi Maraj", "Andre Quashie"][who]!,
-        accept: true,
-        dated: "2026-02-20",
-        decl_id_number: ["FAKE-200001", "FAKE-200002"][who]!,
-        decl_id_issue_date: "2015-06-01",
-      }
-    case "computerized-birth-certificate":
-      return variant === 0
-        ? {
-            first_name: "Asha",
-            surname: "Gopaul",
-            address: "21 Green Street, Tunapuna",
-            service_type: "Walk In",
-            telephone: "868-555-0177",
-            own_certificate: true,
-            purpose: "Passport application",
-            id_type: "ID",
-            id_number: "FAKE-300001",
-            child_first: "Asha",
-            sex: "Female",
-            date_of_birth: "1998-11-02",
-            place_of_birth: "Port of Spain General Hospital",
-            mother_first: "Kamala",
-            mother_surname: "Gopaul",
-            mother_maiden: "Singh",
-            father_first: "Raj",
-            father_surname: "Gopaul",
-            application_date: "2026-01-15",
-            certify: true,
-          }
-        : {
-            first_name: "Michelle",
-            surname: "Forde",
-            address: "5 La Retreat Road, Tobago",
-            service_type: "Mail In",
-            telephone: "868-555-0160",
-            own_certificate: false,
-            relationship: "Mother",
-            purpose: "School registration for my child",
-            id_type: "PP",
-            id_number: "FAKE-300002",
-            child_first: "Jayden",
-            sex: "Male",
-            date_of_birth: "2018-04-25",
-            place_of_birth: "Scarborough Hospital, Tobago",
-            mother_first: "Michelle",
-            mother_surname: "Forde",
-            mother_maiden: "Baptiste",
-            father_first: "Kurt",
-            father_surname: "Forde",
-            application_date: "2026-01-18",
-            certify: true,
-          }
-    case "nis-ni4":
-      return {
-        surname: ["Baptiste", "Hosein"][who]!,
-        first_name: ["Keron", "Farah"][who]!,
-        apprentice: false,
-        gender: ["Male", "Female"][who]!,
-        home_address: [
-          "9 Morvant Road, Port of Spain",
-          "12 Cane Farm Road, Chaguanas",
-        ][who]!,
-        date_of_birth: ["1995-08-20", "1993-12-05"][who]!,
-        place_of_birth: "Port of Spain",
-        multiple_birth: false,
-        same_name: false,
-        father_name: ["Ian Baptiste", "Yusuf Hosein"][who]!,
-        mother_maiden: ["Clarke", "Ali"][who]!,
-        id_document: "Passport",
-        id_expiry: "2030-01-01",
-        marital_status: "Single",
-        employer_name: ["Harbour View Stores", "Central Print Shop"][who]!,
-        employer_address: [
-          "44 Independence Square, Port of Spain",
-          "18 Main Road, Chaguanas",
-        ][who]!,
-        occupation: ["Cashier", "Clerk"][who]!,
-        pay_frequency: ["Fortnightly", "Monthly"][who]!,
-        first_employment: "2022-06-01",
-        prev_registered: false,
-        employed_elsewhere: false,
-        accept: true,
-      }
-    default:
-      throw new Error(`No seeded answers for "${slug}".`)
-  }
+const SEED_BUILDERS: Record<string, (variantIndex: 0 | 1) => Answers> = {
+  "certificate-of-character": (variantIndex) => {
+    const pick = variantIndex === 0 ? 0 : 1
+    return {
+      first_name: ["Keston", "Marlene"][pick]!,
+      last_name: ["Reyes", "Belfon"][pick]!,
+      home_address: ["14 Hibiscus Drive, San Fernando", "8 Palm Road, Arima"][
+        pick
+      ]!,
+      phone: ["868-555-0142", "868-555-0188"][pick]!,
+      email: ["keston.reyes@example.com", "marlene.belfon@example.com"][pick]!,
+      id_type: ["National ID", "Driver's Permit"][pick]!,
+      id_number: ["FAKE-100001", "FAKE-100002"][pick]!,
+      occupation: ["Bus driver", "Primary school teacher"][pick]!,
+      purpose: ["Job application screening", "Volunteer onboarding check"][
+        pick
+      ]!,
+      photo_upload: [SEED_UPLOAD_PLACEHOLDER],
+      appointment_date: "2026-03-10",
+      police_station: ["Port of Spain", "San Fernando"][pick]!,
+    }
+  },
+  "adult-passport-renewal": (variantIndex) => {
+    const pick = variantIndex === 0 ? 0 : 1
+    return {
+      surname: ["Maraj", "Quashie"][pick]!,
+      first_name: ["Devi", "Andre"][pick]!,
+      date_of_birth: ["1990-05-14", "1987-09-30"][pick]!,
+      sex: ["Female", "Male"][pick]!,
+      place_of_birth: ["San Fernando", "Port of Spain"][pick]!,
+      country_of_birth: "Trinidad and Tobago",
+      marital_status: ["Single", "Married"][pick]!,
+      home_address: [
+        "7 Palmiste Road, San Fernando",
+        "3 Sierra Vista, Diego Martin",
+      ][pick]!,
+      passport_number: ["FAKE-T200001", "FAKE-T200002"][pick]!,
+      passport_issue_date: "2016-02-01",
+      passport_issue_place: "Port of Spain",
+      other_citizenship: false,
+      under_18: "No, I am 18 or over",
+      references: [
+        { ref_name: "Ravi Persad", ref_tel: "868-555-0111" },
+        { ref_name: "Anya Ali", ref_tel: "868-555-0122" },
+      ],
+      declarant_name: ["Devi Maraj", "Andre Quashie"][pick]!,
+      accept: true,
+      dated: "2026-02-20",
+      decl_id_number: ["FAKE-200001", "FAKE-200002"][pick]!,
+      decl_id_issue_date: "2015-06-01",
+    }
+  },
+  "computerized-birth-certificate": (variantIndex): Answers =>
+    variantIndex === 0
+      ? {
+          first_name: "Asha",
+          surname: "Gopaul",
+          address: "21 Green Street, Tunapuna",
+          service_type: "Walk In",
+          telephone: "868-555-0177",
+          own_certificate: true,
+          purpose: "Passport application",
+          id_type: "ID",
+          id_number: "FAKE-300001",
+          child_first: "Asha",
+          sex: "Female",
+          date_of_birth: "1998-11-02",
+          place_of_birth: "Port of Spain General Hospital",
+          mother_first: "Kamala",
+          mother_surname: "Gopaul",
+          mother_maiden: "Singh",
+          father_first: "Raj",
+          father_surname: "Gopaul",
+          application_date: "2026-01-15",
+          certify: true,
+        }
+      : {
+          first_name: "Michelle",
+          surname: "Forde",
+          address: "5 La Retreat Road, Tobago",
+          service_type: "Mail In",
+          telephone: "868-555-0160",
+          own_certificate: false,
+          relationship: "Mother",
+          purpose: "School registration for my child",
+          id_type: "PP",
+          id_number: "FAKE-300002",
+          child_first: "Jayden",
+          sex: "Male",
+          date_of_birth: "2018-04-25",
+          place_of_birth: "Scarborough Hospital, Tobago",
+          mother_first: "Michelle",
+          mother_surname: "Forde",
+          mother_maiden: "Baptiste",
+          father_first: "Kurt",
+          father_surname: "Forde",
+          application_date: "2026-01-18",
+          certify: true,
+        },
+  "nis-ni4": (variantIndex) => {
+    const pick = variantIndex === 0 ? 0 : 1
+    return {
+      surname: ["Baptiste", "Hosein"][pick]!,
+      first_name: ["Keron", "Farah"][pick]!,
+      apprentice: false,
+      gender: ["Male", "Female"][pick]!,
+      home_address: [
+        "9 Morvant Road, Port of Spain",
+        "12 Cane Farm Road, Chaguanas",
+      ][pick]!,
+      date_of_birth: ["1995-08-20", "1993-12-05"][pick]!,
+      place_of_birth: "Port of Spain",
+      multiple_birth: false,
+      same_name: false,
+      father_name: ["Ian Baptiste", "Yusuf Hosein"][pick]!,
+      mother_maiden: ["Clarke", "Ali"][pick]!,
+      id_document: "Passport",
+      id_expiry: "2030-01-01",
+      marital_status: "Single",
+      employer_name: ["Harbour View Stores", "Central Print Shop"][pick]!,
+      employer_address: [
+        "44 Independence Square, Port of Spain",
+        "18 Main Road, Chaguanas",
+      ][pick]!,
+      occupation: ["Cashier", "Clerk"][pick]!,
+      pay_frequency: ["Fortnightly", "Monthly"][pick]!,
+      first_employment: "2022-06-01",
+      prev_registered: false,
+      employed_elsewhere: false,
+      accept: true,
+    }
+  },
 }
 
-// Field id to label for every stored answer, mirroring the submit path so the
-// printable view renders names without re-reading the definition.
-function labelsFor(definition: FormDefinition, snapshot: Answers) {
-  const byId = new Map<string, string>()
-  for (const section of definition.sections) {
-    for (const field of section.fields) {
-      byId.set(field.id, field.label)
-    }
+function seedAnswers(slug: string, variant: 0 | 1): Answers {
+  const build = SEED_BUILDERS[slug]
+  if (!build) {
+    throw new Error(`No seeded answers for "${slug}".`)
   }
-  const labels: Record<string, string> = {}
-  for (const [key, value] of Object.entries(snapshot)) {
-    if (byId.has(key)) {
-      labels[key] = byId.get(key)!
-    }
-    if (Array.isArray(value)) {
-      for (const row of value) {
-        if (row !== null && typeof row === "object" && !Array.isArray(row)) {
-          for (const fieldId of Object.keys(row as Record<string, unknown>)) {
-            if (byId.has(fieldId) && !(fieldId in labels)) {
-              labels[fieldId] = byId.get(fieldId)!
-            }
-          }
-        }
-      }
-    }
-  }
-  return labels
+  return build(variant)
 }
 
 // Example submissions so admin views are never empty during demos: 1 to 2 per

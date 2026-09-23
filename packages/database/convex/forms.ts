@@ -62,8 +62,8 @@ export const listPublished = query({
           slug: form.slug,
           name: form.name,
           agency: form.agency,
-          sourceLabel: form.sourceLabel,
-          sourceUrl: form.sourceUrl,
+          sourceLabel: version.sourceLabel,
+          sourceUrl: version.sourceUrl,
           versionId: version._id,
           version: version.version,
         })
@@ -200,7 +200,8 @@ export const retire = mutation({
 
 // Emergency withdrawal additionally blocks submission of existing drafts
 // (#37), keeps answers readable until expiry, and records the explanation.
-// Like retire, it never deletes submitted applications.
+// A retired version can still be withdrawn: takedown must work whatever the
+// lifecycle state. Like retire, it never deletes submitted applications.
 export const withdraw = mutation({
   args: { versionId: v.id("formVersions"), reason: v.string() },
   handler: async (ctx, args) => {
@@ -212,10 +213,8 @@ export const withdraw = mutation({
     if (!version) {
       throw new ConvexError("Version not found.")
     }
-    if (version.status !== "active") {
-      throw new ConvexError(
-        `Only active versions withdraw (now ${version.status}).`
-      )
+    if (version.status === "withdrawn") {
+      throw new ConvexError("This version is already withdrawn.")
     }
     await ctx.db.patch(version._id, {
       status: "withdrawn",
