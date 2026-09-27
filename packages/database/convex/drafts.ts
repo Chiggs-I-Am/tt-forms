@@ -1,88 +1,98 @@
-import { ConvexError, v } from "convex/values"
-import { internalMutation, mutation, query } from "./_generated/server"
-import type { DatabaseReader } from "./_generated/server"
-import type { Id } from "./_generated/dataModel"
-import { requireUserId } from "./authz"
-import { answersValidator } from "./formModel"
-import { rateLimiter } from "./rateLimits"
+import { ConvexError, v } from "convex/values";
+import { internalMutation, mutation, query } from "./_generated/server";
+import { requireUserId } from "./authz";
+import { answersValidator } from "./formModel";
+import { rateLimiter } from "./rateLimits";
+import { mapSequentially } from "./sequential";
+import type { Id } from "./_generated/dataModel";
+import type { DatabaseReader } from "./_generated/server";
 
-// Applicant draft lifecycle for #36. One active draft per owner and form,
-// autosaved from the browser after sign-in, expiring 30 days after the last
-// edit. The server pins each draft to its starting version.
-// Cross-version moves never migrate silently: replaceDraft retires the old
-// draft only on explicit confirm, and only after checking the latest version
-// accepts new drafts.
+// Applicant draft lifecycle for #36. One active draft per owner and form, autosaved from the browser after sign-in, expiring 30 days after the last edit. The server pins each draft to its starting version.
+// Cross-version moves never migrate silently: replaceDraft retires the old draft only on explicit confirm, and only after checking the latest version accepts new drafts.
 //
 // Convex has no true unique constraint, so the composite owner_form index
 // plus check-and-reuse inside every write-path mutation is the enforcement.
-// Correct under normal use, soft under concurrent duplicate inserts;
-// accepted for a demo.
+// Correct under normal use, soft under concurrent duplicate inserts; accepted for a demo.
 
-export const DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const draftTtlMs = 2_592_000_000;
+export { draftTtlMs as DRAFT_TTL_MS };
+const idKey = "_id";
 
 // One active draft per owner and form, addressed by this key.
 export interface DraftKey {
-  ownerId: Id<"users">
-  formId: Id<"forms">
+  ownerId: Id<"users">;
+  formId: Id<"forms">;
 }
 
-async function latestVersion(ctx: { db: DatabaseReader }, formId: Id<"forms">) {
-  return await ctx.db
+const latestVersion = async (
+  context: { db: DatabaseReader },
+  formId: Id<"forms">
+) => {
+  const version = await context.db
     .query("formVersions")
     .withIndex("form", (q) => q.eq("formId", formId))
     .order("desc")
-    .first()
-}
+    .first();
+  if (version === null) {
+    return null;
+  }
+  return version;
+};
 
-async function activeDraftsFor(
-  ctx: { db: DatabaseReader },
+const activeDraftsFor = async (
+  context: { db: DatabaseReader },
   key: DraftKey
-) {
-  const rows = await ctx.db
+) => {
+  const rows = await context.db
     .query("drafts")
     .withIndex("owner_form", (q) =>
       q.eq("ownerId", key.ownerId).eq("formId", key.formId)
     )
-    .collect()
-  const now = Date.now()
+    .collect();
+  const now = Date.now();
   return rows
     .filter((d) => d.status === "active" && d.expiresAt >= now)
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-}
+    .toSorted((a, b) => b.updatedAt - a.updatedAt);
+};
 
 // Authenticated owner's draft for one form. Returns null when there is no
 // active draft, when it expired, or when it left active status (submitted by
 // #37, retired by replaceDraft). The query denies anonymous callers and never
 // gives them a row. The pinned version detail rides along so the UI can tell
 // same-version conflicts from cross-version picks.
-export const getDraft = query({
+const draftQuery = query({
   args: { formId: v.id("forms") },
-  handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx)
-    const [draft] = await activeDraftsFor(ctx, { ownerId, formId: args.formId })
+  handler: async (context, requestArguments) => {
+    const ownerId = await requireUserId(context);
+    const [draft] = await activeDraftsFor(context, {
+      formId: requestArguments.formId,
+      ownerId,
+    });
     if (!draft) {
-      return null
+      return null;
     }
-    const version = await ctx.db.get(draft.formVersionId)
+    const version = await context.db.get(draft.formVersionId);
     return {
-      _id: draft._id,
+      answers: draft.answers,
+      expiresAt: draft.expiresAt,
       formId: draft.formId,
       formVersionId: draft.formVersionId,
-      answers: draft.answers,
+      [idKey]: draft._id,
       status: draft.status,
-      expiresAt: draft.expiresAt,
       updatedAt: draft.updatedAt,
       version: version
         ? {
-            versionId: version._id,
-            version: version.version,
             status: version.status,
+            version: version.version,
+            versionId: version._id,
             withdrawReason: version.withdrawReason,
           }
         : null,
-    }
+    };
   },
-})
+});
+
+export { draftQuery as getDraft };
 
 // Autosave entry point. Reuses the owner's active draft and keeps its pinned
 // version; creates on the latest ACTIVE version when none exists. When
@@ -90,56 +100,59 @@ export const getDraft = query({
 // rejected so the client re-merges instead of silently overwriting.
 export const saveDraft = mutation({
   args: {
-    formId: v.id("forms"),
     answers: answersValidator,
     baseUpdatedAt: v.optional(v.number()),
+    formId: v.id("forms"),
   },
-  handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx)
-    await rateLimiter.limit(ctx, "draftSave", { key: ownerId, throws: true })
-    const now = Date.now()
-    const [existing] = await activeDraftsFor(ctx, {
+  handler: async (context, requestArguments) => {
+    const ownerId = await requireUserId(context);
+    await rateLimiter.limit(context, "draftSave", {
+      key: ownerId,
+      throws: true,
+    });
+    const now = Date.now();
+    const [existing] = await activeDraftsFor(context, {
+      formId: requestArguments.formId,
       ownerId,
-      formId: args.formId,
-    })
+    });
     if (existing) {
       if (
-        args.baseUpdatedAt !== undefined &&
-        args.baseUpdatedAt !== existing.updatedAt
+        requestArguments.baseUpdatedAt !== undefined &&
+        requestArguments.baseUpdatedAt !== existing.updatedAt
       ) {
         throw new ConvexError(
           "Draft changed elsewhere. Reload the latest draft and merge before saving."
-        )
+        );
       }
-      await ctx.db.patch(existing._id, {
-        answers: args.answers,
+      await context.db.patch(existing._id, {
+        answers: requestArguments.answers,
+        expiresAt: now + draftTtlMs,
         updatedAt: now,
-        expiresAt: now + DRAFT_TTL_MS,
-      })
-      return existing._id
+      });
+      return existing._id;
     }
-    const latest = await latestVersion(ctx, args.formId)
+    const latest = await latestVersion(context, requestArguments.formId);
     if (!latest) {
       throw new ConvexError(
         "No published version for this form. New drafts are blocked."
-      )
+      );
     }
     if (latest.status !== "active") {
       throw new ConvexError(
         `New drafts are blocked: version ${latest.version} is ${latest.status}.`
-      )
+      );
     }
-    return await ctx.db.insert("drafts", {
-      ownerId,
-      formId: args.formId,
+    return await context.db.insert("drafts", {
+      answers: requestArguments.answers,
+      expiresAt: now + draftTtlMs,
+      formId: requestArguments.formId,
       formVersionId: latest._id,
-      answers: args.answers,
+      ownerId,
       status: "active",
-      expiresAt: now + DRAFT_TTL_MS,
       updatedAt: now,
-    })
+    });
   },
-})
+});
 
 // Version-pick path for the applicant UI: retire the caller's active draft
 // pinned to retireVersionId and start a fresh draft on the latest active
@@ -148,55 +161,59 @@ export const saveDraft = mutation({
 // version never retires here.
 export const replaceDraft = mutation({
   args: {
-    formId: v.id("forms"),
     answers: answersValidator,
-    retireVersionId: v.id("formVersions"),
     confirm: v.boolean(),
+    formId: v.id("forms"),
+    retireVersionId: v.id("formVersions"),
   },
-  handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx)
-    await rateLimiter.limit(ctx, "draftReplace", { key: ownerId, throws: true })
-    if (args.confirm !== true) {
-      throw new ConvexError("Replacing a draft needs explicit confirmation.")
+  handler: async (context, requestArguments) => {
+    const ownerId = await requireUserId(context);
+    await rateLimiter.limit(context, "draftReplace", {
+      key: ownerId,
+      throws: true,
+    });
+    if (!requestArguments.confirm) {
+      throw new ConvexError("Replacing a draft needs explicit confirmation.");
     }
-    const rows = await ctx.db
+    const rows = await context.db
       .query("drafts")
       .withIndex("owner_form", (q) =>
-        q.eq("ownerId", ownerId).eq("formId", args.formId)
+        q.eq("ownerId", ownerId).eq("formId", requestArguments.formId)
       )
-      .collect()
+      .collect();
+    const { retireVersionId } = requestArguments;
     const old = rows.find(
-      (d) => d.formVersionId === args.retireVersionId && d.status === "active"
-    )
+      (d) => d.formVersionId === retireVersionId && d.status === "active"
+    );
     if (!old) {
-      throw new ConvexError("Draft to retire was not found for this account.")
+      throw new ConvexError("Draft to retire was not found for this account.");
     }
     // Check the target first: when the latest version no longer accepts new
     // drafts, the call fails here and the caller's active draft is untouched.
-    const latest = await latestVersion(ctx, args.formId)
+    const latest = await latestVersion(context, requestArguments.formId);
     if (!latest) {
       throw new ConvexError(
         "No published version for this form. New drafts are blocked."
-      )
+      );
     }
     if (latest.status !== "active") {
       throw new ConvexError(
         `New drafts are blocked: version ${latest.version} is ${latest.status}.`
-      )
+      );
     }
-    const now = Date.now()
-    await ctx.db.patch(old._id, { status: "retired" })
-    return await ctx.db.insert("drafts", {
-      ownerId,
-      formId: args.formId,
+    const now = Date.now();
+    await context.db.patch(old._id, { status: "retired" });
+    return await context.db.insert("drafts", {
+      answers: requestArguments.answers,
+      expiresAt: now + draftTtlMs,
+      formId: requestArguments.formId,
       formVersionId: latest._id,
-      answers: args.answers,
+      ownerId,
       status: "active",
-      expiresAt: now + DRAFT_TTL_MS,
       updatedAt: now,
-    })
+    });
   },
-})
+});
 
 // Daily expiry sweep. Deletes each expired ACTIVE draft plus its file rows
 // and storage blobs explicitly, since Convex has no cascade delete or
@@ -207,23 +224,23 @@ export const replaceDraft = mutation({
 // the number of drafts removed.
 export const purgeExpired = internalMutation({
   args: {},
-  handler: async (ctx) => {
-    const now = Date.now()
-    const rows = await ctx.db.query("drafts").collect()
+  handler: async (context) => {
+    const now = Date.now();
+    const rows = await context.db.query("drafts").collect();
     const expired = rows
       .filter((d) => d.status === "active" && d.expiresAt < now)
-      .slice(0, 100)
-    for (const draft of expired) {
-      const files = await ctx.db
+      .slice(0, 100);
+    await mapSequentially(expired, async (draft) => {
+      const files = await context.db
         .query("files")
         .withIndex("draft", (q) => q.eq("draftId", draft._id))
-        .collect()
-      for (const file of files) {
-        await ctx.storage.delete(file.storageId)
-        await ctx.db.delete(file._id)
-      }
-      await ctx.db.delete(draft._id)
-    }
-    return expired.length
+        .collect();
+      await mapSequentially(files, async (file) => {
+        await context.storage.delete(file.storageId);
+        await context.db.delete(file._id);
+      });
+      await context.db.delete(draft._id);
+    });
+    return expired.length;
   },
-})
+});

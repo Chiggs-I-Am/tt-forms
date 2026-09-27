@@ -1,13 +1,16 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "cn"
+import { useMemo } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "cn";
 
-import { Label } from "@workspace/ui/components/label"
-import { Separator } from "@workspace/ui/components/separator"
+import { Label } from "@workspace/ui/components/label";
+import { Separator } from "@workspace/ui/components/separator";
 
-function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
+const FieldSet = ({
+  className,
+  ...props
+}: React.ComponentProps<"fieldset">) => {
   return (
     <fieldset
       data-slot="field-set"
@@ -17,14 +20,16 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldLegend({
+const FieldLegend = ({
   className,
   variant = "legend",
   ...props
-}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
+}: React.ComponentProps<"legend"> & {
+  readonly variant?: "legend" | "label";
+}) => {
   return (
     <legend
       data-slot="field-legend"
@@ -35,10 +40,10 @@ function FieldLegend({
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
+const FieldGroup = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="field-group"
@@ -48,8 +53,8 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
 const fieldVariants = cva(
   "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
@@ -67,25 +72,24 @@ const fieldVariants = cva(
       orientation: "vertical",
     },
   }
-)
+);
 
-function Field({
+const Field = ({
   className,
   orientation = "vertical",
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
+}: React.ComponentProps<"fieldset"> & VariantProps<typeof fieldVariants>) => {
   return (
-    <div
-      role="group"
+    <fieldset
       data-slot="field"
       data-orientation={orientation}
       className={cn(fieldVariants({ orientation }), className)}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
+const FieldContent = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="field-content"
@@ -95,14 +99,17 @@ function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldLabel({
+const FieldLabel = ({
   className,
   ...props
-}: React.ComponentProps<typeof Label>) {
+}: React.ComponentProps<typeof Label>) => {
   return (
+    // Association comes from the caller spreading htmlFor or nesting a
+    // control; this primitive only renders the label element itself.
+    // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <Label
       data-slot="field-label"
       className={cn(
@@ -112,10 +119,10 @@ function FieldLabel({
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
+const FieldTitle = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="field-label"
@@ -125,10 +132,13 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
+const FieldDescription = ({
+  className,
+  ...props
+}: React.ComponentProps<"p">) => {
   return (
     <p
       data-slot="field-description"
@@ -140,16 +150,16 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-function FieldSeparator({
+const FieldSeparator = ({
   children,
   className,
   ...props
 }: React.ComponentProps<"div"> & {
-  children?: React.ReactNode
-}) {
+  readonly children?: React.ReactNode;
+}) => {
   return (
     <div
       data-slot="field-separator"
@@ -161,55 +171,56 @@ function FieldSeparator({
       {...props}
     >
       <Separator className="absolute inset-0 top-1/2" />
-      {children && (
+      {children ? (
         <span
           className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
           data-slot="field-separator-content"
         >
           {children}
         </span>
-      )}
+      ) : null}
     </div>
-  )
-}
+  );
+};
 
-function FieldError({
+const FieldError = ({
   className,
   children,
   errors,
   ...props
 }: React.ComponentProps<"div"> & {
-  errors?: Array<{ message?: string } | undefined>
-}) {
+  readonly errors?: Array<{ message?: string } | undefined>;
+}) => {
   const content = useMemo(() => {
     if (children) {
-      return children
+      return children;
     }
 
     if (!errors?.length) {
-      return null
+      return null;
     }
 
     const uniqueErrors = [
       ...new Map(errors.map((error) => [error?.message, error])).values(),
-    ]
+    ];
 
     if (uniqueErrors?.length == 1) {
-      return uniqueErrors[0]?.message
+      return uniqueErrors[0]?.message;
     }
 
     return (
       <ul className="ml-4 flex list-disc flex-col gap-1">
-        {uniqueErrors.map(
-          (error, index) =>
-            error?.message && <li key={index}>{error.message}</li>
-        )}
+        {uniqueErrors.map((error, index) => (
+          // Messages are deduped above, so the message is a stable key;
+          // the index covers message-less errors.
+          <li key={error?.message ?? `error-${index}`}>{error?.message}</li>
+        ))}
       </ul>
-    )
-  }, [children, errors])
+    );
+  }, [children, errors]);
 
   if (!content) {
-    return null
+    return null;
   }
 
   return (
@@ -221,8 +232,8 @@ function FieldError({
     >
       {content}
     </div>
-  )
-}
+  );
+};
 
 export {
   Field,
@@ -235,4 +246,4 @@ export {
   FieldSet,
   FieldContent,
   FieldTitle,
-}
+};

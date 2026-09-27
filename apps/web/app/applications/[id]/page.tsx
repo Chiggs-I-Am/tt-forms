@@ -1,10 +1,10 @@
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import type { Id } from "@workspace/database/data-model"
-import { FileLink } from "@/components/file-link"
-import { PrintButton } from "@/components/print-button"
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import type { Id } from "@workspace/database/data-model";
+import { FileLink } from "@/components/file-link";
+import { PrintButton } from "@/components/print-button";
 import {
   displayTitle,
   splitSection,
@@ -12,74 +12,84 @@ import {
   type Scalar,
   type SectionDef,
   type VersionDefinition,
-} from "@/lib/form-answers"
-import "./print.css"
+} from "@/lib/form-answers";
+import "./print.css";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }): Promise<{ title: string }> {
-  return { title: `Application ${(await params).id} · TT Forms Demo` }
+  return { title: `Application ${(await params).id} · TT Forms Demo` };
 }
 
-function formatValue(value: Scalar | undefined): string {
+const formatValue = (value: Scalar | undefined): string => {
   if (value === undefined || value === null) {
-    return "—"
+    return "—";
   }
   if (Array.isArray(value)) {
-    return value.length === 0 ? "—" : value.join(", ")
+    return value.length === 0 ? "—" : value.join(", ");
   }
   if (typeof value === "boolean") {
-    return value ? "Yes" : "No"
+    return value ? "Yes" : "No";
   }
-  return String(value)
-}
+  return String(value);
+};
 
-function topValue(answers: Answers, fieldId: string): Scalar | undefined {
-  const value = answers[fieldId]
-  if (value === undefined || typeof value === "object") {
-    return Array.isArray(value) &&
-      value.every((item) => typeof item === "string")
-      ? (value as Scalar)
-      : undefined
+const topValue = (answers: Answers, fieldId: string): Scalar | undefined => {
+  const value = answers[fieldId];
+  if (Array.isArray(value)) {
+    return value.every((item): item is string => typeof item === "string")
+      ? value
+      : undefined;
   }
-  return value
-}
+  if (value === undefined || typeof value === "object") {
+    return undefined;
+  }
+  return value;
+};
+
+const rowKey = (row: Record<string, unknown>, occurrence: number): string => {
+  const data = Object.keys(row)
+    .sort()
+    .map((key) => `${key}:${JSON.stringify(row[key])}`)
+    .join("|");
+  return `${data}#${occurrence}`;
+};
 
 // Read-only rendering of one stored field. Upload answers resolve through
 // the Attached files list below, never through an invented URL.
-function FieldLine({
+const FieldLine = ({
   label,
   value,
 }: {
-  label: string
-  value: Scalar | undefined
-}) {
+  readonly label: string;
+  readonly value: Scalar | undefined;
+}) => {
   return (
     <p className="text-sm">
       <span className="text-muted-foreground">{label}: </span>
       {formatValue(value)}
     </p>
-  )
-}
+  );
+};
 
-function SnapshotSection({
+const SnapshotSection = ({
   section,
   answers,
 }: {
-  section: SectionDef
-  answers: Answers
-}) {
+  readonly section: SectionDef;
+  readonly answers: Answers;
+}) => {
   if (!section.repeat) {
     const stored = section.fields.filter(
       (field) =>
         field.kind !== "upload" && topValue(answers, field.id) !== undefined
-    )
+    );
     if (stored.length === 0) {
-      return null
+      return null;
     }
     return (
       <section
@@ -95,20 +105,20 @@ function SnapshotSection({
           />
         ))}
       </section>
-    )
+    );
   }
-  const { once, rows: rowFields } = splitSection(section)
-  const raw = answers[section.id]
+  const { once, rows: rowFields } = splitSection(section);
+  const raw = answers[section.id];
   const storedRows: Record<string, Scalar>[] =
     Array.isArray(raw) && raw.every((row) => typeof row === "object")
       ? (raw as Record<string, Scalar>[])
-      : []
+      : [];
   const storedOnce = once.filter(
     (field) =>
       field.kind !== "upload" && topValue(answers, field.id) !== undefined
-  )
+  );
   if (storedOnce.length === 0 && storedRows.length === 0) {
-    return null
+    return null;
   }
   return (
     <section
@@ -125,37 +135,37 @@ function SnapshotSection({
       ))}
       {storedRows.map((row, index) => (
         <div
-          key={index}
+          key={rowKey(row, index)}
           className="flex flex-col gap-1 border-l-2 border-border pl-3"
         >
           <p className="font-mono text-xs text-muted-foreground">Entry</p>
-          {rowFields
-            .filter(
-              (field) => field.kind !== "upload" && row[field.id] !== undefined
-            )
-            .map((field) => (
+          {rowFields.flatMap((field) => {
+            if (field.kind === "upload" || row[field.id] === undefined) {
+              return [];
+            }
+            return [
               <FieldLine
                 key={field.id}
                 label={field.label}
-                value={row[field.id] as Scalar}
-              />
-            ))}
+                value={row[field.id]}
+              />,
+            ];
+          })}
         </div>
       ))}
     </section>
-  )
-}
+  );
+};
 
 // Printable route for one submitted application. Renders the denormalized
 // snapshot (answers, pinned version, file refs, rendered labels) with print
 // CSS; print-to-PDF is the only export.
-export default async function ApplicationPage({
+const ApplicationPage = async ({
   params,
 }: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
-  const token = await convexAuthNextjsToken()
+  readonly params: Promise<{ id: string }>;
+}) => {
+  const [{ id }, token] = await Promise.all([params, convexAuthNextjsToken()]);
   if (!token) {
     return (
       <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-4 p-6">
@@ -170,16 +180,16 @@ export default async function ApplicationPage({
           Sign in
         </Link>
       </div>
-    )
+    );
   }
 
-  let submission
+  let submission;
   try {
     submission = await fetchQuery(
       api.submissions.getSubmission,
       { submissionId: id as Id<"submissions"> },
       { token }
-    )
+    );
   } catch (error) {
     return (
       <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-4 p-6">
@@ -196,11 +206,11 @@ export default async function ApplicationPage({
           Back to My applications
         </Link>
       </div>
-    )
+    );
   }
 
-  const definition = submission.definition as VersionDefinition
-  const answers = submission.answers as Answers
+  const definition = submission.definition as VersionDefinition;
+  const answers = submission.answers as Answers;
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-6 p-6">
@@ -255,5 +265,7 @@ export default async function ApplicationPage({
         </Link>
       </footer>
     </main>
-  )
-}
+  );
+};
+
+export default ApplicationPage;

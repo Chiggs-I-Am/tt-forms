@@ -1,44 +1,44 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useMutation } from "convex/react"
-import { api } from "@workspace/database/api"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { errorText } from "./builder-types"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation } from "convex/react";
+import { api } from "@workspace/database/api";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { errorText } from "./builder-types";
 
 // Starts a new working copy: slug plus name, saved through the same
 // developer-admin-only mutation as every other builder write.
-export function NewForm() {
-  const router = useRouter()
-  const save = useMutation(api.forms.saveWorkingCopy)
-  const [slug, setSlug] = useState("")
-  const [name, setName] = useState("")
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export const NewForm = () => {
+  const router = useRouter();
+  const save = useMutation(api.forms.saveWorkingCopy);
+  const [slug, setSlug] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function create(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setBusy(true)
-    setError(null)
-    try {
-      const clean = slug.trim().toLowerCase().replace(/\s+/g, "-")
-      await save({
-        slug: clean,
-        name: name.trim() || clean,
-        agency: "",
-        sourceLabel: "",
-        sourceUrl: "",
-        definition: { sections: [] },
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    const clean = slug.trim().toLowerCase().replace(/\s+/g, "-");
+    await save({
+      slug: clean,
+      name: name.trim() || clean,
+      agency: "",
+      sourceLabel: "",
+      sourceUrl: "",
+      definition: { sections: [] },
+    })
+      .then(() => {
+        router.push(`/admin/forms/${clean}`);
       })
-      router.push(`/admin/forms/${clean}`)
-    } catch (err) {
-      setError(errorText(err))
-    } finally {
-      setBusy(false)
-    }
+      .catch((err: unknown) => {
+        setError(errorText(err));
+      });
+    setBusy(false);
   }
 
   return (
@@ -70,16 +70,16 @@ export function NewForm() {
           />
         </div>
       </div>
-      {error && (
+      {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
-      )}
+      ) : null}
       <div>
         <Button type="submit" variant="outline" size="sm" disabled={busy}>
           {busy ? "Creating…" : "Create working copy"}
         </Button>
       </div>
     </form>
-  )
-}
+  );
+};

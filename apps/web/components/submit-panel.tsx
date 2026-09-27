@@ -1,16 +1,44 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { useConvexAuth, useMutation, useQuery } from "convex/react"
-import { api } from "@workspace/database/api"
-import type { Id } from "@workspace/database/data-model"
-import { Button, buttonVariants } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
-import type { Answers } from "@/lib/form-answers"
-import type { VersionDefinition } from "@/lib/form-answers"
-import { toServerAnswers } from "@/components/use-server-draft"
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { api } from "@workspace/database/api";
+import type { Id } from "@workspace/database/data-model";
+import { Button } from "@workspace/ui/components/button";
+import { buttonVariants } from "@workspace/ui/components/button-variants";
+import { cn } from "@workspace/ui/lib/utilities";
+import type { Answers, VersionDefinition } from "@/lib/form-answers";
+import { toServerAnswers } from "@/components/use-server-draft";
+
+type ServerAnswers = ReturnType<typeof toServerAnswers>;
+
+type StorageResponse = {
+  storageId: Id<"_storage">;
+};
+
+const isStorageResponse = (value: unknown): value is StorageResponse => {
+  if (typeof value !== "object" || value === null || !("storageId" in value)) {
+    return false;
+  }
+  return typeof value.storageId === "string";
+};
+
+const containsFiles = (value: Answers[string] | undefined): value is File[] =>
+  Array.isArray(value) && value.some((item) => item instanceof File);
+
+const uploadFieldIdsFor = (definition: VersionDefinition): Set<string> => {
+  const ids = new Set<string>();
+  for (const section of definition.sections) {
+    for (const field of section.fields) {
+      if (field.kind === "upload") {
+        ids.add(field.id);
+      }
+    }
+  }
+  return ids;
+};
 
 // Submit step for the review screen. Anonymous visitors keep the sign-in
 // call to action; signed-in applicants upload files first, save once more,
@@ -18,37 +46,36 @@ import { toServerAnswers } from "@/components/use-server-draft"
 // Uploads use the three-step flow (#38): an upload URL per file, a POST of
 // the bytes, then a saving mutation that enforces type and size. Success
 // shows only after Convex confirms, then routes to My applications.
-export function SubmitPanel({
+export const SubmitPanel = ({
   formId,
   localAnswers,
   definition,
 }: {
-  formId: Id<"forms"> | null | undefined
-  localAnswers: Answers
-  definition: VersionDefinition
-}) {
-  const router = useRouter()
-  const { isAuthenticated, isLoading } = useConvexAuth()
-  const saveDraft = useMutation(api.drafts.saveDraft)
-  const submitDraft = useMutation(api.submissions.submitDraft)
-  const generateUploadUrl = useMutation(api.uploads.generateUploadUrl)
-  const saveFile = useMutation(api.uploads.saveFile)
-  // Merge base for the final save: another tab may have written while this
-  // tab sat on the review screen, so the save carries baseUpdatedAt and the
-  // server rejects a stale write instead of silently overwriting it.
+  readonly formId: Id<"forms"> | null | undefined;
+  readonly localAnswers: Answers;
+  readonly definition: VersionDefinition;
+}) => {
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const saveDraft = useMutation(api.drafts.saveDraft);
+  const submitDraft = useMutation(api.submissions.submitDraft);
+  const generateUploadUrl = useMutation(api.uploads.generateUploadUrl);
+  const saveFile = useMutation(api.uploads.saveFile);
   const serverDraft = useQuery(
     api.drafts.getDraft,
-    isAuthenticated && formId ? { formId } : "skip"
-  )
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+    isAuthenticated && formId !== null && formId !== undefined
+      ? { formId }
+      : "skip"
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (isLoading) {
     return (
-      <p role="status" className="text-sm text-muted-foreground">
+      <output className="text-sm text-muted-foreground">
         Checking sign-in.
-      </p>
-    )
+      </output>
+    );
   }
 
   if (!isAuthenticated) {
@@ -65,97 +92,93 @@ export function SubmitPanel({
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   async function onSubmit() {
     if (!formId) {
-      setError("The demo backend is unreachable. Try again later.")
-      return
+      setError("The demo backend is unreachable. Try again later.");
+      return;
     }
-    setSubmitting(true)
-    setError(null)
+    setSubmitting(true);
+    setError(null);
+
+    const uploadOne = async (
+      draftId: Id<"drafts">,
+      fieldId: string,
+      file: File
+    ): Promise<string> => {
+      const { uploadUrl } = await generateUploadUrl({ draftId });
+      const posted = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+        },
+        body: file,
+      });
+      if (!posted.ok) {
+        throw new Error(
+          `Upload of ${file.name} failed. Check the connection and try again.`
+        );
+      }
+      const response: unknown = await posted.json();
+      if (!isStorageResponse(response)) {
+        throw new Error("The upload service returned an invalid response.");
+      }
+      await saveFile({
+        draftId,
+        fieldId,
+        storageId: response.storageId,
+        fileName: file.name,
+      });
+      return response.storageId;
+    };
+
+    let draftId = serverDraft?._id;
+    let baseUpdatedAt = serverDraft?.updatedAt;
     try {
-      // Reuse the existing draft when there is one so uploads have a draft
-      // id without an extra blind save. A first save creates the draft
-      // only when nothing exists yet.
-      let draftId = serverDraft?._id as Id<"drafts"> | undefined
-      let baseUpdatedAt = serverDraft?.updatedAt as number | undefined
       if (!draftId) {
-        draftId = (await saveDraft({
+        draftId = await saveDraft({
+          answers: toServerAnswers(localAnswers),
           formId,
-          answers: toServerAnswers(localAnswers) as never,
-        })) as Id<"drafts">
-        baseUpdatedAt = undefined
+        });
+        baseUpdatedAt = undefined;
       }
-      // Upload every attached file, then point the answers at the stored
-      // file ids. Without this step the server would see empty upload
-      // answers and required uploads could never submit.
-      const uploadFieldIds = new Set(
-        definition.sections.flatMap((section) =>
-          section.fields
-            .filter((field) => field.kind === "upload")
-            .map((field) => field.id)
-        )
-      )
-      const finalAnswers: Record<string, unknown> = {
-        ...toServerAnswers(localAnswers),
-      }
-      for (const fieldId of uploadFieldIds) {
-        const files = localAnswers[fieldId]
-        if (
-          !Array.isArray(files) ||
-          !files.some((file) => file instanceof File)
-        ) {
-          continue
-        }
-        const stored: string[] = []
-        for (const file of files as File[]) {
-          const { uploadUrl } = await generateUploadUrl({ draftId })
-          const posted = await fetch(uploadUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": file.type || "application/octet-stream",
-            },
-            body: file,
-          })
-          if (!posted.ok) {
-            throw new Error(
-              `Upload of ${file.name} failed. Check the connection and try again.`
-            )
+      const activeDraftId = draftId;
+      const uploadFieldIds = uploadFieldIdsFor(definition);
+      const finalAnswers: ServerAnswers = toServerAnswers(localAnswers);
+      const uploadResults = await Promise.all(
+        [...uploadFieldIds].map(async (fieldId) => {
+          const files = localAnswers[fieldId];
+          if (!containsFiles(files)) {
+            return null;
           }
-          const { storageId } = (await posted.json()) as {
-            storageId: Id<"_storage">
-          }
-          await saveFile({
-            draftId,
-            fieldId,
-            storageId,
-            fileName: file.name,
-          })
-          stored.push(storageId)
+          const stored = await Promise.all(
+            files.map((file) => uploadOne(activeDraftId, fieldId, file))
+          );
+          return { fieldId, stored };
+        })
+      );
+      for (const result of uploadResults) {
+        if (result !== null) {
+          finalAnswers[result.fieldId] = result.stored;
         }
-        finalAnswers[fieldId] = stored
       }
-      // Final save carries the merge base, so a concurrent write from
-      // another tab fails here with "Draft changed elsewhere" instead of
-      // being silently overwritten before submission.
       await saveDraft({
-        formId,
-        answers: finalAnswers as never,
+        answers: finalAnswers,
         baseUpdatedAt,
-      })
-      await submitDraft({ formId })
-      router.push("/applications")
+        formId,
+      });
+      await submitDraft({ formId });
+      router.push("/applications");
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
           : "Submission failed."
-      )
-    } finally {
-      setSubmitting(false)
+      );
     }
+    setSubmitting(false);
   }
 
   return (
@@ -173,11 +196,11 @@ export function SubmitPanel({
           {submitting ? "Submitting." : "Submit application"}
         </Button>
       </div>
-      {error && (
+      {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
-      )}
+      ) : null}
     </div>
-  )
-}
+  );
+};

@@ -1,26 +1,26 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { ConvexError } from "convex/values"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { ConvexError } from "convex/values";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
-import { FormEditor } from "@/components/admin/form-editor"
+} from "@workspace/ui/components/card";
+import { FormEditor } from "@/components/admin/form-editor";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params
-  return { title: `Build ${slug} · TT Forms Demo` }
+  const { slug } = await params;
+  return { title: `Build ${slug} · TT Forms Demo` };
 }
 
 // Builder editor. The working copy arrives from the developer-admin-only
@@ -32,24 +32,24 @@ async function loadCopy(slug: string) {
       api.forms.listWorkingCopies,
       {},
       { token: await convexAuthNextjsToken() }
-    )
-    return { copy: copies.find((c) => c.slug === slug) ?? null }
+    );
+    return { copy: copies.find((c) => c.slug === slug) ?? null };
   } catch (error) {
     const text =
       error instanceof ConvexError
         ? String(error.data ?? error.message)
-        : "The working copy could not be loaded."
-    return { denied: text }
+        : "The working copy could not be loaded.";
+    return { denied: text };
   }
 }
 
-export default async function AdminFormEditorPage({
+const AdminFormEditorPage = async ({
   params,
 }: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
-  const result = await loadCopy(slug)
+  readonly params: Promise<{ slug: string }>;
+}) => {
+  const { slug } = await params;
+  const result = await loadCopy(slug);
 
   if ("denied" in result) {
     return (
@@ -72,7 +72,7 @@ export default async function AdminFormEditorPage({
           .
         </p>
       </div>
-    )
+    );
   }
 
   if (!result.copy) {
@@ -94,10 +94,10 @@ export default async function AdminFormEditorPage({
           </Link>
         </p>
       </div>
-    )
+    );
   }
 
-  const { copy } = result
+  const { copy } = result;
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-6 p-6">
@@ -125,5 +125,7 @@ export default async function AdminFormEditorPage({
         }}
       />
     </div>
-  )
-}
+  );
+};
+
+export default AdminFormEditorPage;

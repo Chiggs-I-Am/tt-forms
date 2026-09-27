@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { FormFiller } from "@/components/form-filler"
-import type { SectionDef } from "@/lib/form-answers"
+import { useId } from "react";
+import { FormFiller } from "@/components/form-filler";
+import type { SectionDef } from "@/lib/form-answers";
 
 // Applicant-style preview with disposable answers. The storage key is unique
 // per mount and never reused, so nothing typed here survives leaving the
 // page or reaches the server.
-export function DisposablePreview({
+export const DisposablePreview = ({
   slug,
   sections,
 }: {
-  slug: string
-  sections: SectionDef[]
-}) {
-  const [storageKey] = useState(() => `preview-${slug}-${Date.now()}`)
+  readonly slug: string;
+  readonly sections: SectionDef[];
+}) => {
+  const storageKey = `preview-${slug}-${useId()}`;
 
   if (sections.length === 0) {
     return (
-      <p role="status" className="text-sm text-muted-foreground">
+      <output className="text-sm text-muted-foreground">
         Add a section above to see the applicant preview.
-      </p>
-    )
+      </output>
+    );
   }
 
   return (
@@ -34,5 +34,5 @@ export function DisposablePreview({
       </p>
       <FormFiller storageKey={storageKey} definition={{ sections }} />
     </div>
-  )
-}
+  );
+};

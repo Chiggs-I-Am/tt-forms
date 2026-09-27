@@ -1,11 +1,10 @@
-import js from "@eslint/js"
-import eslintConfigPrettier from "eslint-config-prettier"
-import pluginReact from "eslint-plugin-react"
-import pluginReactHooks from "eslint-plugin-react-hooks"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import eslintConfigPrettier from "eslint-config-prettier";
+import pluginReact from "eslint-plugin-react";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import globals from "globals";
 
-import { config as baseConfig } from "./base.js"
+import { config as baseConfig } from "./base.js";
+import reactPreset from "./ultracite-react.js";
 
 /**
  * A custom ESLint configuration for libraries that use React.
@@ -13,9 +12,7 @@ import { config as baseConfig } from "./base.js"
  * @type {import("eslint").Linter.Config} */
 export const config = [
   ...baseConfig,
-  js.configs.recommended,
   eslintConfigPrettier,
-  ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   {
     languageOptions: {
@@ -30,7 +27,7 @@ export const config = [
     plugins: {
       "react-hooks": pluginReactHooks,
     },
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: "19.0.0" } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
@@ -38,4 +35,5 @@ export const config = [
       "react/prop-types": "off",
     },
   },
-]
+  ...reactPreset,
+];

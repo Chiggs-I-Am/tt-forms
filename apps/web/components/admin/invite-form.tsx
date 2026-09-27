@@ -1,74 +1,74 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useMutation } from "convex/react"
-import { api } from "@workspace/database/api"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@workspace/database/api";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select"
-import { errorText } from "./builder-types"
+} from "@workspace/ui/components/select";
+import { errorText } from "./builder-types";
 
 // Issues one email-bound single-use 7-day invite. The token renders once for
 // out-of-band delivery (email or chat) and never again; even this admin
 // cannot re-read it afterwards. Mutations live in this client component;
 // the page itself stays a querying Server Component (cookie-auth rule).
-export function InviteForm() {
-  const create = useMutation(api.invites.createInvite)
-  const [email, setEmail] = useState("")
+export const InviteForm = () => {
+  const create = useMutation(api.invites.createInvite);
+  const [email, setEmail] = useState("");
   const [role, setRole] = useState<"developer-admin" | "demo-admin">(
     "demo-admin"
-  )
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [issued, setIssued] = useState<{
-    email: string
-    token: string
-    expires: string
-  } | null>(null)
-  const [copied, setCopied] = useState(false)
+    email: string;
+    token: string;
+    expires: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   async function invite(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setBusy(true)
-    setError(null)
-    setCopied(false)
-    try {
-      const { token } = await create({ email: email.trim(), role })
-      setIssued({
-        email: email.trim(),
-        token,
-        expires: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }),
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    setCopied(false);
+    await create({ email: email.trim(), role })
+      .then(({ token }) => {
+        setIssued({
+          email: email.trim(),
+          token,
+          expires: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }),
+        });
+        setEmail("");
       })
-      setEmail("")
-    } catch (err) {
-      setError(errorText(err))
-    } finally {
-      setBusy(false)
-    }
+      .catch((err: unknown) => {
+        setError(errorText(err));
+      });
+    setBusy(false);
   }
 
   async function copy() {
     if (!issued) {
-      return
+      return;
     }
     try {
-      await navigator.clipboard.writeText(issued.token)
-      setCopied(true)
+      await navigator.clipboard.writeText(issued.token);
+      setCopied(true);
     } catch {
-      setError("Copy failed. Select the token text manually.")
+      setError("Copy failed. Select the token text manually.");
     }
   }
 
@@ -83,11 +83,11 @@ export function InviteForm() {
         <p className="border border-dashed border-border bg-muted p-3 font-mono text-xs break-all">
           {issued.token}
         </p>
-        {error && (
+        {error ? (
           <p role="alert" className="text-sm text-destructive">
             {error}
           </p>
-        )}
+        ) : null}
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" onClick={() => void copy()}>
             {copied ? "Copied" : "Copy token"}
@@ -102,7 +102,7 @@ export function InviteForm() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -150,16 +150,16 @@ export function InviteForm() {
         Single-use, expires in 7 days, redeemed by signing in with this exact
         email address.
       </p>
-      {error && (
+      {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
-      )}
+      ) : null}
       <div>
         <Button type="submit" variant="outline" size="sm" disabled={busy}>
           {busy ? "Inviting…" : "Create invite"}
         </Button>
       </div>
     </form>
-  )
-}
+  );
+};

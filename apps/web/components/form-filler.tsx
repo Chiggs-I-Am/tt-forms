@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FormProvider,
   useFieldArray,
   useForm,
   type Control,
   type FieldValues,
-} from "react-hook-form"
-import { Button } from "@workspace/ui/components/button"
-import type { Id } from "@workspace/database/data-model"
-import { FormFieldInput } from "@/components/field-input"
-import { DraftSync } from "@/components/draft-sync"
-import { SubmitPanel } from "@/components/submit-panel"
+} from "react-hook-form";
+import { Button } from "@workspace/ui/components/button";
+import type { Id } from "@workspace/database/data-model";
+import { FormFieldInput } from "@/components/field-input";
+import { DraftSync } from "@/components/draft-sync";
+import { SubmitPanel } from "@/components/submit-panel";
 import {
   deserialize,
   displayTitle,
@@ -27,83 +27,92 @@ import {
   visibleSections,
   type Answers,
   type FieldDef,
+  type StoredRow,
   type Scalar,
   type SectionDef,
   type VersionDefinition,
-} from "@/lib/form-answers"
-import { buildFormSchema } from "@/lib/form-schema"
+} from "@/lib/form-answers";
+import { buildFormSchema } from "@/lib/form-schema";
 
-const STORAGE_PREFIX = "tt-forms:apply:"
+const STORAGE_PREFIX = "tt-forms:apply:";
+
+const rowKey = (row: StoredRow, occurrence: number): string => {
+  const data = Object.keys(row)
+    .toSorted((left, right) => left.localeCompare(right))
+    .map((key) => `${key}:${JSON.stringify(row[key])}`)
+    .join("|");
+  return `${data}#${occurrence}`;
+};
 
 function readBackup(key: string): Answers {
   try {
-    return deserialize(window.localStorage.getItem(STORAGE_PREFIX + key))
+    return deserialize(window.localStorage.getItem(STORAGE_PREFIX + key));
   } catch {
-    return {}
+    return {};
   }
 }
 
 // Structural defaults: empty scalars plus minimum rows per repeat section.
 // The backup merges over this on mount.
 function structuralDefaults(definition: VersionDefinition) {
-  const out: Record<string, unknown> = {}
+  const out: Record<string, unknown> = {};
   for (const section of definition.sections) {
     if (section.repeat) {
-      out[section.id] = Array.from({ length: section.repeat.min }, () => ({}))
+      out[section.id] = Array.from({ length: section.repeat.min }, () => ({}));
     }
   }
-  return out
+  return out;
 }
 
 function mergeBackup(
   definition: VersionDefinition,
   backup: Answers
 ): Record<string, unknown> {
-  const merged: Answers = { ...backup }
+  const merged: Answers = { ...backup };
   for (const section of definition.sections) {
     if (section.repeat) {
-      merged[section.id] = ensureRows(merged, section)
+      merged[section.id] = ensureRows(merged, section);
     }
   }
-  return merged
+  return merged;
 }
 
 function formatValue(value: unknown): string {
   if (value === undefined || value === null) {
-    return "—"
+    return "—";
   }
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return "—"
+      return "—";
     }
     if (value.some((item) => typeof item === "object")) {
-      return (value as File[]).map((f) => f.name).join(", ")
+      return (value as File[]).map((f) => f.name).join(", ");
     }
-    return (value as Scalar[]).join(", ")
+    return (value as Scalar[]).join(", ");
   }
   if (typeof value === "boolean") {
-    return value ? "Yes" : "No"
+    return value ? "Yes" : "No";
   }
-  return String(value)
+  return String(value);
 }
 
 // Repeat group with add/remove bounded by the section min/max, per the
 // shadcn useFieldArray pattern (field.id as key, Controller per item).
-function RepeatGroup({
+const RepeatGroup = ({
   control,
   section,
   rowFields,
 }: {
-  control: Control<FieldValues>
-  section: SectionDef
-  rowFields: SectionDef["fields"]
-}) {
+  readonly control: Control<FieldValues>;
+  readonly section: SectionDef;
+  readonly rowFields: SectionDef["fields"];
+}) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: section.id,
-  })
-  const min = section.repeat?.min ?? 0
-  const max = section.repeat?.max ?? fields.length
+  });
+  const min = section.repeat?.min ?? 0;
+  const max = section.repeat?.max ?? fields.length;
 
   return (
     <div className="flex flex-col gap-5">
@@ -142,130 +151,142 @@ function RepeatGroup({
         </Button>
       )}
     </div>
-  )
-}
+  );
+};
 
 // Full 1:1 fill view on React Hook Form, per the shadcn pattern (useForm +
 // zodResolver + Controller + Field primitives). Sections render one at a
 // time; conditions evaluate locally (cosmetic); hidden answers stay in the
 // draft. Answers persist to this browser, and signed-in applicants autosave
 // to one server draft per form with merge prompts (#36).
-export function FormFiller({
+export const FormFiller = ({
   storageKey,
   definition,
   formId,
   versionId,
 }: {
-  storageKey: string
-  definition: VersionDefinition
-  formId?: Id<"forms"> | null
-  versionId?: Id<"formVersions"> | null
-}) {
+  readonly storageKey: string;
+  readonly definition: VersionDefinition;
+  readonly formId?: Id<"forms"> | null;
+  readonly versionId?: Id<"formVersions"> | null;
+}) => {
   const schema = useMemo(
     () => buildFormSchema(definition.sections),
     [definition]
-  )
+  );
+  const [restoredBackup, setRestoredBackup] = useState<Answers | null>(null);
+  const restoredValues = useMemo(
+    () =>
+      restoredBackup === null
+        ? undefined
+        : mergeBackup(definition, restoredBackup),
+    [definition, restoredBackup]
+  );
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: useMemo(() => structuralDefaults(definition), [definition]),
-  })
-  const { control, reset, trigger, watch } = form
-  const [index, setIndex] = useState(0)
-  const [reviewing, setReviewing] = useState(false)
-  const restoredRef = useRef(false)
+    values: restoredValues,
+  });
+  const { control, reset, trigger, watch } = form;
+  const [index, setIndex] = useState(0);
+  const [reviewing, setReviewing] = useState(false);
+  const restoredRef = useRef(false);
 
   // Client-only restore: reading localStorage during render would split
   // server and client HTML.
   useEffect(() => {
-    reset(mergeBackup(definition, readBackup(storageKey)))
-    restoredRef.current = true
+    setRestoredBackup(readBackup(storageKey));
+    restoredRef.current = true;
     // Restore once; later keystrokes are the source of truth.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storageKey])
+  }, [storageKey]);
 
+  // Backup subscription on the react-hook-form watcher. The watcher API is
+  // flagged as a React-Compiler-incompatible library; this project does not
+  // use the compiler, and the subscription pattern itself is sound.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = watch((values) => {
       if (!restoredRef.current) {
-        return
+        return;
       }
       try {
         window.localStorage.setItem(
           STORAGE_PREFIX + storageKey,
           serialize(values as Answers)
-        )
+        );
       } catch {
         // Private mode or full storage: browser state still holds the answers.
       }
-    })
-    return () => subscription.unsubscribe()
-  }, [watch, storageKey])
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, storageKey]);
 
-  const values = watch()
-  const answers = values as unknown as Answers
+  const values = watch();
+  const answers = values as unknown as Answers;
   const labels = useMemo(() => {
-    const map: Record<string, string> = {}
+    const map: Record<string, string> = {};
     for (const section of definition.sections) {
       for (const field of section.fields) {
-        map[field.id] = field.label
+        map[field.id] = field.label;
       }
     }
-    return map
-  }, [definition])
+    return map;
+  }, [definition]);
   const sections = useMemo(
     () => visibleSections(definition, answers),
     // Recompute whenever any answer changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [definition, values]
-  )
+  );
   const hidden = useMemo(
     () => hiddenSections(definition, answers),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [definition, values]
-  )
-  const clamped = Math.min(index, Math.max(sections.length - 1, 0))
-  const section = sections[clamped]
+  );
+  const clamped = Math.min(index, Math.max(sections.length - 1, 0));
+  const section = sections[clamped];
 
   if (!section) {
     return (
-      <p role="status" className="text-sm text-muted-foreground">
+      <output className="text-sm text-muted-foreground">
         This version has no visible sections.
-      </p>
-    )
+      </output>
+    );
   }
 
   // Visible field paths for trigger(): top-level ids plus row cell paths.
   function visibleNames(target: SectionDef): string[] {
-    const names: string[] = []
+    const names: string[] = [];
     const { once, rows: rowFields } = target.repeat
       ? splitSection(target)
-      : { once: visibleFields(target, answers), rows: [] }
+      : { once: visibleFields(target, answers), rows: [] };
     for (const field of once) {
       if (isVisible(field.condition, answers)) {
-        names.push(field.id)
+        names.push(field.id);
       }
     }
-    const rows = target.repeat ? ensureRows(answers, target) : []
+    const rows = target.repeat ? ensureRows(answers, target) : [];
     rows.forEach((_, rowIndex) => {
       for (const field of rowFields) {
-        names.push(`${target.id}.${rowIndex}.${field.id}`)
+        names.push(`${target.id}.${rowIndex}.${field.id}`);
       }
-    })
-    return names
+    });
+    return names;
   }
 
   async function goNext() {
     if (!section) {
-      return
+      return;
     }
-    const valid = await trigger(visibleNames(section) as never[])
+    const valid = await trigger(visibleNames(section) as never[]);
     if (!valid) {
-      return
+      return;
     }
     if (clamped === sections.length - 1) {
-      setReviewing(true)
-      return
+      setReviewing(true);
+      return;
     }
-    setIndex(clamped + 1)
+    setIndex(clamped + 1);
   }
 
   if (reviewing) {
@@ -301,16 +322,13 @@ export function FormFiller({
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   const split: { once: FieldDef[]; rows: FieldDef[] } = section.repeat
     ? splitSection(section)
-    : { once: visibleFields(section, answers), rows: [] as FieldDef[] }
-  const { once } = split
-  const position =
-    sections.length <= 1 ? 100 : (clamped / (sections.length - 1)) * 100
-
+    : { once: visibleFields(section, answers), rows: [] as FieldDef[] };
+  const { once } = split;
   return (
     <FormProvider {...form}>
       <div className="flex flex-col gap-6">
@@ -324,19 +342,12 @@ export function FormFiller({
           }
         />
         <nav aria-label="Sections" className="flex flex-col gap-3">
-          <div
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={Math.max(sections.length, 1)}
-            aria-valuenow={clamped + 1}
+          <progress
             aria-label="Form progress"
-            className="h-1 w-full bg-muted"
-          >
-            <div
-              className="h-full bg-primary"
-              style={{ width: `${position}%` }}
-            />
-          </div>
+            className="h-1 w-full accent-primary"
+            max={Math.max(sections.length, 1)}
+            value={clamped + 1}
+          />
           <p className="sr-only">
             Section {clamped + 1} of {sections.length}
           </p>
@@ -379,33 +390,35 @@ export function FormFiller({
             <h2 id="section-title" className="text-lg font-medium">
               {displayTitle(section.title)}
             </h2>
-            {section.helpText && (
+            {section.helpText ? (
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {section.helpText}
               </p>
-            )}
-            {section.repeat && (
+            ) : null}
+            {section.repeat ? (
               <p className="text-xs text-muted-foreground">
                 {section.repeat.min === section.repeat.max
                   ? `Exactly ${section.repeat.min} ${section.repeat.min === 1 ? "entry" : "entries"} required.`
                   : `${section.repeat.min} to ${section.repeat.max} entries.`}
               </p>
-            )}
+            ) : null}
           </div>
 
           {section.repeat ? (
             <div className="flex flex-col gap-5">
-              {once
-                .filter((field) => isVisible(field.condition, answers))
-                .map((field) => (
-                  <FormFieldInput
-                    key={field.id}
-                    control={control}
-                    name={field.id}
-                    field={field}
-                    id={`${section.id}-${field.id}`}
-                  />
-                ))}
+              {once.flatMap((field) =>
+                isVisible(field.condition, answers)
+                  ? [
+                      <FormFieldInput
+                        key={field.id}
+                        control={control}
+                        name={field.id}
+                        field={field}
+                        id={`${section.id}-${field.id}`}
+                      />,
+                    ]
+                  : []
+              )}
               <RepeatGroup
                 control={control}
                 section={section}
@@ -441,16 +454,16 @@ export function FormFiller({
         </section>
       </div>
     </FormProvider>
-  )
-}
+  );
+};
 
-function SectionReview({
+const SectionReview = ({
   section,
   answers,
 }: {
-  section: SectionDef
-  answers: Answers
-}) {
+  readonly section: SectionDef;
+  readonly answers: Answers;
+}) => {
   if (!section.repeat) {
     return (
       <>
@@ -461,22 +474,24 @@ function SectionReview({
           </p>
         ))}
       </>
-    )
+    );
   }
-  const { once, rows: rowFields } = splitSection(section)
+  const { once, rows: rowFields } = splitSection(section);
   return (
     <>
-      {once
-        .filter((f) => isVisible(f.condition, answers))
-        .map((f) => (
-          <p key={f.id} className="text-sm">
-            <span className="text-muted-foreground">{f.label}: </span>
-            {formatValue(topLevelAnswer(answers, f.id))}
-          </p>
-        ))}
-      {ensureRows(answers, section).map((row, i) => (
+      {once.flatMap((field) =>
+        isVisible(field.condition, answers)
+          ? [
+              <p key={field.id} className="text-sm">
+                <span className="text-muted-foreground">{field.label}: </span>
+                {formatValue(topLevelAnswer(answers, field.id))}
+              </p>,
+            ]
+          : []
+      )}
+      {ensureRows(answers, section).map((row, index) => (
         <div
-          key={i}
+          key={rowKey(row, index)}
           className="flex flex-col gap-1 border-l-2 border-border pl-3"
         >
           <p className="font-mono text-xs text-muted-foreground">Entry</p>
@@ -489,5 +504,5 @@ function SectionReview({
         </div>
       ))}
     </>
-  )
-}
+  );
+};

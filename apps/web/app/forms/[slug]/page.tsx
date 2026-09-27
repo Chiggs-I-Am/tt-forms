@@ -1,23 +1,23 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { api } from "@workspace/database/api"
-import type { Id } from "@workspace/database/data-model"
-import { fetchQuery } from "convex/nextjs"
-import { FormFiller } from "@/components/form-filler"
-import { getForm } from "@/lib/forms"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { api } from "@workspace/database/api";
+import type { Id } from "@workspace/database/data-model";
+import { fetchQuery } from "convex/nextjs";
+import { FormFiller } from "@/components/form-filler";
+import { getForm } from "@/lib/forms";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const form = getForm((await params).slug)
+  const form = getForm((await params).slug);
   return {
     title: form ? `${form.name} · TT Forms Demo` : "Form · TT Forms Demo",
-  }
+  };
 }
 
 // The form itself is the page. Loads the latest published version from
@@ -26,35 +26,36 @@ export async function generateMetadata({
 // applicants autosave to one server draft per form (#36) and submit in #37.
 // Retired versions stop new applications; withdrawn versions explain why and
 // stay closed.
-async function loadForm(slug: string) {
+const loadForm = async (slug: string) => {
   try {
     const [version, published] = await Promise.all([
       fetchQuery(api.forms.getLatestVersion, { slug }),
       fetchQuery(api.forms.listPublished, {}),
-    ])
-    const entry = published.find((form) => form.slug === slug)
+    ]);
+    const entry = published.find((form) => form.slug === slug);
     // listPublished only covers active forms, so retired versions resolve
     // their form id from the version detail itself.
-    const versionFormId = (version as unknown as { formId?: Id<"forms"> } | null)
-      ?.formId
-    const formId = versionFormId ?? entry?.formId ?? null
-    return { version, formId }
+    const versionFormId = (
+      version as unknown as { formId?: Id<"forms"> } | null
+    )?.formId;
+    const formId = versionFormId ?? entry?.formId ?? null;
+    return { version, formId };
   } catch {
-    return { version: null, formId: null }
+    return { version: null, formId: null };
   }
-}
+};
 
-export default async function FormPage({
+const FormPage = async ({
   params,
 }: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
-  const intro = getForm(slug)
+  readonly params: Promise<{ slug: string }>;
+}) => {
+  const { slug } = await params;
+  const intro = getForm(slug);
   if (!intro) {
-    notFound()
+    notFound();
   }
-  const { version, formId } = await loadForm(slug)
+  const { version, formId } = await loadForm(slug);
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-8 p-6">
@@ -79,10 +80,7 @@ export default async function FormPage({
       </header>
 
       {!version ? (
-        <div
-          role="status"
-          className="flex flex-col gap-2 border border-dashed border-border p-6"
-        >
+        <output className="flex flex-col gap-2 border border-dashed border-border p-6">
           <p className="text-sm font-medium">
             This form is unavailable right now.
           </p>
@@ -90,12 +88,9 @@ export default async function FormPage({
             The live version could not be loaded. The demo backend may be
             unreachable. Your browser kept any answers you already typed.
           </p>
-        </div>
+        </output>
       ) : version.status === "withdrawn" ? (
-        <div
-          role="status"
-          className="flex flex-col gap-2 border border-destructive/40 p-6"
-        >
+        <output className="flex flex-col gap-2 border border-destructive/40 p-6">
           <p className="text-sm font-medium">
             Applications for this version are closed.
           </p>
@@ -103,13 +98,10 @@ export default async function FormPage({
             {version.withdrawReason ?? "This version was withdrawn."} Answers
             you already typed stay readable in this browser until they expire.
           </p>
-        </div>
+        </output>
       ) : version.status === "retired" ? (
         <div className="flex flex-col gap-6">
-          <div
-            role="status"
-            className="flex flex-col gap-2 border border-dashed border-border p-6"
-          >
+          <output className="flex flex-col gap-2 border border-dashed border-border p-6">
             <p className="text-sm font-medium">
               This version no longer accepts new applications.
             </p>
@@ -117,7 +109,7 @@ export default async function FormPage({
               Existing drafts stay submittable under its rules until they
               expire. Check back for the replacement version.
             </p>
-          </div>
+          </output>
           <FormFiller
             storageKey={`${slug}-v${version.version}`}
             definition={version.definition}
@@ -143,5 +135,7 @@ export default async function FormPage({
         </p>
       </footer>
     </div>
-  )
-}
+  );
+};
+
+export default FormPage;

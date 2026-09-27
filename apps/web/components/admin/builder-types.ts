@@ -1,20 +1,20 @@
-import { ConvexError } from "convex/values"
-import type { Condition, FieldDef, SectionDef } from "@/lib/form-answers"
+import { ConvexError } from "convex/values";
+import type { FieldDef, SectionDef } from "@/lib/form-answers";
 
 // Draft shape the editor holds. It matches the working-copy definition the
 // server stores, so Save passes it straight to saveWorkingCopy and Preview
 // passes it straight to FormFiller. The server owns every check.
 export interface BuilderDraft {
-  name: string
-  agency: string
-  sourceLabel: string
-  sourceUrl: string
-  sections: SectionDef[]
+  name: string;
+  agency: string;
+  sourceLabel: string;
+  sourceUrl: string;
+  sections: SectionDef[];
 }
 
-export type FieldKind = FieldDef["kind"]
+export type FieldKind = FieldDef["kind"];
 
-export const FIELD_KINDS: { kind: FieldKind; label: string }[] = [
+export const fieldKinds: { kind: FieldKind; label: string }[] = [
   { kind: "short_text", label: "Short text" },
   { kind: "long_text", label: "Long text" },
   { kind: "number", label: "Number" },
@@ -26,88 +26,96 @@ export const FIELD_KINDS: { kind: FieldKind; label: string }[] = [
   { kind: "yes_no", label: "Yes / no" },
   { kind: "upload", label: "Upload" },
   { kind: "declaration", label: "Declaration" },
-]
+];
 
-let counter = 0
+const freshId = (() => {
+  let count = 0;
+  return (prefix: string): string => {
+    count += 1;
+    return `${prefix}_${Date.now().toString(36)}${count}`;
+  };
+})();
 
-export function freshId(prefix: string): string {
-  counter += 1
-  return `${prefix}_${Date.now().toString(36)}${counter}`
-}
+export const blankSection = (): SectionDef => {
+  const id = freshId("section");
+  return { fields: [], id, title: "New section" };
+};
 
-export function blankSection(): SectionDef {
-  return { id: freshId("section"), title: "New section", fields: [] }
-}
-
-export function blankField(kind: FieldKind): FieldDef {
-  const base = { id: freshId("field"), label: "New question" }
-  switch (kind) {
-    case "single_choice":
-    case "multiple_choice":
-      return { ...base, kind, options: ["Option 1", "Option 2"] }
-    default:
-      return { ...base, kind }
-  }
-}
+export const blankField = (kind: FieldKind): FieldDef => {
+  const base = { id: freshId("field"), label: "New question" };
+  const field: FieldDef =
+    kind === "single_choice" || kind === "multiple_choice"
+      ? { ...base, kind, options: ["Option 1", "Option 2"] }
+      : { ...base, kind };
+  return field;
+};
 
 export interface ChoiceOption {
-  id: string
-  label: string
-  options: string[]
+  id: string;
+  label: string;
+  options: string[];
 }
 
-function isChoice(field: FieldDef): boolean {
-  return (
-    field.kind === "single_choice" ||
-    field.kind === "multiple_choice" ||
-    field.kind === "yes_no"
-  )
-}
+const choiceKinds = new Set<FieldKind>([
+  "single_choice",
+  "multiple_choice",
+  "yes_no",
+]);
 
-function choiceOptions(field: FieldDef): string[] {
+const isChoice = (field: FieldDef): boolean => choiceKinds.has(field.kind);
+
+const choiceOptions = (field: FieldDef): string[] => {
   if (field.kind === "single_choice" || field.kind === "multiple_choice") {
-    return field.options
+    return field.options;
   }
-  return ["true", "false"]
-}
+  return ["true", "false"];
+};
 
 // Earlier top-level choice fields a condition may read, per the server rule:
 // document order, non-repeated sections only. `upto` bounds the same-section
 // prefix for field-level conditions; section-level conditions pass none.
-export function earlierChoices(
+export const earlierChoices = (
   sections: SectionDef[],
   sectionIndex: number,
   upto?: number
-): ChoiceOption[] {
-  const out: ChoiceOption[] = []
-  sections.forEach((section, i) => {
-    if (i > sectionIndex || section.repeat) {
-      return
+): ChoiceOption[] => {
+  const out: ChoiceOption[] = [];
+  const eligibleSections = sections.slice(0, sectionIndex + 1);
+  for (const [index, section] of eligibleSections.entries()) {
+    if (section.repeat) {
+      continue;
     }
     const fields =
-      i === sectionIndex && upto !== undefined
+      index === sectionIndex && upto !== undefined
         ? section.fields.slice(0, upto)
-        : section.fields
+        : section.fields;
     for (const field of fields) {
       if (isChoice(field)) {
         out.push({
           id: field.id,
           label: field.label || field.id,
           options: choiceOptions(field),
-        })
+        });
       }
     }
-  })
-  return out
-}
+  }
+  return out;
+};
+
+const errorDataText = (data: unknown, fallback: string): string =>
+  typeof data === "string" ? data : fallback;
 
 // Readable text for a Convex denial or publish block. The server message is
 // the check result, so it renders verbatim.
-export function errorText(error: unknown): string {
+export const errorText = (error: unknown): string => {
   if (error instanceof ConvexError) {
-    return String(error.data ?? error.message)
+    return errorDataText(error.data, error.message);
   }
-  return error instanceof Error ? error.message : "Something went wrong."
-}
+  return Error.isError(error) ? error.message : "Something went wrong.";
+};
 
-export type { Condition, FieldDef, SectionDef }
+export {
+  type Condition,
+  type SectionDef,
+  type FieldDef,
+} from "@/lib/form-answers";

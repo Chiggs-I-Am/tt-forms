@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
-import { Button } from "@workspace/ui/components/button"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { Button } from "@workspace/ui/components/button";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select"
-import type { ChoiceOption, Condition } from "./builder-types"
+} from "@workspace/ui/components/select";
+import type { ChoiceOption, Condition } from "./builder-types";
 
 // Condition builder: all/any matching over earlier choice answers. Values
 // are comma-separated answer strings; yes/no answers compare as true/false.
 // The server re-checks every reference at publish time.
-export function ConditionBuilder({
+export const ConditionBuilder = ({
   idPrefix,
   condition,
   choices,
   onChange,
 }: {
-  idPrefix: string
-  condition: Condition | undefined
-  choices: ChoiceOption[]
-  onChange: (condition: Condition | undefined) => void
-}) {
+  readonly idPrefix: string;
+  readonly condition: Condition | undefined;
+  readonly choices: ChoiceOption[];
+  readonly onChange: (condition: Condition | undefined) => void;
+}) => {
   if (!condition) {
-    const first = choices[0]
+    const first = choices[0];
     return (
       <label className="flex cursor-pointer items-center gap-2 text-sm">
         <Checkbox
@@ -42,15 +42,15 @@ export function ConditionBuilder({
         />
         Show only when an earlier answer matches
       </label>
-    )
+    );
   }
 
-  const active = condition
-  const firstChoice = choices[0]
+  const active = condition;
+  const firstChoice = choices[0];
 
   function setRule(index: number, rule: { fieldId: string; values: string[] }) {
-    const rules = active.rules.map((r, i) => (i === index ? rule : r))
-    onChange({ ...active, rules })
+    const rules = active.rules.map((r, i) => (i === index ? rule : r));
+    onChange({ ...active, rules });
   }
 
   return (
@@ -88,9 +88,12 @@ export function ConditionBuilder({
         </p>
       )}
       {active.rules.map((rule, index) => {
-        const target = choices.find((c) => c.id === rule.fieldId)
+        const target = choices.find((c) => c.id === rule.fieldId);
         return (
-          <div key={index} className="flex flex-col gap-2">
+          <div
+            key={`${rule.fieldId}:${rule.values.join(",")}`}
+            className="flex flex-col gap-2"
+          >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
               <div className="flex flex-1 flex-col gap-1.5">
                 <Label htmlFor={`${idPrefix}-rule-${index}-field`}>
@@ -100,7 +103,7 @@ export function ConditionBuilder({
                   value={rule.fieldId}
                   onValueChange={(fieldId) => {
                     if (typeof fieldId === "string") {
-                      setRule(index, { fieldId, values: [] })
+                      setRule(index, { fieldId, values: [] });
                     }
                   }}
                 >
@@ -150,13 +153,13 @@ export function ConditionBuilder({
                 Remove
               </Button>
             </div>
-            {target && (
+            {target ? (
               <p className="text-xs text-muted-foreground">
                 Available answers: {target.options.join(", ")}
               </p>
-            )}
+            ) : null}
           </div>
-        )
+        );
       })}
       <div>
         <Button
@@ -166,17 +169,17 @@ export function ConditionBuilder({
           disabled={choices.length === 0}
           onClick={() => {
             if (!firstChoice) {
-              return
+              return;
             }
             onChange({
               ...active,
               rules: [...active.rules, { fieldId: firstChoice.id, values: [] }],
-            })
+            });
           }}
         >
           Add rule
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -1,6 +1,6 @@
 {
-  "extends": "@workspace/typescript-config/nextjs.json",
   "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022", "ES2023.Array", "ESNext.Error"],
     "paths": {
       "@/*": ["./*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"]
@@ -11,6 +11,8 @@
       }
     ]
   },
+  "exclude": ["node_modules"],
+  "extends": "@workspace/typescript-config/nextjs.json",
   "include": [
     "next-env.d.ts",
     "next.config.ts",
@@ -19,6 +21,5 @@
     "**/*.mts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
-  ],
-  "exclude": ["node_modules"]
+  ]
 }

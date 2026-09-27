@@ -1,58 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "@workspace/database/api"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { errorText, type BuilderDraft } from "./builder-types"
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@workspace/database/api";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { errorText, type BuilderDraft } from "./builder-types";
 
 // Lifecycle actions. Save writes the working copy, Publish saves then
 // snapshots an immutable version, Retire stops new drafts, Withdraw blocks
 // submissions with a written reason. Publish errors render the server check
 // text verbatim; the server owns every check.
-export function PublishBar({
+export const PublishBar = ({
   slug,
   draft,
 }: {
-  slug: string
-  draft: BuilderDraft
-}) {
-  const save = useMutation(api.forms.saveWorkingCopy)
-  const publish = useMutation(api.forms.publish)
-  const retire = useMutation(api.forms.retire)
-  const withdraw = useMutation(api.forms.withdraw)
-  const latest = useQuery(api.forms.getLatestVersion, { slug })
-  const [busy, setBusy] = useState<string | null>(null)
+  readonly slug: string;
+  readonly draft: BuilderDraft;
+}) => {
+  const save = useMutation(api.forms.saveWorkingCopy);
+  const publish = useMutation(api.forms.publish);
+  const retire = useMutation(api.forms.retire);
+  const withdraw = useMutation(api.forms.withdraw);
+  const latest = useQuery(api.forms.getLatestVersion, { slug });
+  const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(
     null
-  )
-  const [reason, setReason] = useState("")
+  );
+  const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState<"retire" | "withdraw" | null>(
     null
-  )
+  );
 
   async function run(label: string, work: () => Promise<unknown>, ok: string) {
-    setBusy(label)
-    setNotice(null)
-    try {
-      await work()
-      setNotice({ ok: true, text: ok })
-      setConfirming(null)
-    } catch (error) {
-      setNotice({ ok: false, text: errorText(error) })
-    } finally {
-      setBusy(null)
-    }
+    setBusy(label);
+    setNotice(null);
+    await work()
+      .then(() => {
+        setNotice({ ok: true, text: ok });
+        setConfirming(null);
+      })
+      .catch((error: unknown) => {
+        setNotice({ ok: false, text: errorText(error) });
+      });
+    setBusy(null);
   }
 
   function saveArgs() {
-    return { slug, ...draft, definition: { sections: draft.sections } }
+    return { slug, ...draft, definition: { sections: draft.sections } };
   }
 
   const activeVersionId =
-    latest?.status === "active" ? latest.versionId : undefined
+    latest?.status === "active" ? latest.versionId : undefined;
 
   return (
     <div className="flex flex-col gap-3 border border-border bg-card p-4">
@@ -85,18 +85,17 @@ export function PublishBar({
         Publish runs the server checks for invalid rules, missing labels or
         options, and incomplete sources. Anything blocked shows the reason here.
       </p>
-      {notice && (
-        <p
-          role={notice.ok ? "status" : "alert"}
-          className={
-            notice.ok
-              ? "text-sm text-muted-foreground"
-              : "text-sm text-destructive"
-          }
-        >
-          {notice.text}
-        </p>
-      )}
+      {notice ? (
+        notice.ok ? (
+          <output className="text-sm text-muted-foreground">
+            {notice.text}
+          </output>
+        ) : (
+          <p role="alert" className="text-sm text-destructive">
+            {notice.text}
+          </p>
+        )
+      ) : null}
       <div className="flex flex-col gap-2 border-t border-border pt-3">
         {confirming === null ? (
           <div className="flex flex-wrap gap-2">
@@ -146,22 +145,22 @@ export function PublishBar({
                   (confirming === "withdraw" && reason.trim() === "")
                 }
                 onClick={() => {
-                  const versionId = activeVersionId
+                  const versionId = activeVersionId;
                   if (!versionId) {
-                    return
+                    return;
                   }
                   if (confirming === "retire") {
                     void run(
                       "retire",
                       () => retire({ versionId }),
                       "Latest version retired. Existing drafts stay submittable."
-                    )
+                    );
                   } else {
                     void run(
                       "withdraw",
                       () => withdraw({ versionId, reason }),
                       "Latest version withdrawn. Submissions are blocked."
-                    )
+                    );
                   }
                 }}
               >
@@ -188,5 +187,5 @@ export function PublishBar({
         )}
       </div>
     </div>
-  )
-}
+  );
+};

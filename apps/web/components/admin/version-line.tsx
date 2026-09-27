@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import { useQuery } from "convex/react"
-import { api } from "@workspace/database/api"
-import { Badge } from "@workspace/ui/components/badge"
+import { useQuery } from "convex/react";
+import { api } from "@workspace/database/api";
+import { Badge } from "@workspace/ui/components/badge";
 
 // Live latest-version line. Existing version queries expose version and
 // status only, so the full history table waits on a listVersions query; this
 // line stays correct after every publish, retire, or withdraw on its own.
-export function VersionLine({ slug }: { slug: string }) {
-  const latest = useQuery(api.forms.getLatestVersion, { slug })
+export const VersionLine = ({ slug }: { readonly slug: string }) => {
+  const latest = useQuery(api.forms.getLatestVersion, { slug });
 
   if (latest === undefined) {
     return (
       <p className="text-sm text-muted-foreground">Loading version state…</p>
-    )
+    );
   }
 
   if (latest === null) {
@@ -24,7 +24,7 @@ export function VersionLine({ slug }: { slug: string }) {
           Saving keeps a working copy only. Publishing snapshots version 1.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -40,14 +40,14 @@ export function VersionLine({ slug }: { slug: string }) {
       >
         v{latest.version} · {latest.status}
       </Badge>
-      {latest.status === "withdrawn" && latest.withdrawReason && (
+      {latest.status === "withdrawn" && latest.withdrawReason ? (
         <p className="text-sm text-muted-foreground">{latest.withdrawReason}</p>
-      )}
+      ) : null}
       {latest.status === "retired" && (
         <p className="text-sm text-muted-foreground">
           New drafts stopped. Existing drafts stay submittable until expiry.
         </p>
       )}
     </div>
-  )
-}
+  );
+};

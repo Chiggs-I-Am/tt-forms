@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import { Button } from "@workspace/ui/components/button"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { Button } from "@workspace/ui/components/button";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select"
-import { Textarea } from "@workspace/ui/components/textarea"
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import {
   blankField,
-  FIELD_KINDS,
+  fieldKinds,
   type ChoiceOption,
   type FieldDef,
-} from "./builder-types"
-import { ConditionBuilder } from "./condition-builder"
-import { KindRules } from "./rule-inputs"
+} from "./builder-types";
+import { ConditionBuilder } from "./condition-builder";
+import { KindRules } from "./rule-inputs";
 
 // One question with only the rule inputs its kind supports. Built-in rules
 // only: required, length/range, date bounds, upload size. The server owns
 // every check; this form never invents new rule types.
-export function FieldRow({
+export const FieldRow = ({
   field,
   choices,
   canUp,
@@ -33,20 +33,20 @@ export function FieldRow({
   onRemove,
   onMove,
 }: {
-  field: FieldDef
-  choices: ChoiceOption[]
-  canUp: boolean
-  canDown: boolean
-  onChange: (field: FieldDef) => void
-  onRemove: () => void
-  onMove: (dir: -1 | 1) => void
-}) {
+  readonly field: FieldDef;
+  readonly choices: ChoiceOption[];
+  readonly canUp: boolean;
+  readonly canDown: boolean;
+  readonly onChange: (field: FieldDef) => void;
+  readonly onRemove: () => void;
+  readonly onMove: (dir: -1 | 1) => void;
+}) => {
   function set(patch: Partial<FieldDef>) {
-    onChange({ ...field, ...patch } as FieldDef)
+    onChange({ ...field, ...patch } as FieldDef);
   }
 
   function changeKind(kind: FieldDef["kind"]) {
-    const fresh = blankField(kind)
+    const fresh = blankField(kind);
     onChange({
       ...fresh,
       id: field.id,
@@ -54,7 +54,7 @@ export function FieldRow({
       hint: field.hint,
       required: field.required,
       condition: field.condition,
-    } as FieldDef)
+    } as FieldDef);
   }
 
   return (
@@ -70,7 +70,7 @@ export function FieldRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {FIELD_KINDS.map((k) => (
+              {fieldKinds.map((k) => (
                 <SelectItem key={k.kind} value={k.kind}>
                   {k.label}
                 </SelectItem>
@@ -144,5 +144,5 @@ export function FieldRow({
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

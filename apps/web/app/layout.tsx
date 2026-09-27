@@ -1,30 +1,30 @@
-import { Geist_Mono, Figtree, Nunito_Sans } from "next/font/google"
+import { Geist_Mono, Figtree, Nunito_Sans } from "next/font/google";
 
-import "@workspace/ui/globals.css"
+import "@workspace/ui/globals.css";
 import {
   ConvexAuthNextjsServerProvider,
   convexAuthNextjsToken,
-} from "@convex-dev/auth/nextjs/server"
-import { SiteNavbar } from "@workspace/ui/components/site-navbar"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { ThemeProvider } from "@/components/theme-provider"
-import { ThemeScript } from "@/components/theme-script"
-import { ConvexClientProvider } from "@/components/convex-provider"
-import { AuthStatus } from "@/components/auth-status"
-import { cn } from "@workspace/ui/lib/utils"
+} from "@convex-dev/auth/nextjs/server";
+import { SiteNavbar } from "@workspace/ui/components/site-navbar";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeScript } from "@/components/theme-script";
+import { ConvexClientProvider } from "@/components/convex-provider";
+import { AuthStatus } from "@/components/auth-status";
+import { cn } from "@workspace/ui/lib/utilities";
 
 const nunitoSansHeading = Nunito_Sans({
   subsets: ["latin"],
   variable: "--font-heading",
-})
+});
 
-const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" })
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
-})
+});
 
 // Global navbar for every public page: brand, demo badge, forms link, auth
 // slot, and theme toggle. The viewer lookup never crashes the layout; an
@@ -35,18 +35,18 @@ async function loadViewer() {
       api.users.viewer,
       {},
       { token: await convexAuthNextjsToken() }
-    )
+    );
   } catch {
-    return null
+    return null;
   }
 }
 
-export default async function RootLayout({
+const RootLayout = async ({
   children,
 }: Readonly<{
-  children: React.ReactNode
-}>) {
-  const viewer = await loadViewer()
+  children: React.ReactNode;
+}>) => {
+  const viewer = await loadViewer();
 
   return (
     <html
@@ -78,5 +78,7 @@ export default async function RootLayout({
         </ConvexAuthNextjsServerProvider>
       </body>
     </html>
-  )
-}
+  );
+};
+
+export default RootLayout;

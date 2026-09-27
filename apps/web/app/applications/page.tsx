@@ -1,27 +1,27 @@
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { Badge } from "@workspace/ui/components/badge"
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { Badge } from "@workspace/ui/components/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
+} from "@workspace/ui/components/card";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "My applications · TT Forms Demo",
-}
+};
 
 // Read-only list of the signed-in applicant's submissions, newest first.
 // Queries run in this Server Component under the cookie-auth rule; signed-out
 // visitors get the sign-in prompt and never a row.
-export default async function ApplicationsPage() {
-  const token = await convexAuthNextjsToken()
+const ApplicationsPage = async () => {
+  const token = await convexAuthNextjsToken();
   if (!token) {
     return (
       <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-4 p-6">
@@ -36,12 +36,16 @@ export default async function ApplicationsPage() {
           Sign in
         </Link>
       </div>
-    )
+    );
   }
 
-  let submissions
+  let submissions;
   try {
-    submissions = await fetchQuery(api.submissions.mySubmissions, {}, { token })
+    submissions = await fetchQuery(
+      api.submissions.mySubmissions,
+      {},
+      { token }
+    );
   } catch {
     return (
       <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-4 p-6">
@@ -51,7 +55,7 @@ export default async function ApplicationsPage() {
           unreachable.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -65,10 +69,7 @@ export default async function ApplicationsPage() {
       </header>
 
       {submissions.length === 0 ? (
-        <div
-          role="status"
-          className="flex flex-col gap-2 border border-dashed border-border p-6"
-        >
+        <output className="flex flex-col gap-2 border border-dashed border-border p-6">
           <p className="text-sm font-medium">No applications yet.</p>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Fill a form and submit it. It will appear here once Convex confirms
@@ -80,7 +81,7 @@ export default async function ApplicationsPage() {
           >
             Browse forms
           </Link>
-        </div>
+        </output>
       ) : (
         <ul className="flex flex-col gap-4">
           {submissions.map((submission) => (
@@ -122,5 +123,7 @@ export default async function ApplicationsPage() {
         </ul>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default ApplicationsPage;

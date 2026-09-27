@@ -1,15 +1,15 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { ConvexError } from "convex/values"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { ConvexError } from "convex/values";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
+} from "@workspace/ui/components/card";
 import {
   Table,
   TableBody,
@@ -18,15 +18,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table"
-import { ClaimInvite } from "@/components/admin/claim-invite"
-import { InviteForm } from "@/components/admin/invite-form"
+} from "@workspace/ui/components/table";
+import { ClaimInvite } from "@/components/admin/claim-invite";
+import { InviteForm } from "@/components/admin/invite-form";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Invites · TT Forms Demo",
-}
+};
 
 // Developer-admin invite desk. Tokens never appear here: each token shows
 // once inside the create form and is delivered out of band. The server denial
@@ -37,19 +37,19 @@ async function loadInvites() {
       api.invites.listInvites,
       {},
       { token: await convexAuthNextjsToken() }
-    )
-    return { invites }
+    );
+    return { invites };
   } catch (error) {
     const text =
       error instanceof ConvexError
         ? String(error.data ?? error.message)
-        : "The invite list could not be loaded."
-    return { denied: text }
+        : "The invite list could not be loaded.";
+    return { denied: text };
   }
 }
 
-export default async function InvitesPage() {
-  const result = await loadInvites()
+const InvitesPage = async () => {
+  const result = await loadInvites();
 
   if ("denied" in result) {
     return (
@@ -70,10 +70,10 @@ export default async function InvitesPage() {
           with a developer-admin account to continue.
         </p>
       </div>
-    )
+    );
   }
 
-  const { invites } = result
+  const { invites } = result;
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 p-6">
@@ -129,5 +129,7 @@ export default async function InvitesPage() {
       )}
       <ClaimInvite />
     </div>
-  )
-}
+  );
+};
+
+export default InvitesPage;

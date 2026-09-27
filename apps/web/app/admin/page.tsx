@@ -1,34 +1,34 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
-import { ClaimInvite } from "@/components/admin/claim-invite"
+} from "@workspace/ui/components/card";
+import { ClaimInvite } from "@/components/admin/claim-invite";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Admin · TT Forms Demo",
-}
+};
 
 // Role-aware admin landing. The viewer query only decides which links to
 // show; every admin mutation and list is denied server-side, so UI gating
 // here is cosmetic.
 async function loadViewer() {
-  const token = await convexAuthNextjsToken()
+  const token = await convexAuthNextjsToken();
   if (!token) {
-    return null
+    return null;
   }
   try {
-    return await fetchQuery(api.users.viewer, {}, { token })
+    return await fetchQuery(api.users.viewer, {}, { token });
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -53,10 +53,10 @@ const DEV_LINKS = [
     title: "Invites",
     description: "Issue email-bound single-use admin invites.",
   },
-]
+];
 
-export default async function AdminPage() {
-  const viewer = await loadViewer()
+const AdminPage = async () => {
+  const viewer = await loadViewer();
 
   if (!viewer) {
     return (
@@ -79,7 +79,7 @@ export default async function AdminPage() {
           to continue.
         </p>
       </div>
-    )
+    );
   }
 
   if (viewer.role === "developer-admin") {
@@ -109,7 +109,7 @@ export default async function AdminPage() {
           ))}
         </nav>
       </div>
-    )
+    );
   }
 
   if (viewer.role === "demo-admin") {
@@ -135,7 +135,7 @@ export default async function AdminPage() {
         </p>
         <ClaimInvite />
       </div>
-    )
+    );
   }
 
   return (
@@ -153,5 +153,7 @@ export default async function AdminPage() {
       </Card>
       <ClaimInvite />
     </div>
-  )
-}
+  );
+};
+
+export default AdminPage;

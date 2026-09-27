@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
-import { useAuthActions } from "@convex-dev/auth/react"
-import { Button } from "@workspace/ui/components/button"
-import { useState } from "react"
+import { useAuthActions } from "@convex-dev/auth/react";
+import { Button } from "@workspace/ui/components/button";
+import { useState } from "react";
 
 // Sign-in UI for #34: Google OAuth plus email OTP. Both land on one account
 // per verified email with no custom linking code. The local answer typed on
 // the home page is already in localStorage, so the Google redirect loses
 // nothing; it is restored after the callback.
-export function SignInForm() {
-  const { signIn } = useAuthActions()
-  const [emailStep, setEmailStep] = useState<string | null>(null)
-  const [sending, setSending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export const SignInForm = () => {
+  const { signIn } = useAuthActions();
+  const [emailStep, setEmailStep] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function sendCode(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError(null)
-    setSending(true)
-    const formData = new FormData(event.currentTarget)
+    event.preventDefault();
+    setError(null);
+    setSending(true);
+    const formData = new FormData(event.currentTarget);
     void signIn("resend-otp", formData)
       .then(() => {
-        setEmailStep(formData.get("email") as string)
+        setEmailStep(formData.get("email") as string);
       })
       .catch(() => {
-        setError("Could not send a code. Check the address and try again.")
+        setError("Could not send a code. Check the address and try again.");
       })
       .finally(() => {
-        setSending(false)
-      })
+        setSending(false);
+      });
   }
 
   function verifyCode(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError(null)
-    const formData = new FormData(event.currentTarget)
+    event.preventDefault();
+    setError(null);
+    const formData = new FormData(event.currentTarget);
     void signIn("resend-otp", formData).catch(() => {
-      setError("That code did not match. Try again or request a new one.")
-    })
+      setError("That code did not match. Try again or request a new one.");
+    });
   }
 
   return (
@@ -61,6 +61,7 @@ export function SignInForm() {
           </label>
           <input
             id="otp-email"
+            aria-label="Email address"
             name="email"
             type="email"
             required
@@ -83,6 +84,7 @@ export function SignInForm() {
           </label>
           <input
             id="otp-code"
+            aria-label="8-digit code"
             name="code"
             type="text"
             required
@@ -109,5 +111,5 @@ export function SignInForm() {
         </p>
       )}
     </div>
-  )
-}
+  );
+};

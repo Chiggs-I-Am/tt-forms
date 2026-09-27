@@ -1,3 +1,8 @@
-import { config } from "@workspace/eslint-config/base"
+import { config } from "@workspace/eslint-config/base";
+import vitest from "@workspace/eslint-config/ultracite-vitest";
 
-export default [...config, { ignores: ["convex/_generated/**"] }]
+export default [
+  ...config,
+  ...vitest,
+  { ignores: ["convex/_generated/**", ".convex/**"] },
+];
