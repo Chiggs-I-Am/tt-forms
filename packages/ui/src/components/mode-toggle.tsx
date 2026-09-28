@@ -1,13 +1,11 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@workspace/ui/components/button";
-import { useUiTheme } from "@workspace/ui/components/theme-context";
 
-// Light/dark toggle. Reads the UiThemeProvider owned by the app; defaults to
-// the light icon until the resolved theme is known.
 export const ModeToggle = () => {
-  const { resolvedTheme, setTheme } = useUiTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const dark = resolvedTheme === "dark";
 
   return (

@@ -9,7 +9,6 @@ import { SiteNavbar } from "@workspace/ui/components/site-navbar";
 import { api } from "@workspace/database/api";
 import { fetchQuery } from "convex/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeScript } from "@/components/theme-script";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import { AuthStatus } from "@/components/auth-status";
 import { cn } from "@workspace/ui/lib/utilities";
@@ -61,13 +60,17 @@ const RootLayout = async ({
       )}
     >
       <body>
-        <ThemeScript />
         {/* Server auth state flows to client components through cookies.
             Queries may run in Server Components; mutations only from Server
             Actions or POST/PUT handlers (cookie-auth rule, #34). */}
         <ConvexAuthNextjsServerProvider>
           <ConvexClientProvider>
-            <ThemeProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
               <SiteNavbar
                 auth={<AuthStatus initialEmail={viewer?.email ?? null} />}
                 width="wide"
