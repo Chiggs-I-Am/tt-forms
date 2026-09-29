@@ -1,17 +1,34 @@
 "use client";
 
 import * as React from "react";
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
+import {
+  UiThemeProvider,
+  useUiTheme,
+} from "@workspace/ui/components/theme-context";
 
-const ThemeProvider = ({
+export const ThemeProvider = ({
   children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) => {
+  defaultTheme = "system",
+  storageKey = "theme",
+  enableSystem = true,
+  disableTransitionOnChange = false,
+}: {
+  readonly children: React.ReactNode;
+  readonly defaultTheme?: "light" | "dark" | "system";
+  readonly storageKey?: string;
+  readonly enableSystem?: boolean;
+  readonly disableTransitionOnChange?: boolean;
+}) => {
   return (
-    <NextThemesProvider {...props}>
+    <UiThemeProvider
+      defaultTheme={defaultTheme}
+      storageKey={storageKey}
+      enableSystem={enableSystem}
+      disableTransitionOnChange={disableTransitionOnChange}
+    >
       <ThemeHotkey />
       {children}
-    </NextThemesProvider>
+    </UiThemeProvider>
   );
 };
 
@@ -29,7 +46,7 @@ function isTypingTarget(target: EventTarget | null) {
 }
 
 const ThemeHotkey = () => {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useUiTheme();
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -61,5 +78,3 @@ const ThemeHotkey = () => {
 
   return null;
 };
-
-export { ThemeProvider };

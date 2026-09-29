@@ -1,4 +1,5 @@
 import { Geist_Mono, Figtree, Nunito_Sans } from "next/font/google";
+import Script from "next/script";
 
 import "@workspace/ui/globals.css";
 import {
@@ -60,13 +61,15 @@ const RootLayout = async ({
       )}
     >
       <body>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})()`}
+        </Script>
         {/* Server auth state flows to client components through cookies.
             Queries may run in Server Components; mutations only from Server
             Actions or POST/PUT handlers (cookie-auth rule, #34). */}
         <ConvexAuthNextjsServerProvider>
           <ConvexClientProvider>
             <ThemeProvider
-              attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
