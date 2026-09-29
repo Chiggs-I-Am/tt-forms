@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -66,7 +67,14 @@ export const UiThemeProvider = ({
   const resolvedTheme: ResolvedUiTheme =
     theme === "system" ? systemTheme : theme;
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
 
     if (disableTransitionOnChange) {
