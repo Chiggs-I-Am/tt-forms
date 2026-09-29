@@ -61,7 +61,7 @@ const RootLayout = async ({
       )}
     >
       <body>
-        <Script id="theme-init" strategy="beforeInteractive">
+        <Script id="theme-init" strategy="afterInteractive">
           {`(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})()`}
         </Script>
         {/* Server auth state flows to client components through cookies.
