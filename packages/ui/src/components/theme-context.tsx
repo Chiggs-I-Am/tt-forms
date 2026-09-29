@@ -27,26 +27,6 @@ const UiThemeContext = createContext<UiThemeContextValue>({
   themes: ["light", "dark", "system"],
 });
 
-function readStoredTheme(storageKey: string, fallback: UiTheme): UiTheme {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const stored = window.localStorage.getItem(storageKey);
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      return stored;
-    }
-  } catch {
-    // localStorage unavailable (private mode)
-  }
-  return fallback;
-}
-
-function readSystemTheme(): ResolvedUiTheme {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
 export const UiThemeProvider = ({
   children,
   defaultTheme = "system",
@@ -60,20 +40,28 @@ export const UiThemeProvider = ({
   readonly enableSystem?: boolean;
   readonly disableTransitionOnChange?: boolean;
 }) => {
-  const [theme, setTheme] = useState<UiTheme>(() =>
-    readStoredTheme(storageKey, defaultTheme)
-  );
-  const [systemTheme, setSystemTheme] =
-    useState<ResolvedUiTheme>(readSystemTheme);
+  const [theme, setTheme] = useState<UiTheme>(defaultTheme);
+  const [systemTheme, setSystemTheme] = useState<ResolvedUiTheme>("light");
 
   useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored === "light" || stored === "dark" || stored === "system") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTheme(stored);
+      }
+    } catch {
+      // localStorage unavailable (private mode)
+    }
+
     const query = window.matchMedia("(prefers-color-scheme: dark)");
+    setSystemTheme(query.matches ? "dark" : "light");
     const onChange = (event: MediaQueryListEvent) => {
       setSystemTheme(event.matches ? "dark" : "light");
     };
     query.addEventListener("change", onChange);
     return () => query.removeEventListener("change", onChange);
-  }, []);
+  }, [storageKey]);
 
   const resolvedTheme: ResolvedUiTheme =
     theme === "system" ? systemTheme : theme;
