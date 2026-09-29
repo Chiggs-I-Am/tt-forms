@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import type { FieldDef } from "./builder-types"
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import type { FieldDef } from "./builder-types";
 
 function num(value: string): number | undefined {
   if (value.trim() === "") {
-    return undefined
+    return undefined;
   }
-  const parsed = Number(value)
-  return Number.isNaN(parsed) ? undefined : parsed
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
 }
 
 // Small labeled inputs shared by the kind-specific rule rows: numeric
 // limits, date bounds, upload size, and the choice option list.
 // Only the rule inputs a kind supports: length for text, range for
 // numbers, bounds for dates, options for choices, size for uploads.
-export function KindRules({
+export const KindRules = ({
   field,
   onChange,
 }: {
-  field: FieldDef
-  onChange: (patch: Partial<FieldDef>) => void
-}) {
+  readonly field: FieldDef;
+  readonly onChange: (patch: Partial<FieldDef>) => void;
+}) => {
   if (field.kind === "short_text" || field.kind === "long_text") {
     return (
       <RuleInput
@@ -32,7 +32,7 @@ export function KindRules({
         value={field.maxLength?.toString() ?? ""}
         onChange={(v) => onChange({ maxLength: num(v) })}
       />
-    )
+    );
   }
   if (field.kind === "number") {
     return (
@@ -50,7 +50,7 @@ export function KindRules({
           onChange={(v) => onChange({ max: num(v) })}
         />
       </div>
-    )
+    );
   }
   if (field.kind === "date") {
     return (
@@ -70,7 +70,7 @@ export function KindRules({
           onChange={(v) => onChange({ max: v || undefined })}
         />
       </div>
-    )
+    );
   }
   if (field.kind === "single_choice" || field.kind === "multiple_choice") {
     return (
@@ -78,7 +78,7 @@ export function KindRules({
         options={field.options}
         onChange={(options) => onChange({ options })}
       />
-    )
+    );
   }
   if (field.kind === "upload") {
     return (
@@ -92,19 +92,19 @@ export function KindRules({
             : (field.maxSizeBytes / 1048576).toString()
         }
         onChange={(v) => {
-          const mb = num(v)
+          const mb = num(v);
           onChange({
             maxSizeBytes:
               mb === undefined ? undefined : Math.round(mb * 1048576),
-          })
+          });
         }}
       />
-    )
+    );
   }
-  return null
-}
+  return null;
+};
 
-export function RuleInput({
+export const RuleInput = ({
   id,
   label,
   value,
@@ -112,13 +112,13 @@ export function RuleInput({
   placeholder,
   onChange,
 }: {
-  id: string
-  label: string
-  value: string
-  hint?: string
-  placeholder?: string
-  onChange: (value: string) => void
-}) {
+  readonly id: string;
+  readonly label: string;
+  readonly value: string;
+  readonly hint?: string;
+  readonly placeholder?: string;
+  readonly onChange: (value: string) => void;
+}) => {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -129,23 +129,23 @@ export function RuleInput({
         onChange={(e) => onChange(e.target.value)}
         autoComplete="off"
       />
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
-  )
-}
+  );
+};
 
-export function OptionsEditor({
+export const OptionsEditor = ({
   options,
   onChange,
 }: {
-  options: string[]
-  onChange: (options: string[]) => void
-}) {
+  readonly options: string[];
+  readonly onChange: (options: string[]) => void;
+}) => {
   return (
     <div className="flex flex-col gap-2">
-      <Label>Options, at least two</Label>
+      <p className="text-sm font-medium">Options, at least two</p>
       {options.map((option, i) => (
-        <div key={i} className="flex items-center gap-2">
+        <div key={option} className="flex items-center gap-2">
           <Input
             aria-label={`Option ${i + 1}`}
             value={option}
@@ -179,5 +179,5 @@ export function OptionsEditor({
         Publish blocks choice questions with fewer than two non-empty options.
       </p>
     </div>
-  )
-}
+  );
+};

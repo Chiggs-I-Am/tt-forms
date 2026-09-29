@@ -1,7 +1,17 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "CI",
+    "AUTH_RESEND_KEY",
+    "CONVEX_SITE_URL",
+    "DEVELOPER_ADMIN_EMAIL"
+  ],
   "tasks": {
+    "//#check": {},
+    "//#fix": {
+      "cache": false
+    },
     "build": {
       "env": ["NEXT_PUBLIC_CONVEX_URL"],
       "dependsOn": ["^build"],

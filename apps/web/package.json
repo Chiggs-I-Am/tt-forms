@@ -1,17 +1,4 @@
 {
-  "name": "web",
-  "version": "0.0.1",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test:e2e": "playwright test",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
-  },
   "dependencies": {
     "@convex-dev/auth": "0.0.95",
     "@hookform/resolvers": "^5.9.1",
@@ -32,8 +19,21 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@workspace/eslint-config": "workspace:^",
-    "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9",
+    "@workspace/typescript-config": "workspace:^",
+    "eslint": "^10",
     "typescript": "^5"
-  }
+  },
+  "name": "web",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "lint": "eslint --max-warnings=0",
+    "start": "next start",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "version": "0.0.1"
 }

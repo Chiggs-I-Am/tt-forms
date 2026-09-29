@@ -1,16 +1,16 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { ConvexError } from "convex/values"
-import { Button } from "@workspace/ui/components/button"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { ConvexError } from "convex/values";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
+} from "@workspace/ui/components/card";
 import {
   Table,
   TableBody,
@@ -19,44 +19,44 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table"
+} from "@workspace/ui/components/table";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Submissions · TT Forms Demo",
-}
+};
 
 // Admin submission index (developer-admin only) with a per-form filter. The
 // filter rides on the search params so the page stays a Server Component;
 // queries run here, mutations nowhere. Detail rendering reuses
 // submissions.getSubmission on the [id] page.
 async function loadSubmissions(formSlug?: string) {
-  const token = await convexAuthNextjsToken()
+  const token = await convexAuthNextjsToken();
   try {
     const [submissions, catalog] = await Promise.all([
       fetchQuery(api.admin.listSubmissions, formSlug ? { formSlug } : {}, {
         token,
       }),
       fetchQuery(api.forms.listPublished, {}, { token }),
-    ])
-    return { submissions, catalog }
+    ]);
+    return { submissions, catalog };
   } catch (error) {
     const text =
       error instanceof ConvexError
         ? String(error.data ?? error.message)
-        : "The submission list could not be loaded."
-    return { denied: text }
+        : "The submission list could not be loaded.";
+    return { denied: text };
   }
 }
 
-export default async function SubmissionsPage({
+const SubmissionsPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ form?: string }>
-}) {
-  const { form } = await searchParams
-  const result = await loadSubmissions(form)
+  readonly searchParams: Promise<{ form?: string }>;
+}) => {
+  const { form } = await searchParams;
+  const result = await loadSubmissions(form);
 
   if ("denied" in result) {
     return (
@@ -77,10 +77,10 @@ export default async function SubmissionsPage({
           with a developer-admin account to continue.
         </p>
       </div>
-    )
+    );
   }
 
-  const { submissions, catalog } = result
+  const { submissions, catalog } = result;
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-6 p-6">
@@ -167,5 +167,7 @@ export default async function SubmissionsPage({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default SubmissionsPage;

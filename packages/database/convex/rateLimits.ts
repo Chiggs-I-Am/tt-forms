@@ -1,5 +1,5 @@
-import { HOUR, RateLimiter } from "@convex-dev/rate-limiter"
-import { components } from "./_generated/api.js"
+import { HOUR, RateLimiter } from "@convex-dev/rate-limiter";
+import { components } from "./_generated/api.js";
 
 // Abuse guard for #40: per-user fixed-window limits on every authenticated
 // write path (draft save/replace, submit, upload-URL issue, save-file,
@@ -20,18 +20,25 @@ import { components } from "./_generated/api.js"
 // appears: documented here, not enforced in code. If scripted sign-ups or
 // submissions ever show up, wire the provider challenge into the OTP verify
 // step and the submit confirm, then tighten the windows below.
-type RateLimiterComponent = ConstructorParameters<typeof RateLimiter>[0]
+const hasRateLimiter = (value: unknown): boolean => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  return Reflect.get(value, "rateLimiter") !== undefined;
+};
 
-const component = (
-  components as unknown as { rateLimiter: RateLimiterComponent }
-).rateLimiter
+if (!hasRateLimiter(components)) {
+  throw new Error("Rate limiter component is unavailable.");
+}
+const component = components.rateLimiter;
+const fixedWindow = "fixed window";
 
 export const rateLimiter = new RateLimiter(component, {
-  draftSave: { kind: "fixed window", rate: 1000, period: HOUR },
-  draftReplace: { kind: "fixed window", rate: 30, period: HOUR },
-  submit: { kind: "fixed window", rate: 30, period: HOUR },
-  uploadUrl: { kind: "fixed window", rate: 120, period: HOUR },
-  saveFile: { kind: "fixed window", rate: 120, period: HOUR },
-  inviteCreate: { kind: "fixed window", rate: 30, period: HOUR },
-  inviteClaim: { kind: "fixed window", rate: 30, period: HOUR },
-})
+  draftReplace: { kind: fixedWindow, period: HOUR, rate: 30 },
+  draftSave: { kind: fixedWindow, period: HOUR, rate: 1000 },
+  inviteClaim: { kind: fixedWindow, period: HOUR, rate: 30 },
+  inviteCreate: { kind: fixedWindow, period: HOUR, rate: 30 },
+  saveFile: { kind: fixedWindow, period: HOUR, rate: 120 },
+  submit: { kind: fixedWindow, period: HOUR, rate: 30 },
+  uploadUrl: { kind: fixedWindow, period: HOUR, rate: 120 },
+});

@@ -1,6 +1,6 @@
-import { Card, CardDescription } from "@workspace/ui/components/card"
-import { Separator } from "@workspace/ui/components/separator"
-import { cn } from "cn"
+import { Card, CardDescription } from "@workspace/ui/components/card";
+import { Separator } from "@workspace/ui/components/separator";
+import { cn } from "cn";
 
 const steps = [
   {
@@ -15,13 +15,13 @@ const steps = [
     title: "Sign in to save",
     body: "Google or an email code lands on one account. The first server save needs sign-in.",
   },
-]
+];
 
-export function HowItWorks({
+export const HowItWorks = ({
   layout = "rows",
 }: {
-  layout?: "rows" | "columns"
-}) {
+  readonly layout?: "rows" | "columns";
+}) => {
   return (
     <section aria-labelledby="how" className="flex flex-col gap-4">
       <h2 id="how" className="font-heading text-lg font-medium">
@@ -51,16 +51,20 @@ export function HowItWorks({
         ))}
       </ol>
     </section>
-  )
-}
+  );
+};
 
 export interface OfficialSource {
-  agency: string
-  label: string
-  url: string
+  agency: string;
+  label: string;
+  url: string;
 }
 
-export function OfficialSources({ sources }: { sources: OfficialSource[] }) {
+export const OfficialSources = ({
+  sources,
+}: {
+  readonly sources: OfficialSource[];
+}) => {
   return (
     <section aria-labelledby="sources" className="flex flex-col gap-4">
       <h2 id="sources" className="font-heading text-lg font-medium">
@@ -91,10 +95,10 @@ export function OfficialSources({ sources }: { sources: OfficialSource[] }) {
         typed here reaches any government office.
       </CardDescription>
     </section>
-  )
-}
+  );
+};
 
-export function SiteFooter() {
+export const SiteFooter = () => {
   return (
     <footer className="flex flex-col gap-2 border-t border-border pt-4 pb-2">
       <p className="text-xs leading-relaxed text-muted-foreground">
@@ -102,5 +106,5 @@ export function SiteFooter() {
         for authentication. Every form answer must be fake.
       </p>
     </footer>
-  )
-}
+  );
+};

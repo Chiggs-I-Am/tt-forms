@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test"
+import { defineConfig } from "@playwright/test";
 
 // Anonymous browser flows for #40. One chromium project against a local
 // `bun run dev` on port 3100: port 3000 is left alone because a sibling
@@ -9,25 +9,29 @@ import { defineConfig } from "@playwright/test"
 // live versions instead of skipping. Without a backend the dev server runs
 // on the dummy URL below and every server read falls back to its honest
 // denied/empty notice, which is what the specs assert here.
+const convexEnvironment = Object.fromEntries([
+  [
+    "NEXT_PUBLIC_CONVEX_URL",
+    process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://example.invalid",
+  ],
+]);
+
 export default defineConfig({
-  testDir: "./e2e",
+  // Cold Next dev compiles can take a few seconds per route; tolerate them.
+  expect: { timeout: 15_000 },
   fullyParallel: true,
-  retries: process.env.CI ? 2 : 0,
+  projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+  retries: process.env.CI !== undefined && process.env.CI !== "" ? 2 : 0,
+  testDir: "./e2e",
   use: {
     baseURL: "http://localhost:3100",
     trace: "on-first-retry",
   },
-  // Cold Next dev compiles can take a few seconds per route; tolerate them.
-  expect: { timeout: 15_000 },
-  projects: [{ name: "chromium", use: { browserName: "chromium" } }],
   webServer: {
     command: "bun run dev --port 3100",
-    url: "http://localhost:3100",
-    reuseExistingServer: !process.env.CI,
+    env: convexEnvironment,
+    reuseExistingServer: process.env.CI === undefined || process.env.CI === "",
     timeout: 120_000,
-    env: {
-      NEXT_PUBLIC_CONVEX_URL:
-        process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://example.invalid",
-    },
+    url: "http://localhost:3100",
   },
-})
+});

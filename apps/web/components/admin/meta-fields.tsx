@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import type { BuilderDraft } from "./builder-types"
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import type { BuilderDraft } from "./builder-types";
 
-type Meta = Pick<BuilderDraft, "name" | "agency" | "sourceLabel" | "sourceUrl">
+type Meta = Pick<BuilderDraft, "name" | "agency" | "sourceLabel" | "sourceUrl">;
 
 // Working-copy header: name, agency, and the official source publish checks
 // require. Edits stay local until Save.
-export function MetaFields({
+export const MetaFields = ({
   meta,
   onChange,
 }: {
-  meta: Meta
-  onChange: (meta: Meta) => void
-}) {
+  readonly meta: Meta;
+  readonly onChange: (meta: Meta) => void;
+}) => {
   function set(key: keyof Meta, value: string) {
-    onChange({ ...meta, [key]: value })
+    onChange({ ...meta, [key]: value });
   }
 
   return (
@@ -68,5 +68,5 @@ export function MetaFields({
         citation on the live form.
       </p>
     </section>
-  )
-}
+  );
+};

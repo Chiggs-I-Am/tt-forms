@@ -1,23 +1,40 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   UiThemeProvider,
   useUiTheme,
-} from "@workspace/ui/components/theme-context"
+} from "@workspace/ui/components/theme-context";
 
-function ThemeProvider({ children }: { children: React.ReactNode }) {
+export const ThemeProvider = ({
+  children,
+  defaultTheme = "system",
+  storageKey = "theme",
+  enableSystem = true,
+  disableTransitionOnChange = false,
+}: {
+  readonly children: React.ReactNode;
+  readonly defaultTheme?: "light" | "dark" | "system";
+  readonly storageKey?: string;
+  readonly enableSystem?: boolean;
+  readonly disableTransitionOnChange?: boolean;
+}) => {
   return (
-    <UiThemeProvider defaultTheme="system" storageKey="tt-forms-theme">
+    <UiThemeProvider
+      defaultTheme={defaultTheme}
+      storageKey={storageKey}
+      enableSystem={enableSystem}
+      disableTransitionOnChange={disableTransitionOnChange}
+    >
       <ThemeHotkey />
       {children}
     </UiThemeProvider>
-  )
-}
+  );
+};
 
 function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
-    return false
+    return false;
   }
 
   return (
@@ -25,41 +42,39 @@ function isTypingTarget(target: EventTarget | null) {
     target.tagName === "INPUT" ||
     target.tagName === "TEXTAREA" ||
     target.tagName === "SELECT"
-  )
+  );
 }
 
-function ThemeHotkey() {
-  const { resolvedTheme, setTheme } = useUiTheme()
+const ThemeHotkey = () => {
+  const { resolvedTheme, setTheme } = useUiTheme();
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.defaultPrevented || event.repeat) {
-        return
+        return;
       }
 
       if (event.metaKey || event.ctrlKey || event.altKey) {
-        return
+        return;
       }
 
       if (typeof event.key !== "string" || event.key.toLowerCase() !== "d") {
-        return
+        return;
       }
 
       if (isTypingTarget(event.target)) {
-        return
+        return;
       }
 
-      setTheme(resolvedTheme === "dark" ? "light" : "dark")
+      setTheme(resolvedTheme === "dark" ? "light" : "dark");
     }
 
-    window.addEventListener("keydown", onKeyDown)
+    window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown)
-    }
-  }, [resolvedTheme, setTheme])
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [resolvedTheme, setTheme]);
 
-  return null
-}
-
-export { ThemeProvider }
+  return null;
+};

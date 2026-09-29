@@ -1,4 +1,4 @@
-import type { FormDefinition } from "./formModel"
+import type { FormDefinition } from "./formModel";
 
 // 1:1 transcriptions of the official paper/portal forms for #35. Every
 // question below appears on the official form with the same meaning; online
@@ -8,135 +8,133 @@ import type { FormDefinition } from "./formModel"
 // employer stamps, official station lists) is an optional field or an
 // explicit note, never a required step.
 
-const FAKE_ID_HINT =
-  "Invent a number. Never type a real ID, passport, or permit number."
-const FIVE_MB = 5 * 1024 * 1024
+const fakeIdHint =
+  "Invent a number. Never type a real ID, passport, or permit number.";
+const fiveMb = 5_242_880;
+const firstNameLabel = "First name";
+const homeAddressLabel = "Home address";
+const emailAddressLabel = "Email address";
+const telephoneLabel = "Telephone number";
+const dateOfBirthLabel = "Date of birth";
+const placeOfBirthLabel = "Place of birth";
+const commonLaw = "Common Law";
 
 export interface PilotSeed {
-  slug: string
-  name: string
-  agency: string
-  sourceLabel: string
-  sourceUrl: string
-  definition: FormDefinition
+  slug: string;
+  name: string;
+  agency: string;
+  sourceLabel: string;
+  sourceUrl: string;
+  definition: FormDefinition;
 }
 
 // Certificate of Character (TTPS portal, https://services.ttps.gov.tt/coc).
-// Portal fields per research: names, address, contact, ID type + number,
-// occupation, purpose, photo upload, appointment date and station choice.
+// Portal fields per research: names, address, contact, ID type + number, occupation, purpose, photo upload, appointment date and station choice.
 // The portal's station dropdown is a free-text field here until the station
 // list is modeled; the section note says so.
 const certificateOfCharacter: PilotSeed = {
-  slug: "certificate-of-character",
-  name: "Certificate of Character",
   agency: "Trinidad and Tobago Police Service",
-  sourceLabel: "TTPS Certificate of Character portal",
-  sourceUrl: "https://services.ttps.gov.tt/coc",
   definition: {
     sections: [
       {
-        id: "personal",
-        title: "Personal details",
-        helpText: "Fee TT$50, processing takes about 2-3 weeks.",
         fields: [
           {
             id: "first_name",
             kind: "short_text",
-            label: "First name",
-            required: true,
+            label: firstNameLabel,
             maxLength: 60,
+            required: true,
           },
           {
             id: "last_name",
             kind: "short_text",
             label: "Last name",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "home_address",
             kind: "long_text",
-            label: "Home address",
-            required: true,
+            label: homeAddressLabel,
             maxLength: 500,
+            required: true,
           },
           {
             id: "phone",
             kind: "phone",
-            label: "Telephone number",
+            label: telephoneLabel,
             required: true,
           },
           {
             id: "email",
             kind: "email",
-            label: "Email address",
+            label: emailAddressLabel,
             required: true,
           },
         ],
+        helpText: "Fee TT$50, processing takes about 2-3 weeks.",
+        id: "personal",
+        title: "Personal details",
       },
       {
-        id: "identification",
-        title: "Identification",
         fields: [
           {
             id: "id_type",
             kind: "single_choice",
             label: "ID type",
-            required: true,
             options: ["National ID", "Passport", "Driver's Permit"],
+            required: true,
           },
           {
+            hint: fakeIdHint,
             id: "id_number",
             kind: "short_text",
             label: "ID number",
-            required: true,
             maxLength: 40,
             placeholder: "e.g. FAKE-482913",
-            hint: FAKE_ID_HINT,
+            required: true,
           },
         ],
+        id: "identification",
+        title: "Identification",
       },
       {
-        id: "background",
-        title: "Background",
         fields: [
           {
             id: "occupation",
             kind: "short_text",
             label: "Occupation",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "purpose",
             kind: "long_text",
             label: "Purpose for the certificate",
-            required: true,
             maxLength: 1000,
+            required: true,
           },
         ],
+        id: "background",
+        title: "Background",
       },
       {
-        id: "photo",
-        title: "Photograph",
-        helpText:
-          "Upload a stand-in image. Images and PDF only, about 5MB max.",
         fields: [
           {
+            hint: "Never upload a real ID photo. Any image stands in.",
             id: "photo_upload",
             kind: "upload",
             label: "Recent photograph",
+            maxSizeBytes: fiveMb,
             required: true,
-            maxSizeBytes: FIVE_MB,
-            hint: "Never upload a real ID photo. Any image stands in.",
           },
         ],
+        helpText:
+          "Upload a stand-in image. Images and PDF only, about 5MB max.",
+        id: "photo",
+        title: "Photograph",
       },
       {
-        id: "appointment",
-        title: "Appointment",
-        helpText:
-          "The portal offers a station list; until it is modeled, type the station name.",
         fields: [
           {
             id: "appointment_date",
@@ -145,48 +143,49 @@ const certificateOfCharacter: PilotSeed = {
             required: true,
           },
           {
+            hint: 'As listed on the portal, e.g. "Port of Spain".',
             id: "police_station",
             kind: "short_text",
             label: "Police station",
-            required: true,
             maxLength: 120,
-            hint: 'As listed on the portal, e.g. "Port of Spain".',
+            required: true,
           },
         ],
+        helpText:
+          "The portal offers a station list; until it is modeled, type the station name.",
+        id: "appointment",
+        title: "Appointment",
       },
     ],
   },
-}
+  name: "Certificate of Character",
+  slug: "certificate-of-character",
+  sourceLabel: "TTPS Certificate of Character portal",
+  sourceUrl: "https://services.ttps.gov.tt/coc",
+};
 
 // Adult passport renewal, 16 and over (Immigration Division print form).
 // Sections 1-8 follow the paper numbering; the official-use block at the top
 // (receipt, passport number, dates) is filled by officers, not applicants.
 const passportRenewal: PilotSeed = {
-  slug: "adult-passport-renewal",
-  name: "Adult passport renewal (16 and over)",
   agency: "Immigration Division",
-  sourceLabel: "Official renewal application form (PDF)",
-  sourceUrl:
-    "https://foreign.gov.tt/documents/1752/ADULT_RENEWAL_APPLICATION_FORM_FOR_TRINIDAD_AND_TOBAGO_PASSPORT.pdf",
   definition: {
     sections: [
       {
-        id: "names",
-        title: "1. Names",
         fields: [
           {
             id: "surname",
             kind: "short_text",
             label: "Surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "first_name",
             kind: "short_text",
-            label: "First name",
-            required: true,
+            label: firstNameLabel,
             maxLength: 60,
+            required: true,
           },
           {
             id: "middle_names",
@@ -213,46 +212,44 @@ const passportRenewal: PilotSeed = {
             maxLength: 60,
           },
         ],
+        id: "names",
+        title: "1. Names",
       },
       {
-        id: "personal",
-        title: "2. Personal information",
-        helpText:
-          "Answer as it appears on your official documents. Every answer here must still be invented.",
         fields: [
           {
             id: "date_of_birth",
             kind: "date",
-            label: "Date of birth",
+            label: dateOfBirthLabel,
             required: true,
           },
           {
             id: "sex",
             kind: "single_choice",
             label: "Sex",
-            required: true,
             options: ["Male", "Female"],
+            required: true,
           },
           {
             id: "height_cm",
             kind: "number",
             label: "Height (cm)",
-            min: 50,
             max: 250,
+            min: 50,
           },
           {
             id: "place_of_birth",
             kind: "short_text",
-            label: "Place of birth",
-            required: true,
+            label: placeOfBirthLabel,
             maxLength: 120,
+            required: true,
           },
           {
             id: "country_of_birth",
             kind: "short_text",
             label: "Country of birth",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "eye_colour",
@@ -270,7 +267,6 @@ const passportRenewal: PilotSeed = {
             id: "marital_status",
             kind: "single_choice",
             label: "Marital status",
-            required: true,
             options: [
               "Single",
               "Married",
@@ -279,6 +275,7 @@ const passportRenewal: PilotSeed = {
               "Separated",
               "Other",
             ],
+            required: true,
           },
           {
             id: "occupation",
@@ -289,22 +286,22 @@ const passportRenewal: PilotSeed = {
           {
             id: "home_address",
             kind: "long_text",
-            label: "Home address",
-            required: true,
+            label: homeAddressLabel,
             maxLength: 1000,
+            required: true,
           },
           {
+            hint: "If different from home address.",
             id: "mailing_address",
             kind: "long_text",
             label: "Mailing address",
-            hint: "If different from home address.",
             maxLength: 1000,
           },
           {
+            hint: "If resident abroad, give a local address instead.",
             id: "work_address",
             kind: "long_text",
             label: "Work address",
-            hint: "If resident abroad, give a local address instead.",
             maxLength: 1000,
           },
           {
@@ -316,14 +313,14 @@ const passportRenewal: PilotSeed = {
           { id: "home_tel", kind: "phone", label: "Home telephone number" },
           { id: "mobile", kind: "phone", label: "Mobile number" },
           { id: "office_tel", kind: "phone", label: "Office telephone number" },
-          { id: "email_address", kind: "email", label: "Email address" },
+          { id: "email_address", kind: "email", label: emailAddressLabel },
         ],
+        helpText:
+          "Answer as it appears on your official documents. Every answer here must still be invented.",
+        id: "personal",
+        title: "2. Personal information",
       },
       {
-        id: "married_women",
-        title: "3. Married women",
-        helpText:
-          "This section appears for married women only. Previous marriages follow below, one entry each, up to three.",
         condition: {
           mode: "all",
           rules: [
@@ -331,8 +328,6 @@ const passportRenewal: PilotSeed = {
             { fieldId: "sex", values: ["Female"] },
           ],
         },
-        repeat: { min: 0, max: 3 },
-        repeatFields: ["pm_date", "pm_husband", "pm_place", "pm_nationality"],
         fields: [
           {
             id: "present_marriage_date",
@@ -387,19 +382,23 @@ const passportRenewal: PilotSeed = {
             maxLength: 60,
           },
         ],
+        helpText:
+          "This section appears for married women only. Previous marriages follow below, one entry each, up to three.",
+        id: "married_women",
+        repeat: { max: 3, min: 0 },
+        repeatFields: ["pm_date", "pm_husband", "pm_place", "pm_nationality"],
+        title: "3. Married women",
       },
       {
-        id: "passport_particulars",
-        title: "4. Particulars of passport to be renewed",
         fields: [
           {
+            hint: fakeIdHint,
             id: "passport_number",
             kind: "short_text",
             label: "Passport number",
-            required: true,
             maxLength: 40,
             placeholder: "e.g. FAKE-T482913",
-            hint: FAKE_ID_HINT,
+            required: true,
           },
           {
             id: "passport_issue_date",
@@ -411,14 +410,14 @@ const passportRenewal: PilotSeed = {
             id: "passport_issue_place",
             kind: "short_text",
             label: "Place of issue",
-            required: true,
             maxLength: 120,
+            required: true,
           },
         ],
+        id: "passport_particulars",
+        title: "4. Particulars of passport to be renewed",
       },
       {
-        id: "citizenship",
-        title: "5. Citizenship information",
         fields: [
           {
             id: "other_citizenship",
@@ -428,39 +427,36 @@ const passportRenewal: PilotSeed = {
             required: true,
           },
         ],
+        id: "citizenship",
+        title: "5. Citizenship information",
       },
       {
-        id: "citizenship_details",
-        title: "5. Citizenship details (continued)",
-        helpText:
-          "Part of paper section 5. Appears only when other citizenship is declared, one entry per country.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "other_citizenship", values: ["true"] }],
         },
-        repeat: { min: 1, max: 4 },
         fields: [
           {
             id: "country",
             kind: "short_text",
             label: "Country",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
+            hint: "Birth, descent, naturalization, and so on.",
             id: "citizenship_by",
             kind: "short_text",
             label: "Citizenship by",
-            hint: "Birth, descent, naturalization, and so on.",
             maxLength: 120,
           },
           {
+            hint: fakeIdHint,
             id: "certificate_no",
             kind: "short_text",
             label: "Certificate number",
             maxLength: 40,
             placeholder: "e.g. FAKE-C771204",
-            hint: FAKE_ID_HINT,
           },
           {
             id: "cert_issue_date",
@@ -468,26 +464,28 @@ const passportRenewal: PilotSeed = {
             label: "Issue date (day/month/year)",
           },
         ],
+        helpText:
+          "Part of paper section 5. Appears only when other citizenship is declared, one entry per country.",
+        id: "citizenship_details",
+        repeat: { max: 4, min: 1 },
+        title: "5. Citizenship details (continued)",
       },
       {
-        id: "age_band",
-        title: "Age check",
-        helpText:
-          "Demo gate, not a paper section: the paper has no such question and officers check age from documents. Applicants under 18 need a parent or legal guardian's permission, so choose explicitly; the demo never checks your date of birth.",
         fields: [
           {
             id: "under_18",
             kind: "single_choice",
             label: "Are you under 18 years of age?",
-            required: true,
             options: ["Yes, I am under 18", "No, I am 18 or over"],
+            required: true,
           },
         ],
+        helpText:
+          "Demo gate, not a paper section: the paper has no such question and officers check age from documents. Applicants under 18 need a parent or legal guardian's permission, so choose explicitly; the demo never checks your date of birth.",
+        id: "age_band",
+        title: "Age check",
       },
       {
-        id: "guardian",
-        title: "6. Permission from parent / legal guardian",
-        helpText: "Appears for applicants under 18 only.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "under_18", values: ["Yes, I am under 18"] }],
@@ -497,46 +495,46 @@ const passportRenewal: PilotSeed = {
             id: "parent_first",
             kind: "short_text",
             label: "Parent / guardian first name",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "parent_surname",
             kind: "short_text",
             label: "Parent / guardian surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
+            hint: "Completes “I am the ___ of the applicant”, e.g. mother, father, legal guardian.",
             id: "relationship",
             kind: "short_text",
             label: "Relationship to applicant",
-            hint: "Completes “I am the ___ of the applicant”, e.g. mother, father, legal guardian.",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "applicant_first",
             kind: "short_text",
             label: "Applicant first name",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "applicant_surname",
             kind: "short_text",
             label: "Applicant surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
+            hint: fakeIdHint,
             id: "parent_id_number",
             kind: "short_text",
             label: "I.D. / Passport number of parent / legal guardian",
-            required: true,
             maxLength: 40,
             placeholder: "e.g. FAKE-905517",
-            hint: FAKE_ID_HINT,
+            required: true,
           },
           {
             id: "parent_id_issue_date",
@@ -550,20 +548,18 @@ const passportRenewal: PilotSeed = {
             required: true,
           },
         ],
+        helpText: "Appears for applicants under 18 only.",
+        id: "guardian",
+        title: "6. Permission from parent / legal guardian",
       },
       {
-        id: "references",
-        title: "7. References",
-        helpText:
-          "Exactly two persons who are not relatives and have known you for at least three years. They may be contacted to confirm your identity.",
-        repeat: { min: 2, max: 2 },
         fields: [
           {
             id: "ref_name",
             kind: "short_text",
             label: "Name",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "ref_tel",
@@ -572,19 +568,20 @@ const passportRenewal: PilotSeed = {
             required: true,
           },
         ],
+        helpText:
+          "Exactly two persons who are not relatives and have known you for at least three years. They may be contacted to confirm your identity.",
+        id: "references",
+        repeat: { max: 2, min: 2 },
+        title: "7. References",
       },
       {
-        id: "declaration",
-        title: "8. Declaration of applicant",
-        helpText:
-          "You declare you are a citizen of Trinidad and Tobago, the statements are true, the photo is a true likeness, and you will report citizenship changes. False statements are an offence punishable by fine and imprisonment. In this demo every detail must still be invented.",
         fields: [
           {
             id: "declarant_name",
             kind: "short_text",
             label: "Full name of declarant",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "accept",
@@ -594,13 +591,13 @@ const passportRenewal: PilotSeed = {
           },
           { id: "dated", kind: "date", label: "Dated", required: true },
           {
+            hint: fakeIdHint,
             id: "decl_id_number",
             kind: "short_text",
             label: "I.D. / Passport number",
-            required: true,
             maxLength: 40,
             placeholder: "e.g. FAKE-318840",
-            hint: FAKE_ID_HINT,
+            required: true,
           },
           {
             id: "decl_id_issue_date",
@@ -609,20 +606,20 @@ const passportRenewal: PilotSeed = {
             required: true,
           },
           {
+            hint: fakeIdHint,
             id: "marriage_cert_no",
             kind: "short_text",
             label: "Marriage certificate number",
             maxLength: 40,
             placeholder: "e.g. FAKE-M552010",
-            hint: FAKE_ID_HINT,
           },
           {
+            hint: fakeIdHint,
             id: "marriage_entry_no",
             kind: "short_text",
             label: "Marriage entry number",
             maxLength: 40,
             placeholder: "e.g. FAKE-E209874",
-            hint: FAKE_ID_HINT,
           },
           {
             id: "marriage_cert_issue_date",
@@ -630,12 +627,12 @@ const passportRenewal: PilotSeed = {
             label: "Marriage certificate issue date",
           },
           {
+            hint: fakeIdHint,
             id: "deed_poll_no",
             kind: "short_text",
             label: "Deed poll number",
             maxLength: 40,
             placeholder: "e.g. FAKE-D664102",
-            hint: FAKE_ID_HINT,
           },
           { id: "deed_poll_dated", kind: "date", label: "Deed poll dated" },
           {
@@ -652,64 +649,64 @@ const passportRenewal: PilotSeed = {
             maxLength: 2000,
           },
         ],
+        helpText:
+          "You declare you are a citizen of Trinidad and Tobago, the statements are true, the photo is a true likeness, and you will report citizenship changes. False statements are an offence punishable by fine and imprisonment. In this demo every detail must still be invented.",
+        id: "declaration",
+        title: "8. Declaration of applicant",
       },
     ],
   },
-}
+  name: "Adult passport renewal (16 and over)",
+  slug: "adult-passport-renewal",
+  sourceLabel: "Official renewal application form (PDF)",
+  sourceUrl:
+    "https://foreign.gov.tt/documents/1752/ADULT_RENEWAL_APPLICATION_FORM_FOR_TRINIDAD_AND_TOBAGO_PASSPORT.pdf",
+};
 
 // Application for Computerized Birth Certificate, RGD 14A (Registrar General).
 // Part I is the applicant, Part II the birth record. The official-use block
 // (registration and certificate numbers) is filled by officers, not applicants.
 const birthCertificate: PilotSeed = {
-  slug: "computerized-birth-certificate",
-  name: "Computerized birth certificate (RGD 14A)",
   agency: "Registrar General's Department",
-  sourceLabel: "Official application form (PDF)",
-  sourceUrl:
-    "https://foreign.gov.tt/documents/361/Application_for_Computerized_Birth_Certificate.pdf",
   definition: {
     sections: [
       {
-        id: "applicant",
-        title: "Part I. Applicant information",
-        helpText:
-          "One free birth certificate per person. Mail-in is for the first free certificate only and must include a photocopy of a valid government-issued ID. If the certificate is not yours or your child's, attach the owner's authorization letter and a copy of their ID.",
         fields: [
           {
             id: "first_name",
             kind: "short_text",
-            label: "First name",
-            required: true,
+            label: firstNameLabel,
             maxLength: 60,
+            required: true,
           },
           {
             id: "surname",
             kind: "short_text",
             label: "Surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "address",
             kind: "long_text",
             label: "Address",
-            required: true,
             maxLength: 500,
+            required: true,
           },
           {
+            hint: "Mail In covers home or office delivery; Walk In is collected in person.",
             id: "service_type",
             kind: "single_choice",
             label: "Type of service",
-            required: true,
             options: ["Mail In", "Walk In"],
-            hint: "Mail In covers home or office delivery; Walk In is collected in person.",
+            required: true,
           },
           {
+            hint: "Reachable between 8:00 am and 4:00 pm.",
             id: "telephone",
             kind: "phone",
-            label: "Telephone number",
+            label: telephoneLabel,
             required: true,
-            hint: "Reachable between 8:00 am and 4:00 pm.",
           },
           {
             id: "own_certificate",
@@ -718,55 +715,55 @@ const birthCertificate: PilotSeed = {
             required: true,
           },
           {
-            id: "relationship",
-            kind: "short_text",
-            label: "Relationship to the certificate owner",
-            required: true,
-            maxLength: 120,
-            hint: "Only when the certificate is not yours.",
             condition: {
               mode: "any",
               rules: [{ fieldId: "own_certificate", values: ["false"] }],
             },
+            hint: "Only when the certificate is not yours.",
+            id: "relationship",
+            kind: "short_text",
+            label: "Relationship to the certificate owner",
+            maxLength: 120,
+            required: true,
           },
           {
             id: "purpose",
             kind: "long_text",
             label: "Purpose for which the certificate is required",
-            required: true,
             maxLength: 500,
+            required: true,
           },
           {
+            hint: "ID is the national ID card, DP the driver's permit, PP a passport.",
             id: "id_type",
             kind: "single_choice",
             label: "Type of identification",
-            required: true,
             options: ["ID", "DP", "PP"],
-            hint: "ID is the national ID card, DP the driver's permit, PP a passport.",
+            required: true,
           },
           {
+            hint: fakeIdHint,
             id: "id_number",
             kind: "short_text",
             label: "Identification number",
-            required: true,
             maxLength: 40,
             placeholder: "e.g. FAKE-730195",
-            hint: FAKE_ID_HINT,
+            required: true,
           },
         ],
+        helpText:
+          "One free birth certificate per person. Mail-in is for the first free certificate only and must include a photocopy of a valid government-issued ID. If the certificate is not yours or your child's, attach the owner's authorization letter and a copy of their ID.",
+        id: "applicant",
+        title: "Part I. Applicant information",
       },
       {
-        id: "birth_record",
-        title: "Part II. Birth certificate information as registered at birth",
-        helpText:
-          "Write in capital letters. The certificate cannot issue if the information is incomplete or inaccurate.",
         fields: [
           {
             id: "child_first",
             kind: "short_text",
-            label: "First name",
-            required: true,
+            label: firstNameLabel,
             maxLength: 60,
+            required: true,
           },
           {
             id: "child_middle",
@@ -778,8 +775,8 @@ const birthCertificate: PilotSeed = {
             id: "sex",
             kind: "single_choice",
             label: "Sex",
-            required: true,
             options: ["Male", "Female"],
+            required: true,
           },
           {
             id: "date_of_birth",
@@ -788,47 +785,47 @@ const birthCertificate: PilotSeed = {
             required: true,
           },
           {
+            hint: "Full address or name of hospital.",
             id: "place_of_birth",
             kind: "short_text",
-            label: "Place of birth",
-            hint: "Full address or name of hospital.",
-            required: true,
+            label: placeOfBirthLabel,
             maxLength: 200,
+            required: true,
           },
           {
             id: "mother_first",
             kind: "short_text",
             label: "Mother's first name",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "mother_surname",
             kind: "short_text",
             label: "Mother's current surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "mother_maiden",
             kind: "short_text",
             label: "Mother's maiden name",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "father_first",
             kind: "short_text",
             label: "Father's first name",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "father_surname",
             kind: "short_text",
             label: "Father's surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "application_date",
@@ -844,41 +841,42 @@ const birthCertificate: PilotSeed = {
             required: true,
           },
         ],
+        helpText:
+          "Write in capital letters. The certificate cannot issue if the information is incomplete or inaccurate.",
+        id: "birth_record",
+        title: "Part II. Birth certificate information as registered at birth",
       },
     ],
   },
-}
+  name: "Computerized birth certificate (RGD 14A)",
+  slug: "computerized-birth-certificate",
+  sourceLabel: "Official application form (PDF)",
+  sourceUrl:
+    "https://foreign.gov.tt/documents/361/Application_for_Computerized_Birth_Certificate.pdf",
+};
 
 // NI 4, register as an employed person (NIBTT). Held as the swap-in
 // alternate. Question numbers follow the paper. The employer block at the end
 // is completed by the employer on paper; here its fields are optional.
 const nisRegistration: PilotSeed = {
-  slug: "nis-ni4",
-  name: "NIS registration as an employed person (NI 4)",
   agency: "National Insurance Board",
-  sourceLabel: "Official NI 4 form (PDF)",
-  sourceUrl: "https://www.nibtt.net/NI_Forms/NI4.pdf",
   definition: {
     sections: [
       {
-        id: "identity",
-        title: "Identity",
-        helpText:
-          "Type or write in block letters. If you do not know your father's name or mother's maiden name, write “not known”. Employers must register new staff within 14 days.",
         fields: [
           {
             id: "surname",
             kind: "short_text",
             label: "Surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "first_name",
             kind: "short_text",
-            label: "First name",
-            required: true,
+            label: firstNameLabel,
             maxLength: 60,
+            required: true,
           },
           {
             id: "middle_name",
@@ -887,10 +885,10 @@ const nisRegistration: PilotSeed = {
             maxLength: 60,
           },
           {
+            hint: "Changed by deed poll or marriage.",
             id: "birth_name",
             kind: "short_text",
             label: "Name at birth, if different",
-            hint: "Changed by deed poll or marriage.",
             maxLength: 120,
           },
           {
@@ -909,29 +907,29 @@ const nisRegistration: PilotSeed = {
             id: "gender",
             kind: "single_choice",
             label: "Gender",
-            required: true,
             options: ["Male", "Female"],
+            required: true,
           },
           {
             id: "home_address",
             kind: "long_text",
-            label: "Home address",
-            required: true,
+            label: homeAddressLabel,
             maxLength: 500,
+            required: true,
           },
-          { id: "telephone", kind: "phone", label: "Telephone number" },
+          { id: "telephone", kind: "phone", label: telephoneLabel },
           {
             id: "date_of_birth",
             kind: "date",
-            label: "Date of birth",
+            label: dateOfBirthLabel,
             required: true,
           },
           {
             id: "place_of_birth",
             kind: "short_text",
-            label: "Place of birth",
-            required: true,
+            label: placeOfBirthLabel,
             maxLength: 120,
+            required: true,
           },
           {
             id: "multiple_birth",
@@ -940,23 +938,23 @@ const nisRegistration: PilotSeed = {
             required: true,
           },
         ],
+        helpText:
+          "Type or write in block letters. If you do not know your father's name or mother's maiden name, write “not known”. Employers must register new staff within 14 days.",
+        id: "identity",
+        title: "Identity",
       },
       {
-        id: "siblings",
-        title: "Multiple-birth siblings",
-        helpText: "Appears for multiple births only, one entry per sibling.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "multiple_birth", values: ["true"] }],
         },
-        repeat: { min: 1, max: 2 },
         fields: [
           {
             id: "sib_surname",
             kind: "short_text",
             label: "Sibling surname",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "sib_other_names",
@@ -965,10 +963,12 @@ const nisRegistration: PilotSeed = {
             maxLength: 120,
           },
         ],
+        helpText: "Appears for multiple births only, one entry per sibling.",
+        id: "siblings",
+        repeat: { max: 2, min: 1 },
+        title: "Multiple-birth siblings",
       },
       {
-        id: "same_name",
-        title: "Family members with the same name",
         fields: [
           {
             id: "same_name",
@@ -977,60 +977,60 @@ const nisRegistration: PilotSeed = {
             required: true,
           },
         ],
+        id: "same_name",
+        title: "Family members with the same name",
       },
       {
-        id: "same_name_details",
-        title: "Same-name details",
-        helpText: "Appears only when a family member shares your name.",
         condition: {
           mode: "any",
           rules: [{ fieldId: "same_name", values: ["true"] }],
         },
-        repeat: { min: 1, max: 2 },
         fields: [
           {
             id: "rel_relationship",
             kind: "short_text",
             label: "Relationship",
-            required: true,
             maxLength: 60,
+            required: true,
           },
           {
             id: "rel_dob",
             kind: "date",
-            label: "Date of birth",
+            label: dateOfBirthLabel,
             required: true,
           },
         ],
+        helpText: "Appears only when a family member shares your name.",
+        id: "same_name_details",
+        repeat: { max: 2, min: 1 },
+        title: "Same-name details",
       },
       {
-        id: "parents_id",
-        title: "Parents and identification",
         fields: [
           {
             id: "father_name",
             kind: "short_text",
             label: "Father's name",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "mother_maiden",
             kind: "short_text",
             label: "Mother's maiden name",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "id_document",
             kind: "single_choice",
             label: "Valid identification document (one only)",
-            required: true,
             options: [
               "Electoral Identification Card",
               "Driver's Permit",
               "Passport",
             ],
+            required: true,
           },
           {
             id: "id_expiry",
@@ -1042,71 +1042,71 @@ const nisRegistration: PilotSeed = {
             id: "marital_status",
             kind: "single_choice",
             label: "Marital status",
-            required: true,
             options: [
               "Single",
               "Married",
               "Widowed",
               "Divorced",
               "Separated",
-              "Common Law",
+              commonLaw,
             ],
+            required: true,
           },
           {
+            condition: {
+              mode: "any",
+              rules: [{ fieldId: "marital_status", values: [commonLaw] }],
+            },
             id: "spouse_surname",
             kind: "short_text",
             label: "Common-law spouse surname",
-            required: true,
             maxLength: 60,
-            condition: {
-              mode: "any",
-              rules: [{ fieldId: "marital_status", values: ["Common Law"] }],
-            },
+            required: true,
           },
           {
+            condition: {
+              mode: "any",
+              rules: [{ fieldId: "marital_status", values: [commonLaw] }],
+            },
             id: "spouse_first",
             kind: "short_text",
             label: "Common-law spouse first name",
-            required: true,
             maxLength: 60,
-            condition: {
-              mode: "any",
-              rules: [{ fieldId: "marital_status", values: ["Common Law"] }],
-            },
+            required: true,
           },
         ],
+        id: "parents_id",
+        title: "Parents and identification",
       },
       {
-        id: "employment",
-        title: "Employment",
         fields: [
           {
             id: "employer_name",
             kind: "short_text",
             label: "Business name of employer",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "employer_address",
             kind: "long_text",
             label: "Address of employer",
-            required: true,
             maxLength: 500,
+            required: true,
           },
           {
             id: "occupation",
             kind: "short_text",
             label: "Occupation",
-            required: true,
             maxLength: 120,
+            required: true,
           },
           {
             id: "pay_frequency",
             kind: "single_choice",
             label: "Pay frequency",
-            required: true,
             options: ["Weekly", "Fortnightly", "Monthly", "Daily"],
+            required: true,
           },
           {
             id: "first_employment",
@@ -1121,17 +1121,17 @@ const nisRegistration: PilotSeed = {
             required: true,
           },
           {
-            id: "ni_number",
-            kind: "short_text",
-            label: "N.I. number",
-            required: true,
-            maxLength: 40,
-            placeholder: "e.g. FAKE-NI884201",
-            hint: FAKE_ID_HINT,
             condition: {
               mode: "any",
               rules: [{ fieldId: "prev_registered", values: ["true"] }],
             },
+            hint: fakeIdHint,
+            id: "ni_number",
+            kind: "short_text",
+            label: "N.I. number",
+            maxLength: 40,
+            placeholder: "e.g. FAKE-NI884201",
+            required: true,
           },
           {
             id: "employed_elsewhere",
@@ -1140,34 +1140,32 @@ const nisRegistration: PilotSeed = {
             required: true,
           },
           {
+            condition: {
+              mode: "any",
+              rules: [{ fieldId: "employed_elsewhere", values: ["true"] }],
+            },
             id: "other_employer_name",
             kind: "short_text",
             label: "Other employer business name",
-            required: true,
             maxLength: 120,
+            required: true,
+          },
+          {
             condition: {
               mode: "any",
               rules: [{ fieldId: "employed_elsewhere", values: ["true"] }],
             },
-          },
-          {
             id: "other_employer_address",
             kind: "long_text",
             label: "Other employer address",
-            required: true,
             maxLength: 500,
-            condition: {
-              mode: "any",
-              rules: [{ fieldId: "employed_elsewhere", values: ["true"] }],
-            },
+            required: true,
           },
         ],
+        id: "employment",
+        title: "Employment",
       },
       {
-        id: "declaration",
-        title: "Declaration",
-        helpText:
-          "False statements carry a fine of $3,000 and up to two years' imprisonment under the NI Act. In this demo every detail must still be invented.",
         fields: [
           {
             id: "accept",
@@ -1178,12 +1176,12 @@ const nisRegistration: PilotSeed = {
           },
           { id: "declared_date", kind: "date", label: "Date declared" },
         ],
+        helpText:
+          "False statements carry a fine of $3,000 and up to two years' imprisonment under the NI Act. In this demo every detail must still be invented.",
+        id: "declaration",
+        title: "Declaration",
       },
       {
-        id: "employer",
-        title: "Employer verification",
-        helpText:
-          "On paper the employer verifies, signs, and stamps here. In this demo these fields are optional.",
         fields: [
           {
             id: "employer_verified",
@@ -1191,12 +1189,12 @@ const nisRegistration: PilotSeed = {
             label: "Was information verified by employer?",
           },
           {
+            hint: fakeIdHint,
             id: "employer_reg_no",
             kind: "short_text",
             label: "Employer's registration number",
             maxLength: 40,
             placeholder: "e.g. FAKE-R110987",
-            hint: FAKE_ID_HINT,
           },
           {
             id: "designation",
@@ -1205,14 +1203,22 @@ const nisRegistration: PilotSeed = {
             maxLength: 120,
           },
         ],
+        helpText:
+          "On paper the employer verifies, signs, and stamps here. In this demo these fields are optional.",
+        id: "employer",
+        title: "Employer verification",
       },
     ],
   },
-}
+  name: "NIS registration as an employed person (NI 4)",
+  slug: "nis-ni4",
+  sourceLabel: "Official NI 4 form (PDF)",
+  sourceUrl: "https://www.nibtt.net/NI_Forms/NI4.pdf",
+};
 
 export const pilotSeeds: PilotSeed[] = [
   certificateOfCharacter,
   passportRenewal,
   birthCertificate,
   nisRegistration,
-]
+];

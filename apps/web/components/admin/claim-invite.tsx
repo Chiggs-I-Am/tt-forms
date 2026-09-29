@@ -1,41 +1,41 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useMutation } from "convex/react"
-import { api } from "@workspace/database/api"
-import { Button } from "@workspace/ui/components/button"
-import { errorText } from "./builder-types"
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@workspace/database/api";
+import { Button } from "@workspace/ui/components/button";
+import { errorText } from "./builder-types";
 
 // Redeems the caller's invite: sign in with the invited email address through
 // the normal Google or OTP flow, then claim here. Shows the granted role on
 // success. Client-side only; the server checks the verified email, expiry,
 // and single-use.
-export function ClaimInvite() {
-  const claim = useMutation(api.invites.claimInvite)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [granted, setGranted] = useState<string | null>(null)
+export const ClaimInvite = () => {
+  const claim = useMutation(api.invites.claimInvite);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [granted, setGranted] = useState<string | null>(null);
 
   async function run() {
-    setBusy(true)
-    setError(null)
-    try {
-      const { role } = await claim({})
-      setGranted(role)
-    } catch (err) {
-      setError(errorText(err))
-    } finally {
-      setBusy(false)
-    }
+    setBusy(true);
+    setError(null);
+    await claim({})
+      .then(({ role }) => {
+        setGranted(role);
+      })
+      .catch((err: unknown) => {
+        setError(errorText(err));
+      });
+    setBusy(false);
   }
 
   if (granted) {
     return (
-      <p role="status" className="text-sm">
+      <output className="text-sm">
         Invite claimed. Granted role:{" "}
         <span className="font-medium">{granted}</span>
-      </p>
-    )
+      </output>
+    );
   }
 
   return (
@@ -45,11 +45,11 @@ export function ClaimInvite() {
         Signed in with the invited email address? Claim it here. Invites are
         single-use and expire after 7 days.
       </p>
-      {error && (
+      {error ? (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
-      )}
+      ) : null}
       <div>
         <Button
           type="button"
@@ -62,5 +62,5 @@ export function ClaimInvite() {
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

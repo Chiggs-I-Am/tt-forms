@@ -1,14 +1,14 @@
-import Link from "next/link"
-import { SignInForm } from "@/components/sign-in-form"
+import Link from "next/link";
+import { SignInForm } from "@/components/sign-in-form";
 
 export const metadata = {
   title: "Sign in · TT Forms Demo",
-}
+};
 
 // Sign-in gate for #34: nothing is written server-side before this step.
 // Your email is real and used only to sign you in; every form answer you
 // type must be invented.
-export default function SignInPage() {
+const SignInPage = () => {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-6 p-6">
       <div className="flex flex-col gap-2">
@@ -32,5 +32,7 @@ export default function SignInPage() {
         Back to the demo
       </Link>
     </div>
-  )
-}
+  );
+};
+
+export default SignInPage;

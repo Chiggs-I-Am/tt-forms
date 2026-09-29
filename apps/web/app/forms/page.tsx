@@ -1,15 +1,15 @@
-import type { Metadata } from "next"
-import { ArrowRight } from "lucide-react"
-import { SiteFooter } from "@workspace/ui/components/site-sections"
-import { pilotForms } from "@/lib/forms"
+import type { Metadata } from "next";
+import { ArrowRight } from "lucide-react";
+import { SiteFooter } from "@workspace/ui/components/site-sections";
+import { pilotForms } from "@/lib/forms";
 
 export const metadata: Metadata = {
   title: "Browse forms · TT Forms Demo",
-}
+};
 
 // Full pilot catalog. Static data; the navbar is global (see layout).
 
-export default async function FormsPage() {
+const FormsPage = async () => {
   return (
     <div className="flex min-h-svh flex-col">
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-12">
@@ -27,16 +27,17 @@ export default async function FormsPage() {
             <li key={form.slug}>
               <a
                 href={`/forms/${form.slug}`}
+                aria-label={form.name}
                 className="group flex gap-4 border border-border bg-card p-4 transition-colors outline-none hover:border-primary focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
               >
                 <span className="flex flex-1 flex-col gap-1">
                   <span className="flex items-baseline justify-between gap-3">
                     <span className="font-medium">{form.name}</span>
-                    {form.alternate && (
+                    {form.alternate ? (
                       <span className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
                         Alternate
                       </span>
-                    )}
+                    ) : null}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {form.agency}
@@ -67,5 +68,7 @@ export default async function FormsPage() {
         <SiteFooter />
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default FormsPage;

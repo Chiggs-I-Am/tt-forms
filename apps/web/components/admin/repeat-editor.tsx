@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import type { SectionDef } from "./builder-types"
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import type { SectionDef } from "./builder-types";
 
 function num(value: string, fallback: number): number {
-  const parsed = Number(value)
-  return value.trim() === "" || Number.isNaN(parsed) ? fallback : parsed
+  const parsed = Number(value);
+  return value.trim() === "" || Number.isNaN(parsed) ? fallback : parsed;
 }
 
 // One-level repeat: min/max entry counts plus the repeating-field picks.
 // Unticked picks mean every question repeats; ticking a subset asks the rest
 // once above the rows. The server rejects row-local conditions at publish.
-export function RepeatEditor({
+export const RepeatEditor = ({
   section,
   onChange,
 }: {
-  section: SectionDef
-  onChange: (patch: Partial<SectionDef>) => void
-}) {
+  readonly section: SectionDef;
+  readonly onChange: (patch: Partial<SectionDef>) => void;
+}) => {
   if (!section.repeat) {
     return (
       <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -29,10 +29,13 @@ export function RepeatEditor({
         />
         Repeatable group, applicants answer it more than once
       </label>
-    )
+    );
   }
 
-  const repeat = section.repeat
+  const repeat = section.repeat;
+  const repeatingIds = new Set(
+    section.repeatFields ?? section.fields.map((field) => field.id)
+  );
   return (
     <div className="flex flex-col gap-3 border border-dashed border-border p-3">
       <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -88,8 +91,7 @@ export function RepeatEditor({
         )}
         {section.fields.map((field) => {
           const checked =
-            section.repeatFields === undefined ||
-            section.repeatFields.includes(field.id)
+            section.repeatFields === undefined || repeatingIds.has(field.id);
           return (
             <label
               key={field.id || field.label}
@@ -98,26 +100,24 @@ export function RepeatEditor({
               <Checkbox
                 checked={section.repeatFields === undefined ? true : checked}
                 onCheckedChange={(on) => {
-                  const ids = new Set(
-                    section.repeatFields ?? section.fields.map((f) => f.id)
-                  )
+                  const ids = new Set(repeatingIds);
                   if (on === true) {
-                    ids.add(field.id)
+                    ids.add(field.id);
                   } else {
-                    ids.delete(field.id)
+                    ids.delete(field.id);
                   }
-                  const next = [...ids]
+                  const next = [...ids];
                   onChange({
                     repeatFields:
                       next.length === section.fields.length ? undefined : next,
-                  })
+                  });
                 }}
               />
               {field.label || field.id}
             </label>
-          )
+          );
         })}
       </div>
     </div>
-  )
-}
+  );
+};

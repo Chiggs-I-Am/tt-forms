@@ -1,23 +1,23 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { ConvexError } from "convex/values"
-import { Badge } from "@workspace/ui/components/badge"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { ConvexError } from "convex/values";
+import { Badge } from "@workspace/ui/components/badge";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
-import { NewForm } from "@/components/admin/new-form"
+} from "@workspace/ui/components/card";
+import { NewForm } from "@/components/admin/new-form";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Form builder · TT Forms Demo",
-}
+};
 
 // Developer-admin working-copy index. Queries run in this Server Component
 // with the auth token; the Convex denial is the enforcement, and this page
@@ -28,19 +28,19 @@ async function loadCopies() {
       api.forms.listWorkingCopies,
       {},
       { token: await convexAuthNextjsToken() }
-    )
-    return { copies }
+    );
+    return { copies };
   } catch (error) {
     const text =
       error instanceof ConvexError
         ? String(error.data ?? error.message)
-        : "The form list could not be loaded."
-    return { denied: text }
+        : "The form list could not be loaded.";
+    return { denied: text };
   }
 }
 
-export default async function AdminFormsPage() {
-  const result = await loadCopies()
+const AdminFormsPage = async () => {
+  const result = await loadCopies();
 
   if ("denied" in result) {
     return (
@@ -61,10 +61,10 @@ export default async function AdminFormsPage() {
           with a developer-admin account to continue.
         </p>
       </div>
-    )
+    );
   }
 
-  const { copies } = result
+  const { copies } = result;
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 p-6">
@@ -131,5 +131,7 @@ export default async function AdminFormsPage() {
       )}
       <NewForm />
     </div>
-  )
-}
+  );
+};
+
+export default AdminFormsPage;

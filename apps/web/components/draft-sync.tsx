@@ -1,72 +1,77 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Button } from "@workspace/ui/components/button"
+import Link from "next/link";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Label } from "@workspace/ui/components/label"
+} from "@workspace/ui/components/card";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Label } from "@workspace/ui/components/label";
 import {
   RadioGroup,
   RadioGroupItem,
-} from "@workspace/ui/components/radio-group"
-import type { Id } from "@workspace/database/data-model"
-import type { Answers } from "@/lib/form-answers"
-import { useServerDraft } from "@/components/use-server-draft"
+} from "@workspace/ui/components/radio-group";
+import type { Id } from "@workspace/database/data-model";
+import type { Answers } from "@/lib/form-answers";
+import { useServerDraft } from "@/components/use-server-draft";
 
 function formatPreview(value: unknown): string {
   if (value === undefined || value === null || value === "") {
-    return "Empty"
+    return "Empty";
   }
   if (typeof value === "boolean") {
-    return value ? "Yes" : "No"
+    return value ? "Yes" : "No";
   }
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return "Empty"
+      return "Empty";
     }
     if (value.some((item) => typeof item === "object")) {
-      return `${value.length} ${value.length === 1 ? "entry" : "entries"}`
+      return `${value.length} ${value.length === 1 ? "entry" : "entries"}`;
     }
-    return value.join(", ")
+    return value.join(", ");
   }
   if (typeof value === "object") {
-    return JSON.stringify(value)
+    return JSON.stringify(value);
   }
-  return String(value)
+  return String(value);
 }
 
 function expiryLine(expiresAt: number): string {
-  return `Draft expires ${new Date(expiresAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`
+  return `Draft expires ${new Date(expiresAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })}`;
 }
 
 // Server-draft sync panel for the applicant fill view. Anonymous visitors
 // stay local-only; signed-in applicants autosave to one draft per form with
 // merge prompts instead of silent overwrites or silent version moves.
-export function DraftSync({
+export const DraftSync = ({
   formId,
   versionId,
   localAnswers,
   labels,
   onApplyAnswers,
 }: {
-  formId: Id<"forms"> | null | undefined
-  versionId: Id<"formVersions"> | null | undefined
-  localAnswers: Answers
-  labels?: Record<string, string>
-  onApplyAnswers: (answers: Answers) => void
-}) {
-  const sync = useServerDraft({ formId, versionId, localAnswers })
-  const labelFor = (key: string) => labels?.[key] ?? key
+  readonly formId: Id<"forms"> | null | undefined;
+  readonly versionId: Id<"formVersions"> | null | undefined;
+  readonly localAnswers: Answers;
+  readonly labels?: Record<string, string>;
+  readonly onApplyAnswers: (answers: Answers) => void;
+}) => {
+  const sync = useServerDraft({ formId, versionId, localAnswers });
+  const labelFor = (key: string) => labels?.[key] ?? key;
 
   if (sync.status === "local-only" || sync.status === "loading") {
     return (
-      <p role="status" className="text-sm text-muted-foreground">
+      <output className="text-sm text-muted-foreground">
         {sync.status === "loading"
           ? "Checking your saved draft."
           : "Saved in this browser only. "}
@@ -75,14 +80,14 @@ export function DraftSync({
             Sign in to save online
           </Link>
         )}
-      </p>
-    )
+      </output>
+    );
   }
 
   if (sync.status === "version-pick" && sync.serverDraft) {
-    const server = sync.serverAnswers
+    const server = sync.serverAnswers;
     return (
-      <Card role="status">
+      <Card aria-live="polite">
         <CardHeader>
           <CardTitle>Which draft do you want to keep?</CardTitle>
           <CardDescription>
@@ -141,8 +146,8 @@ export function DraftSync({
               variant="outline"
               disabled={!sync.confirmDiscard || sync.saving}
               onClick={() => {
-                onApplyAnswers(sync.serverAnswers as Answers)
-                sync.adoptServer(sync.serverDraft!.updatedAt)
+                onApplyAnswers(sync.serverAnswers as Answers);
+                sync.adoptServer(sync.serverDraft!.updatedAt);
               }}
             >
               Pick saved draft
@@ -155,21 +160,21 @@ export function DraftSync({
               {sync.saving ? "Saving." : "Pick what I just typed"}
             </Button>
           </div>
-          {sync.saveError && (
+          {sync.saveError ? (
             <p role="alert" className="text-sm text-destructive">
               {sync.saveError}
             </p>
-          )}
+          ) : null}
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (sync.status === "conflict" && sync.serverDraft) {
-    const server = sync.serverAnswers
-    const mine = localAnswers as Record<string, unknown>
+    const server = sync.serverAnswers;
+    const mine = localAnswers as Record<string, unknown>;
     return (
-      <Card role="status">
+      <Card aria-live="polite">
         <CardHeader>
           <CardTitle>Merge your answers</CardTitle>
           <CardDescription>
@@ -179,7 +184,7 @@ export function DraftSync({
         </CardHeader>
         <CardContent>
           {sync.conflictFields.map((key) => {
-            const pick = sync.picks[key] ?? "mine"
+            const pick = sync.picks[key] ?? "mine";
             return (
               <div
                 key={key}
@@ -209,7 +214,7 @@ export function DraftSync({
                   </div>
                 </RadioGroup>
               </div>
-            )
+            );
           })}
           <div className="flex flex-wrap gap-2">
             <Button
@@ -223,18 +228,21 @@ export function DraftSync({
           <p className="text-xs text-muted-foreground">
             {expiryLine(sync.serverDraft.expiresAt)}
           </p>
-          {sync.saveError && (
+          {sync.saveError ? (
             <p role="alert" className="text-sm text-destructive">
               {sync.saveError}
             </p>
-          )}
+          ) : null}
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
-    <div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <div
+      aria-live="polite"
+      className="flex flex-wrap items-center gap-x-3 gap-y-1"
+    >
       {sync.status === "not-saved" ? (
         <>
           <p className="text-sm font-medium text-destructive">Not saved</p>
@@ -252,9 +260,9 @@ export function DraftSync({
           >
             Retry
           </Button>
-          {sync.saveError && (
+          {sync.saveError ? (
             <p className="text-xs text-muted-foreground">{sync.saveError}</p>
-          )}
+          ) : null}
         </>
       ) : (
         <p className="text-sm text-muted-foreground">
@@ -265,11 +273,11 @@ export function DraftSync({
               : "All changes saved."}
         </p>
       )}
-      {sync.serverDraft && (
+      {sync.serverDraft ? (
         <p className="text-xs text-muted-foreground">
           {expiryLine(sync.serverDraft.expiresAt)}
         </p>
-      )}
+      ) : null}
     </div>
-  )
-}
+  );
+};

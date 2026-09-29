@@ -1,28 +1,33 @@
-import { FormSearch } from "@workspace/ui/components/form-search"
+import type { Metadata } from "next";
+import { FormSearch } from "@workspace/ui/components/form-search";
 import {
   HowItWorks,
   OfficialSources,
   SiteFooter,
-} from "@workspace/ui/components/site-sections"
-import { pilotForms } from "@/lib/forms"
+} from "@workspace/ui/components/site-sections";
+import { pilotForms } from "@/lib/forms";
 
 // Landing page: hero search band, then steps and official sources. The
 // navbar is global (see layout); this page is static and server-mutation
 // free.
 
-export default async function Page() {
+export const metadata: Metadata = {
+  title: "Which form do you need? · TT Forms Demo",
+};
+
+const Page = async () => {
   const forms = pilotForms.map((form) => ({
     slug: form.slug,
     name: form.name,
     agency: form.agency,
     summary: form.summary,
     alternate: form.alternate,
-  }))
+  }));
   const sources = pilotForms.map((form) => ({
     agency: form.agency,
     label: form.sourceLabel,
     url: form.sourceUrl,
-  }))
+  }));
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -49,5 +54,7 @@ export default async function Page() {
         <SiteFooter />
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Page;

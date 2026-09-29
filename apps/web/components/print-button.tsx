@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { Button } from "@workspace/ui/components/button"
+import { Button } from "@workspace/ui/components/button";
 
 // Print-to-PDF trigger for the printable view. Hidden on paper itself.
-export function PrintButton() {
+export const PrintButton = () => {
   return (
     <Button
       type="button"
@@ -13,5 +13,5 @@ export function PrintButton() {
     >
       Print
     </Button>
-  )
-}
+  );
+};

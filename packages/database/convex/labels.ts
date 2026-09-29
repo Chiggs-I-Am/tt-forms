@@ -1,35 +1,52 @@
-import type { Answers, FormDefinition } from "./formModel"
+import type { Answers, FormDefinition } from "./formModel";
 
 // Shared field-id to label map for stored answers. Labels live on the
 // definition, not on the row, so row fields share the same map. Used by the
 // submit path and the seeded-example path so the printable view renders names
 // without re-reading the definition.
-export function labelsFor(
-  definition: FormDefinition,
-  snapshot: Answers
-): Record<string, string> {
-  const byId = new Map<string, string>()
+const labelsById = (definition: FormDefinition): Map<string, string> => {
+  const byId = new Map<string, string>();
   for (const section of definition.sections) {
     for (const field of section.fields) {
-      byId.set(field.id, field.label)
+      byId.set(field.id, field.label);
     }
   }
-  const labels: Record<string, string> = {}
-  for (const [key, value] of Object.entries(snapshot)) {
-    if (byId.has(key)) {
-      labels[key] = byId.get(key)!
+  return byId;
+};
+
+const addRowLabels = (
+  value: Answers[string],
+  byId: Map<string, string>,
+  labels: Record<string, string>
+): void => {
+  if (!Array.isArray(value)) {
+    return;
+  }
+  for (const row of value) {
+    if (typeof row !== "object" || Array.isArray(row)) {
+      continue;
     }
-    if (Array.isArray(value)) {
-      for (const row of value) {
-        if (row !== null && typeof row === "object" && !Array.isArray(row)) {
-          for (const fieldId of Object.keys(row as Record<string, unknown>)) {
-            if (byId.has(fieldId) && !(fieldId in labels)) {
-              labels[fieldId] = byId.get(fieldId)!
-            }
-          }
-        }
+    for (const fieldId of Object.keys(row)) {
+      const fieldLabel = byId.get(fieldId);
+      if (fieldLabel !== undefined && !Object.hasOwn(labels, fieldId)) {
+        labels[fieldId] = fieldLabel;
       }
     }
   }
-  return labels
-}
+};
+
+export const labelsFor = (
+  definition: FormDefinition,
+  snapshot: Answers
+): Record<string, string> => {
+  const byId = labelsById(definition);
+  const labels: Record<string, string> = {};
+  for (const [key, value] of Object.entries(snapshot)) {
+    const label = byId.get(key);
+    if (label !== undefined) {
+      labels[key] = label;
+    }
+    addRowLabels(value, byId, labels);
+  }
+  return labels;
+};

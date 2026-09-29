@@ -1,9 +1,11 @@
-import js from "@eslint/js"
-import { plugin as shadcn } from "@shadcn/lint"
-import eslintConfigPrettier from "eslint-config-prettier"
-import onlyWarn from "eslint-plugin-only-warn"
-import turboPlugin from "eslint-plugin-turbo"
-import tseslint from "typescript-eslint"
+import js from "@eslint/js";
+import { plugin as shadcn } from "@shadcn/lint";
+import eslintConfigPrettier from "eslint-config-prettier";
+import onlyWarn from "eslint-plugin-only-warn";
+import turboPlugin from "eslint-plugin-turbo";
+import tseslint from "typescript-eslint";
+
+import core from "./ultracite-core.js";
 
 /**
  * A shared ESLint configuration for the repository.
@@ -11,6 +13,7 @@ import tseslint from "typescript-eslint"
  * @type {import("eslint").Linter.Config}
  * */
 export const config = [
+  ...core,
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
@@ -34,6 +37,13 @@ export const config = [
     },
   },
   {
+    files: ["**/*.json", "**/*.jsonc"],
+    rules: {
+      "no-unused-expressions": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+    },
+  },
+  {
     ignores: ["dist/**", ".next/**", "**/.turbo/**", "**/coverage/**"],
   },
-]
+];

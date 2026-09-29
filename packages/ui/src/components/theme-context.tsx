@@ -1,86 +1,128 @@
-"use client"
+"use client";
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
-} from "react"
+} from "react";
 
-export type UiTheme = "light" | "dark" | "system"
-export type ResolvedUiTheme = "light" | "dark"
+export type UiTheme = "light" | "dark" | "system";
+export type ResolvedUiTheme = "light" | "dark";
 
 interface UiThemeContextValue {
-  theme: UiTheme
-  resolvedTheme: ResolvedUiTheme
-  setTheme: (theme: UiTheme) => void
+  theme: UiTheme;
+  resolvedTheme: ResolvedUiTheme;
+  setTheme: (theme: UiTheme) => void;
+  themes: string[];
+  systemTheme?: ResolvedUiTheme;
 }
 
 const UiThemeContext = createContext<UiThemeContextValue>({
   theme: "system",
   resolvedTheme: "light",
   setTheme: () => {},
-})
+  themes: ["light", "dark", "system"],
+});
 
-// Class-based theme provider. Applies `dark` to <html>, persists the choice
-// in localStorage, and follows the OS setting on "system". Renders no
-// <script> element, which Next 16 rejects inside React components.
-export function UiThemeProvider({
-  children,
-  defaultTheme = "system",
-  storageKey = "tt-forms-theme",
-}: {
-  children: ReactNode
-  defaultTheme?: UiTheme
-  storageKey?: string
-}) {
-  const [theme, setThemeState] = useState<UiTheme>(defaultTheme)
-  const [systemDark, setSystemDark] = useState(false)
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(storageKey)
-      if (stored === "light" || stored === "dark" || stored === "system") {
-        setThemeState(stored)
-      }
-    } catch {
-      // Private-mode storage; fall through to the default.
+function readStoredTheme(storageKey: string, fallback: UiTheme): UiTheme {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      return stored;
     }
-
-    const query = window.matchMedia("(prefers-color-scheme: dark)")
-    setSystemDark(query.matches)
-    const onChange = (event: MediaQueryListEvent) => {
-      setSystemDark(event.matches)
-    }
-    query.addEventListener("change", onChange)
-    return () => query.removeEventListener("change", onChange)
-  }, [storageKey])
-
-  const resolvedTheme: ResolvedUiTheme =
-    theme === "system" ? (systemDark ? "dark" : "light") : theme
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", resolvedTheme === "dark")
-    try {
-      window.localStorage.setItem(storageKey, theme)
-    } catch {
-      // Ignore write failures; the class toggle above already applied.
-    }
-  }, [resolvedTheme, theme, storageKey])
-
-  const setTheme = useCallback((next: UiTheme) => {
-    setThemeState(next)
-  }, [])
-
-  return (
-    <UiThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
-      {children}
-    </UiThemeContext.Provider>
-  )
+  } catch {
+    // localStorage unavailable (private mode)
+  }
+  return fallback;
 }
 
+function readSystemTheme(): ResolvedUiTheme {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+export const UiThemeProvider = ({
+  children,
+  defaultTheme = "system",
+  storageKey = "theme",
+  enableSystem = true,
+  disableTransitionOnChange = false,
+}: {
+  readonly children: ReactNode;
+  readonly defaultTheme?: UiTheme;
+  readonly storageKey?: string;
+  readonly enableSystem?: boolean;
+  readonly disableTransitionOnChange?: boolean;
+}) => {
+  const [theme, setTheme] = useState<UiTheme>(() =>
+    readStoredTheme(storageKey, defaultTheme)
+  );
+  const [systemTheme, setSystemTheme] =
+    useState<ResolvedUiTheme>(readSystemTheme);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (event: MediaQueryListEvent) => {
+      setSystemTheme(event.matches ? "dark" : "light");
+    };
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
+  const resolvedTheme: ResolvedUiTheme =
+    theme === "system" ? systemTheme : theme;
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+
+    if (disableTransitionOnChange) {
+      const style = document.createElement("style");
+      style.appendChild(
+        document.createTextNode(
+          "*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}"
+        )
+      );
+      document.head.appendChild(style);
+      const cleanup = () => {
+        window.getComputedStyle(document.body);
+        setTimeout(() => {
+          document.head.removeChild(style);
+        }, 1);
+      };
+      return cleanup;
+    }
+
+    try {
+      window.localStorage.setItem(storageKey, theme);
+    } catch {
+      // localStorage unavailable (private mode)
+    }
+
+    return undefined;
+  }, [resolvedTheme, theme, storageKey, disableTransitionOnChange]);
+
+  const value = useMemo(
+    () => ({
+      theme,
+      resolvedTheme,
+      setTheme,
+      themes: enableSystem ? ["light", "dark", "system"] : ["light", "dark"],
+      systemTheme: enableSystem ? systemTheme : undefined,
+    }),
+    [theme, resolvedTheme, setTheme, enableSystem, systemTheme]
+  );
+
+  return (
+    <UiThemeContext.Provider value={value}>{children}</UiThemeContext.Provider>
+  );
+};
+
 export function useUiTheme() {
-  return useContext(UiThemeContext)
+  return useContext(UiThemeContext);
 }

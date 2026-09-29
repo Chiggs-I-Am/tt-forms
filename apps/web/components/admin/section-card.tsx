@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import { useState } from "react";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/select"
-import { Textarea } from "@workspace/ui/components/textarea"
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import {
   blankField,
   earlierChoices,
-  FIELD_KINDS,
+  fieldKinds,
   type FieldDef,
   type FieldKind,
   type SectionDef,
-} from "./builder-types"
-import { ConditionBuilder } from "./condition-builder"
-import { FieldRow } from "./field-row"
-import { RepeatEditor } from "./repeat-editor"
+} from "./builder-types";
+import { ConditionBuilder } from "./condition-builder";
+import { FieldRow } from "./field-row";
+import { RepeatEditor } from "./repeat-editor";
 
 // One ordered section: title, help text, an optional one-level repeat with
 // min/max plus repeating-field picks, a condition on earlier answers, and
 // its questions. Row-local conditions stay impossible by construction.
-export function SectionCard({
+export const SectionCard = ({
   section,
   sections,
   index,
@@ -37,37 +37,37 @@ export function SectionCard({
   onRemove,
   onMove,
 }: {
-  section: SectionDef
-  sections: SectionDef[]
-  index: number
-  canUp: boolean
-  canDown: boolean
-  onChange: (section: SectionDef) => void
-  onRemove: () => void
-  onMove: (dir: -1 | 1) => void
-}) {
-  const [kind, setKind] = useState<FieldKind>("short_text")
-  const sectionChoices = earlierChoices(sections, index)
+  readonly section: SectionDef;
+  readonly sections: SectionDef[];
+  readonly index: number;
+  readonly canUp: boolean;
+  readonly canDown: boolean;
+  readonly onChange: (section: SectionDef) => void;
+  readonly onRemove: () => void;
+  readonly onMove: (dir: -1 | 1) => void;
+}) => {
+  const [kind, setKind] = useState<FieldKind>("short_text");
+  const sectionChoices = earlierChoices(sections, index);
 
   function set(patch: Partial<SectionDef>) {
-    onChange({ ...section, ...patch })
+    onChange({ ...section, ...patch });
   }
 
   function setField(i: number, field: FieldDef) {
-    set({ fields: section.fields.map((f, j) => (j === i ? field : f)) })
+    set({ fields: section.fields.map((f, j) => (j === i ? field : f)) });
   }
 
   function moveField(i: number, dir: -1 | 1) {
-    const j = i + dir
-    const fields = [...section.fields]
-    const current = fields[i]
-    const other = fields[j]
+    const j = i + dir;
+    const fields = [...section.fields];
+    const current = fields[i];
+    const other = fields[j];
     if (current === undefined || other === undefined) {
-      return
+      return;
     }
-    fields[i] = other
-    fields[j] = current
-    set({ fields })
+    fields[i] = other;
+    fields[j] = current;
+    set({ fields });
   }
 
   return (
@@ -116,7 +116,7 @@ export function SectionCard({
         )}
         {section.fields.map((field, i) => (
           <FieldRow
-            key={field.id || i}
+            key={field.id}
             field={field}
             choices={earlierChoices(sections, index, i)}
             canUp={i > 0}
@@ -137,7 +137,7 @@ export function SectionCard({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {FIELD_KINDS.map((k) => (
+              {fieldKinds.map((k) => (
                 <SelectItem key={k.kind} value={k.kind}>
                   {k.label}
                 </SelectItem>
@@ -177,5 +177,5 @@ export function SectionCard({
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

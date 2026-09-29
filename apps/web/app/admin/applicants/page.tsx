@@ -1,15 +1,15 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server"
-import { api } from "@workspace/database/api"
-import { fetchQuery } from "convex/nextjs"
-import { ConvexError } from "convex/values"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
+import { api } from "@workspace/database/api";
+import { fetchQuery } from "convex/nextjs";
+import { ConvexError } from "convex/values";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card"
+} from "@workspace/ui/components/card";
 import {
   Table,
   TableBody,
@@ -18,13 +18,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@workspace/ui/components/table"
+} from "@workspace/ui/components/table";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Applicants · TT Forms Demo",
-}
+};
 
 // View-only applicant list (developer-admin only). The server denial is the
 // enforcement; this page renders it as an honest notice instead of crashing.
@@ -35,19 +35,19 @@ async function loadApplicants() {
       api.admin.listApplicants,
       {},
       { token: await convexAuthNextjsToken() }
-    )
-    return { applicants }
+    );
+    return { applicants };
   } catch (error) {
     const text =
       error instanceof ConvexError
         ? String(error.data ?? error.message)
-        : "The applicant list could not be loaded."
-    return { denied: text }
+        : "The applicant list could not be loaded.";
+    return { denied: text };
   }
 }
 
-export default async function ApplicantsPage() {
-  const result = await loadApplicants()
+const ApplicantsPage = async () => {
+  const result = await loadApplicants();
 
   if ("denied" in result) {
     return (
@@ -68,10 +68,10 @@ export default async function ApplicantsPage() {
           with a developer-admin account to continue.
         </p>
       </div>
-    )
+    );
   }
 
-  const { applicants } = result
+  const { applicants } = result;
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 p-6">
@@ -122,5 +122,7 @@ export default async function ApplicantsPage() {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default ApplicantsPage;

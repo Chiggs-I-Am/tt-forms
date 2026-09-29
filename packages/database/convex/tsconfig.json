@@ -1,11 +1,12 @@
 {
-  "extends": "@workspace/typescript-config/base.json",
   "compilerOptions": {
     "allowJs": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true
   },
-  "include": ["./**/*"],
-  "exclude": ["./_generated"]
+  "exclude": ["./_generated"],
+  "extends": "@workspace/typescript-config/base.json",
+  "include": ["./**/*"]
 }

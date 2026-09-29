@@ -1,12 +1,12 @@
-import js from "@eslint/js"
-import pluginNext from "@next/eslint-plugin-next"
-import eslintConfigPrettier from "eslint-config-prettier"
-import pluginReact from "eslint-plugin-react"
-import pluginReactHooks from "eslint-plugin-react-hooks"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import pluginNext from "@next/eslint-plugin-next";
+import eslintConfigPrettier from "eslint-config-prettier";
+import pluginReact from "eslint-plugin-react";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import globals from "globals";
 
-import { config as baseConfig } from "./base.js"
+import { config as baseConfig } from "./base.js";
+import nextPreset from "./ultracite-next.js";
+import reactPreset from "./ultracite-react.js";
 
 /**
  * A custom ESLint configuration for libraries that use Next.js.
@@ -15,9 +15,7 @@ import { config as baseConfig } from "./base.js"
  * */
 export const nextJsConfig = [
   ...baseConfig,
-  js.configs.recommended,
   eslintConfigPrettier,
-  ...tseslint.configs.recommended,
   {
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
@@ -40,7 +38,7 @@ export const nextJsConfig = [
     plugins: {
       "react-hooks": pluginReactHooks,
     },
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: "19.0.0" } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
@@ -48,4 +46,6 @@ export const nextJsConfig = [
       "react/prop-types": "off",
     },
   },
-]
+  ...reactPreset,
+  ...nextPreset,
+];

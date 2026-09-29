@@ -1,9 +1,7 @@
-import { Infer, v } from "convex/values"
+import { v } from "convex/values";
+import type { Infer } from "convex/values";
 
-// Structured form model for #35. Predefined field types with built-in rules
-// only: required answers, length and range limits, date bounds, repeat
-// counts. No custom scripts, no arbitrary layouts, no regex editor. The
-// server decides applicability and validity; browser checks are cosmetic.
+// Structured form model for #35. Predefined field types with built-in rules only: required answers, length and range limits, date bounds, repeat counts. No custom scripts, no arbitrary layouts, no regex editor. The server decides applicability and validity; browser checks are cosmetic.
 
 // A condition reads an earlier choice answer. `values` holds the answers
 // that satisfy one rule; `mode` combines rules ("any" matches when one rule
@@ -13,22 +11,22 @@ export const conditionValidator = v.object({
   rules: v.array(
     v.object({ fieldId: v.string(), values: v.array(v.string()) })
   ),
-})
+});
 
 const baseField = {
+  condition: v.optional(conditionValidator),
+  hint: v.optional(v.string()),
   id: v.string(),
   label: v.string(),
-  hint: v.optional(v.string()),
   // Guided-fake-input placeholder for #40: an invented example shown inside
   // the input (e.g. "e.g. FAKE-482913"). Optional and cosmetic; the server
   // never validates answer shape against it, and real-looking numbers are
   // never blocked or masked.
   placeholder: v.optional(v.string()),
   required: v.optional(v.boolean()),
-  condition: v.optional(conditionValidator),
-}
+};
 
-export const fieldDefValidator = v.union(
+export const fieldDefinitionValidator = v.union(
   v.object({
     ...baseField,
     kind: v.literal("short_text"),
@@ -42,14 +40,14 @@ export const fieldDefValidator = v.union(
   v.object({
     ...baseField,
     kind: v.literal("number"),
-    min: v.optional(v.number()),
     max: v.optional(v.number()),
+    min: v.optional(v.number()),
   }),
   v.object({
     ...baseField,
     kind: v.literal("date"),
-    min: v.optional(v.string()),
     max: v.optional(v.string()),
+    min: v.optional(v.string()),
   }),
   v.object({ ...baseField, kind: v.literal("email") }),
   v.object({ ...baseField, kind: v.literal("phone") }),
@@ -70,29 +68,32 @@ export const fieldDefValidator = v.union(
     maxSizeBytes: v.optional(v.number()),
   }),
   v.object({ ...baseField, kind: v.literal("declaration") })
-)
+);
+export { fieldDefinitionValidator as fieldDefValidator };
 
-export const sectionDefValidator = v.object({
-  id: v.string(),
-  title: v.string(),
-  helpText: v.optional(v.string()),
+export const sectionDefinitionValidator = v.object({
   condition: v.optional(conditionValidator),
-  repeat: v.optional(v.object({ min: v.number(), max: v.number() })),
+  fields: v.array(fieldDefinitionValidator),
+  helpText: v.optional(v.string()),
+  id: v.string(),
+  repeat: v.optional(v.object({ max: v.number(), min: v.number() })),
   // Subset of field ids that repeat per row. Absent with repeat means every
   // field repeats; the rest are asked once above the rows (e.g. present
   // marriage details with a previous-marriages table below).
   repeatFields: v.optional(v.array(v.string())),
-  fields: v.array(fieldDefValidator),
-})
+  title: v.string(),
+});
+export { sectionDefinitionValidator as sectionDefValidator };
 
 export const formDefinitionValidator = v.object({
-  sections: v.array(sectionDefValidator),
-})
+  sections: v.array(sectionDefinitionValidator),
+});
 
-export type Condition = Infer<typeof conditionValidator>
-export type FieldDef = Infer<typeof fieldDefValidator>
-export type SectionDef = Infer<typeof sectionDefValidator>
-export type FormDefinition = Infer<typeof formDefinitionValidator>
+export type Condition = Infer<typeof conditionValidator>;
+type FieldDefinition = Infer<typeof fieldDefinitionValidator>;
+type SectionDefinition = Infer<typeof sectionDefinitionValidator>;
+export type FormDefinition = Infer<typeof formDefinitionValidator>;
+export type { FieldDefinition as FieldDef, SectionDefinition as SectionDef };
 
 // Answers key field ids to values. Fields inside a repeated section live
 // under the section id as an array of per-row objects. Upload answers hold
@@ -103,517 +104,658 @@ export const answerScalarValidator = v.union(
   v.number(),
   v.boolean(),
   v.array(v.string())
-)
+);
 export const answersValidator = v.record(
   v.string(),
   v.union(
     answerScalarValidator,
     v.array(v.record(v.string(), answerScalarValidator))
   )
-)
-export type Answers = Infer<typeof answersValidator>
-type Scalar = string | number | boolean | string[]
+);
+export type Answers = Infer<typeof answersValidator>;
+type Scalar = string | number | boolean | string[];
 
-const CHOICE_KINDS = new Set(["single_choice", "multiple_choice", "yes_no"])
+const isScalar = (value: unknown): value is Scalar => {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
+};
 
-function ruleMatches(
+const isAnswerRow = (value: unknown): value is Record<string, Scalar> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+const choiceKinds = new Set(["single_choice", "multiple_choice", "yes_no"]);
+
+const isRuleMatch = (
   rule: { fieldId: string; values: string[] },
   getAnswer: (fieldId: string) => Scalar | undefined
-): boolean {
-  const answer = getAnswer(rule.fieldId)
+): boolean => {
+  const answer = getAnswer(rule.fieldId);
   if (answer === undefined) {
-    return false
+    return false;
   }
+  const values = new Set(rule.values);
   if (Array.isArray(answer)) {
-    return answer.some((item) => rule.values.includes(item))
+    return answer.some((item) => values.has(item));
   }
-  return rule.values.includes(String(answer))
-}
+  return values.has(String(answer));
+};
 
 // Visibility of one field or section against top-level answers. Conditions
 // may only reference top-level (non-repeated) choice fields; row-local
 // conditions are not supported (one repeat level only). This is the canonical
 // copy: apps/web/lib/form-answers.ts mirrors it for cosmetic client checks,
 // and the server re-decides at submit time.
-export function isVisible(
+export const isVisible = (
   condition: Condition | undefined,
   getAnswer: (fieldId: string) => Scalar | undefined
-): boolean {
+): boolean => {
   if (!condition) {
-    return true
+    return true;
   }
-  const results = condition.rules.map((rule) => ruleMatches(rule, getAnswer))
+  const results = condition.rules.map((rule) => isRuleMatch(rule, getAnswer));
   return condition.mode === "all"
     ? results.every(Boolean)
-    : results.some(Boolean)
-}
+    : results.some(Boolean);
+};
 
-export function topLevelAnswer(
+export const topLevelAnswer = (
   answers: Answers,
   fieldId: string
-): Scalar | undefined {
-  const value = answers[fieldId]
-  return Array.isArray(value) &&
-    value.length > 0 &&
-    typeof value[0] === "object"
-    ? undefined
-    : (value as Scalar | undefined)
-}
+): Scalar | undefined => {
+  const value = answers[fieldId];
+  return isScalar(value) ? value : undefined;
+};
 
-function isEmpty(value: Scalar | undefined): boolean {
-  return (
-    value === undefined ||
-    value === "" ||
-    (Array.isArray(value) && value.length === 0)
-  )
-}
+const isEmpty = (value: Scalar | undefined): boolean => {
+  if (value === undefined || value === "") {
+    return true;
+  }
+  return Array.isArray(value) && value.length === 0;
+};
 
 export interface AnswerError {
-  path: string
-  message: string
+  path: string;
+  message: string;
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailPattern = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/u;
 
-function checkText(
-  field: Extract<FieldDef, { kind: "short_text" } | { kind: "long_text" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
+const isEmail = (value: string): boolean => emailPattern.test(value);
+const shortPhoneDigitCounts = new Set([0, 1, 2, 3, 4, 5, 6]);
+
+const isLongerThan = (text: string | undefined, maximum: number): boolean =>
+  Boolean(text?.slice(maximum));
+
+const digitCount = (phone: string | undefined): number =>
+  (phone?.replaceAll(/\D/gu, "") ?? "").length;
+
+interface CheckContext {
+  errors: AnswerError[];
+  path: string;
+  value: Scalar | undefined;
+}
+
+const checkText = (
+  field: Extract<
+    FieldDefinition,
+    { kind: "short_text" } | { kind: "long_text" }
+  >,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
   if (typeof value !== "string") {
-    errors.push({ path, message: `${field.label} must be text.` })
-  } else if (field.maxLength !== undefined && value.length > field.maxLength) {
+    errors.push({ message: `${field.label} must be text.`, path });
+    return;
+  }
+  const text = value;
+  if (field.maxLength !== undefined && isLongerThan(text, field.maxLength)) {
     errors.push({
-      path,
       message: `${field.label} must be at most ${field.maxLength} characters.`,
-    })
+      path,
+    });
   }
-}
+};
 
-function checkNumber(
-  field: Extract<FieldDef, { kind: "number" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
+const checkNumber = (
+  field: Extract<FieldDefinition, { kind: "number" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
   if (typeof value !== "number" || Number.isNaN(value)) {
-    errors.push({ path, message: `${field.label} must be a number.` })
+    errors.push({ message: `${field.label} must be a number.`, path });
   } else {
     if (field.min !== undefined && value < field.min) {
       errors.push({
-        path,
         message: `${field.label} must be at least ${field.min}.`,
-      })
+        path,
+      });
     }
     if (field.max !== undefined && value > field.max) {
       errors.push({
-        path,
         message: `${field.label} must be at most ${field.max}.`,
-      })
+        path,
+      });
     }
   }
-}
+};
 
-function checkDate(
-  field: Extract<FieldDef, { kind: "date" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
+const checkDate = (
+  field: Extract<FieldDefinition, { kind: "date" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
   if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
-    errors.push({ path, message: `${field.label} must be a valid date.` })
+    errors.push({ message: `${field.label} must be a valid date.`, path });
   } else {
     if (field.min !== undefined && value < field.min) {
       errors.push({
-        path,
         message: `${field.label} must be on or after ${field.min}.`,
-      })
+        path,
+      });
     }
     if (field.max !== undefined && value > field.max) {
       errors.push({
-        path,
         message: `${field.label} must be on or before ${field.max}.`,
-      })
+        path,
+      });
     }
   }
-}
+};
 
-function checkEmail(
-  field: Extract<FieldDef, { kind: "email" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
-  if (typeof value !== "string" || !EMAIL_RE.test(value)) {
+const checkEmail = (
+  field: Extract<FieldDefinition, { kind: "email" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
+  if (typeof value !== "string" || !isEmail(value)) {
     errors.push({
-      path,
       message: `${field.label} must be a valid email address.`,
-    })
-  }
-}
-
-function checkPhone(
-  field: Extract<FieldDef, { kind: "phone" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
-  if (typeof value !== "string" || value.replace(/\D/g, "").length < 7) {
-    errors.push({
       path,
+    });
+  }
+};
+
+const checkPhone = (
+  field: Extract<FieldDefinition, { kind: "phone" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
+  if (typeof value !== "string") {
+    errors.push({
       message: `${field.label} must be a valid phone number.`,
-    })
-  }
-}
-
-function checkSingleChoice(
-  field: Extract<FieldDef, { kind: "single_choice" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
-  if (typeof value !== "string" || !field.options.includes(value)) {
-    errors.push({
       path,
+    });
+    return;
+  }
+  const digits = Number(digitCount(value).toString());
+  if (shortPhoneDigitCounts.has(digits)) {
+    errors.push({
+      message: `${field.label} must be a valid phone number.`,
+      path,
+    });
+  }
+};
+
+const checkSingleChoice = (
+  field: Extract<FieldDefinition, { kind: "single_choice" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
+  const options = new Set(field.options);
+  if (typeof value !== "string" || !options.has(value)) {
+    errors.push({
       message: `${field.label} must be one of the listed options.`,
-    })
+      path,
+    });
   }
-}
+};
 
-function checkMultipleChoice(
-  field: Extract<FieldDef, { kind: "multiple_choice" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
+const checkMultipleChoice = (
+  field: Extract<FieldDefinition, { kind: "multiple_choice" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
+  const options = new Set(field.options);
   if (
     !Array.isArray(value) ||
-    value.some((item) => !field.options.includes(item))
+    value.some((item) => typeof item !== "string" || !options.has(item))
   ) {
     errors.push({
-      path,
       message: `${field.label} must only use the listed options.`,
-    })
-  }
-}
-
-function checkYesNo(
-  field: Extract<FieldDef, { kind: "yes_no" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
-  if (typeof value !== "boolean") {
-    errors.push({ path, message: `${field.label} must be yes or no.` })
-  }
-}
-
-function checkUpload(
-  field: Extract<FieldDef, { kind: "upload" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
-  if (
-    !Array.isArray(value) ||
-    value.some((item) => typeof item !== "string")
-  ) {
-    errors.push({
       path,
+    });
+  }
+};
+
+const checkYesNo = (
+  field: Extract<FieldDefinition, { kind: "yes_no" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
+  if (typeof value !== "boolean") {
+    errors.push({ message: `${field.label} must be yes or no.`, path });
+  }
+};
+
+const checkUpload = (
+  field: Extract<FieldDefinition, { kind: "upload" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    errors.push({
       message: `${field.label} holds invalid file references.`,
-    })
+      path,
+    });
   }
-}
+};
 
-function checkDeclaration(
-  field: Extract<FieldDef, { kind: "declaration" }>,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
+const checkDeclaration = (
+  field: Extract<FieldDefinition, { kind: "declaration" }>,
+  context: CheckContext
+): void => {
+  const { errors, path, value } = context;
   if (value !== true) {
-    errors.push({ path, message: `${field.label} must be accepted.` })
+    errors.push({ message: `${field.label} must be accepted.`, path });
   }
-}
+};
 
-function checkScalar(
-  field: FieldDef,
-  value: Scalar | undefined,
-  path: string,
-  errors: AnswerError[]
-): void {
-  if (field.required && isEmpty(value)) {
-    errors.push({ path, message: `${field.label} is required.` })
-    return
+const checkScalar = (field: FieldDefinition, context: CheckContext): void => {
+  const { errors, path, value } = context;
+  if (field.required === true && isEmpty(value)) {
+    errors.push({ message: `${field.label} is required.`, path });
+    return;
   }
   if (isEmpty(value)) {
-    return
+    return;
   }
   switch (field.kind) {
     case "short_text":
-    case "long_text":
-      checkText(field, value, path, errors)
-      break
-    case "number":
-      checkNumber(field, value, path, errors)
-      break
-    case "date":
-      checkDate(field, value, path, errors)
-      break
-    case "email":
-      checkEmail(field, value, path, errors)
-      break
-    case "phone":
-      checkPhone(field, value, path, errors)
-      break
-    case "single_choice":
-      checkSingleChoice(field, value, path, errors)
-      break
-    case "multiple_choice":
-      checkMultipleChoice(field, value, path, errors)
-      break
-    case "yes_no":
-      checkYesNo(field, value, path, errors)
-      break
-    case "upload":
-      checkUpload(field, value, path, errors)
-      break
-    case "declaration":
-      checkDeclaration(field, value, path, errors)
-      break
-  }
-}
-
-// Server-side answer validation. The validator skips hidden answers
-// entirely: they stay in the saved draft but never block progress and never
-// reach the submission while hidden. Repeated sections validate their
-// once-asked fields from top-level answers and their row fields per entry.
-// Returns every error plus the visible field paths.
-export function validateAnswers(
-  definition: FormDefinition,
-  answers: Answers
-): { errors: AnswerError[]; visible: string[] } {
-  const errors: AnswerError[] = []
-  const visible: string[] = []
-  const getAnswer = (fieldId: string) => topLevelAnswer(answers, fieldId)
-
-  for (const section of definition.sections) {
-    if (!isVisible(section.condition, getAnswer)) {
-      continue
+    case "long_text": {
+      checkText(field, { errors, path, value });
+      break;
     }
-    if (section.repeat) {
-      const { once, rows: rowFields } = splitSection(section)
-      for (const field of once) {
-        if (!isVisible(field.condition, getAnswer)) {
-          continue
-        }
-        visible.push(field.id)
-        checkScalar(field, getAnswer(field.id), field.id, errors)
-      }
-      const rows = answers[section.id]
-      const list = Array.isArray(rows) ? rows : []
-      if (list.length < section.repeat.min) {
-        errors.push({
-          path: section.id,
-          message: `${section.title} needs at least ${section.repeat.min} ${section.repeat.min === 1 ? "entry" : "entries"}.`,
-        })
-      }
-      if (list.length > section.repeat.max) {
-        errors.push({
-          path: section.id,
-          message: `${section.title} allows at most ${section.repeat.max} ${section.repeat.max === 1 ? "entry" : "entries"}.`,
-        })
-      }
-      list.forEach((row, index) => {
-        if (row === null || typeof row !== "object" || Array.isArray(row)) {
-          errors.push({
-            path: `${section.id}[${index}]`,
-            message: `${section.title} entry ${index + 1} is invalid.`,
-          })
-          return
-        }
-        for (const field of rowFields) {
-          const path = `${section.id}[${index}].${field.id}`
-          visible.push(path)
-          checkScalar(
-            field,
-            (row as Record<string, Scalar>)[field.id],
-            path,
-            errors
-          )
-        }
-      })
-      continue
+    case "number": {
+      checkNumber(field, { errors, path, value });
+      break;
     }
-    for (const field of section.fields) {
-      if (!isVisible(field.condition, getAnswer)) {
-        continue
-      }
-      visible.push(field.id)
-      checkScalar(field, getAnswer(field.id), field.id, errors)
+    case "date": {
+      checkDate(field, { errors, path, value });
+      break;
+    }
+    case "email": {
+      checkEmail(field, { errors, path, value });
+      break;
+    }
+    case "phone": {
+      checkPhone(field, { errors, path, value });
+      break;
+    }
+    case "single_choice": {
+      checkSingleChoice(field, { errors, path, value });
+      break;
+    }
+    case "multiple_choice": {
+      checkMultipleChoice(field, { errors, path, value });
+      break;
+    }
+    case "yes_no": {
+      checkYesNo(field, { errors, path, value });
+      break;
+    }
+    case "upload": {
+      checkUpload(field, { errors, path, value });
+      break;
+    }
+    case "declaration": {
+      checkDeclaration(field, { errors, path, value });
+      break;
+    }
+    default: {
+      break;
     }
   }
-  return { errors, visible }
-}
+};
 
 // Splits a repeated section into once-asked fields (top-level answers) and
 // per-row fields. Without repeatFields every field repeats.
-export function splitSection(section: SectionDef): {
-  once: FieldDef[]
-  rows: FieldDef[]
-} {
+export const splitSection = (
+  section: SectionDefinition
+): {
+  once: FieldDefinition[];
+  rows: FieldDefinition[];
+} => {
   if (!section.repeat) {
-    return { once: section.fields, rows: [] }
+    return { once: section.fields, rows: [] };
   }
   if (!section.repeatFields) {
-    return { once: [], rows: section.fields }
+    return { once: [], rows: section.fields };
   }
-  const repeating = new Set(section.repeatFields)
+  const repeating = new Set(section.repeatFields);
   return {
-    once: section.fields.filter((f) => !repeating.has(f.id)),
-    rows: section.fields.filter((f) => repeating.has(f.id)),
-  }
+    once: section.fields.filter((field) => !repeating.has(field.id)),
+    rows: section.fields.filter((field) => repeating.has(field.id)),
+  };
+};
+
+type GetAnswer = (fieldId: string) => Scalar | undefined;
+
+interface ValidationState {
+  errors: AnswerError[];
+  getAnswer: GetAnswer;
+  visible: string[];
 }
+
+interface RepeatedSectionData {
+  rowFields: FieldDefinition[];
+  rows: unknown[];
+  section: SectionDefinition;
+}
+
+const validateOnceFields = (
+  fields: FieldDefinition[],
+  state: ValidationState
+): void => {
+  for (const field of fields) {
+    if (!isVisible(field.condition, state.getAnswer)) {
+      continue;
+    }
+    state.visible.push(field.id);
+    checkScalar(field, {
+      errors: state.errors,
+      path: field.id,
+      value: state.getAnswer(field.id),
+    });
+  }
+};
+
+const validateAnswerRow = (
+  data: RepeatedSectionData,
+  entry: [number, unknown],
+  state: ValidationState
+): void => {
+  const [index, row] = entry;
+  if (isAnswerRow(row)) {
+    for (const field of data.rowFields) {
+      const path = `${data.section.id}[${index}].${field.id}`;
+      state.visible.push(path);
+      checkScalar(field, {
+        errors: state.errors,
+        path,
+        value: row[field.id],
+      });
+    }
+  } else {
+    state.errors.push({
+      message: `${data.section.title} entry ${index + 1} is invalid.`,
+      path: `${data.section.id}[${index}]`,
+    });
+  }
+};
+
+const validateRepeatedRows = (
+  data: RepeatedSectionData,
+  state: ValidationState
+): void => {
+  for (const entry of data.rows.entries()) {
+    validateAnswerRow(data, entry, state);
+  }
+};
+
+const validateSection = (
+  section: SectionDefinition,
+  answers: Answers,
+  state: ValidationState
+): void => {
+  if (!isVisible(section.condition, state.getAnswer)) {
+    return;
+  }
+  if (section.repeat) {
+    const { once, rows: rowFields } = splitSection(section);
+    validateOnceFields(once, state);
+    const rows = answers[section.id];
+    const list: unknown[] = Array.isArray(rows) ? rows : [];
+    if (list.length < section.repeat.min) {
+      state.errors.push({
+        message: `${section.title} needs at least ${section.repeat.min} ${section.repeat.min === 1 ? "entry" : "entries"}.`,
+        path: section.id,
+      });
+    }
+    if (list.length > section.repeat.max) {
+      state.errors.push({
+        message: `${section.title} allows at most ${section.repeat.max} ${section.repeat.max === 1 ? "entry" : "entries"}.`,
+        path: section.id,
+      });
+    }
+    validateRepeatedRows({ rowFields, rows: list, section }, state);
+    return;
+  }
+  validateOnceFields(section.fields, state);
+};
+
+// Server-side answer validation. The validator skips hidden answers entirely: they stay in the saved draft but never block progress and never reach the submission while hidden. Repeated sections validate their once-asked fields from top-level answers and their row fields per entry.
+// Returns every error plus the visible field paths.
+export const validateAnswers = (
+  definition: FormDefinition,
+  answers: Answers
+): { errors: AnswerError[]; visible: string[] } => {
+  const state: ValidationState = {
+    errors: [],
+    getAnswer: (fieldId) => topLevelAnswer(answers, fieldId),
+    visible: [],
+  };
+  for (const section of definition.sections) {
+    validateSection(section, answers, state);
+  }
+  return { errors: state.errors, visible: state.visible };
+};
 
 // Publish checks for #35: invalid rules, missing labels or options, broken
 // conditions, and duplicate ids. Source completeness is checked from the form
 // doc at publish time, not here.
-export function validateDefinition(definition: FormDefinition): string[] {
-  const problems: string[] = []
-  const seenIds = new Set<string>()
-
-  for (const section of definition.sections) {
-    if (!section.id) {
-      problems.push("Every section needs an id.")
-    } else if (seenIds.has(`section:${section.id}`)) {
-      problems.push(`Duplicate section id "${section.id}".`)
-    } else {
-      seenIds.add(`section:${section.id}`)
-    }
-    if (!section.title) {
-      problems.push(`Section "${section.id || "?"}" needs a title.`)
-    }
-    if (section.repeat) {
-      if (section.repeat.min < 0 || section.repeat.max < 1) {
-        problems.push(
-          `Section "${section.title}" has an impossible repeat count.`
-        )
-      }
-      if (section.repeat.min > section.repeat.max) {
-        problems.push(
-          `Section "${section.title}" repeats a minimum more times than its maximum.`
-        )
-      }
-      if (section.repeatFields) {
-        if (section.repeatFields.length === 0) {
-          problems.push(`Section "${section.title}" names no repeating fields.`)
-        }
-        const fieldIds = new Set(section.fields.map((f) => f.id))
-        for (const id of section.repeatFields) {
-          if (!fieldIds.has(id)) {
-            problems.push(
-              `Section "${section.title}" repeats unknown field "${id}".`
-            )
-          }
-        }
-      }
-    } else if (section.repeatFields) {
-      problems.push(
-        `Section "${section.title}" names repeating fields without a repeat count.`
-      )
-    }
-    if (section.fields.length === 0) {
-      problems.push(`Section "${section.title}" has no fields.`)
-    }
-    for (const field of section.fields) {
-      if (!field.id) {
-        problems.push(`A field in "${section.title}" needs an id.`)
-        continue
-      }
-      if (seenIds.has(`field:${field.id}`)) {
-        problems.push(`Duplicate field id "${field.id}".`)
-      } else {
-        seenIds.add(`field:${field.id}`)
-      }
-      if (!field.label) {
-        problems.push(`Field "${field.id}" needs a label.`)
-      }
-      if (
-        (field.kind === "single_choice" || field.kind === "multiple_choice") &&
-        (field.options.length < 2 || field.options.some((o) => !o))
-      ) {
-        problems.push(
-          `Choice field "${field.label || field.id}" needs at least two non-empty options.`
-        )
-      }
-      if (
-        (field.kind === "short_text" || field.kind === "long_text") &&
-        field.maxLength !== undefined &&
-        field.maxLength < 1
-      ) {
-        problems.push(
-          `Field "${field.label || field.id}" has an impossible length limit.`
-        )
-      }
-      if (
-        field.kind === "number" &&
-        field.min !== undefined &&
-        field.max !== undefined &&
-        field.min > field.max
-      ) {
-        problems.push(
-          `Field "${field.label || field.id}" has a minimum above its maximum.`
-        )
-      }
-      if (field.kind === "upload") {
-        if (field.maxSizeBytes !== undefined && field.maxSizeBytes < 1) {
-          problems.push(
-            `Upload field "${field.label || field.id}" has an impossible size limit.`
-          )
-        }
-      }
-    }
-    const { rows: rowFields } = splitSection(section)
-    for (const field of rowFields) {
-      if (field.condition) {
-        problems.push(
-          `Row field "${field.label || field.id}" cannot carry its own condition; gate the section instead.`
-        )
-      }
-    }
-  }
-
-  // Conditions resolve against earlier top-level choice fields only.
-  // Sections walk in document order so a condition can never read a later
-  // field. Row-local conditions are rejected: repeated-section fields never
-  // enter the available set.
-  const available = new Map<string, FieldDef>()
-  const checkCondition = (target: Condition | undefined, owner: string) => {
-    if (!target) {
-      return
-    }
-    if (target.rules.length === 0) {
-      problems.push(`A condition on "${owner}" has no rules.`)
-    }
-    for (const rule of target.rules) {
-      if (!available.get(rule.fieldId)) {
-        problems.push(
-          `Condition on "${owner}" reads "${rule.fieldId}", which is not an earlier choice field.`
-        )
-      } else if (rule.values.length === 0) {
-        problems.push(`Condition on "${owner}" matches no answers.`)
-      }
-    }
-  }
-  for (const section of definition.sections) {
-    checkCondition(section.condition, section.title)
-    for (const field of section.fields) {
-      checkCondition(field.condition, field.label || section.title)
-      if (CHOICE_KINDS.has(field.kind) && !section.repeat) {
-        available.set(field.id, field)
-      }
-    }
-  }
-  return problems
+interface DefinitionState {
+  problems: string[];
+  seenIds: Set<string>;
 }
+
+const validateFieldDefinition = (
+  field: FieldDefinition,
+  sectionTitle: string,
+  state: DefinitionState
+): void => {
+  if (!field.id) {
+    state.problems.push(`A field in "${sectionTitle}" needs an id.`);
+    return;
+  }
+  if (state.seenIds.has(`field:${field.id}`)) {
+    state.problems.push(`Duplicate field id "${field.id}".`);
+  } else {
+    state.seenIds.add(`field:${field.id}`);
+  }
+  if (!field.label) {
+    state.problems.push(`Field "${field.id}" needs a label.`);
+  }
+  const fieldName = field.label || field.id;
+  if (
+    (field.kind === "single_choice" || field.kind === "multiple_choice") &&
+    (field.options.length < 2 || field.options.some((option) => !option))
+  ) {
+    state.problems.push(
+      `Choice field "${fieldName}" needs at least two non-empty options.`
+    );
+  }
+  if (
+    (field.kind === "short_text" || field.kind === "long_text") &&
+    field.maxLength !== undefined &&
+    field.maxLength < 1
+  ) {
+    state.problems.push(`Field "${fieldName}" has an impossible length limit.`);
+  }
+  if (
+    field.kind === "number" &&
+    field.min !== undefined &&
+    field.max !== undefined &&
+    field.min > field.max
+  ) {
+    state.problems.push(
+      `Field "${fieldName}" has a minimum above its maximum.`
+    );
+  }
+  if (
+    field.kind === "upload" &&
+    field.maxSizeBytes !== undefined &&
+    field.maxSizeBytes < 1
+  ) {
+    state.problems.push(
+      `Upload field "${fieldName}" has an impossible size limit.`
+    );
+  }
+};
+
+const validateSectionIdentity = (
+  section: SectionDefinition,
+  state: DefinitionState
+): void => {
+  if (!section.id) {
+    state.problems.push("Every section needs an id.");
+  } else if (state.seenIds.has(`section:${section.id}`)) {
+    state.problems.push(`Duplicate section id "${section.id}".`);
+  } else {
+    state.seenIds.add(`section:${section.id}`);
+  }
+  if (!section.title) {
+    state.problems.push(`Section "${section.id || "?"}" needs a title.`);
+  }
+};
+
+const validateSectionRepeat = (
+  section: SectionDefinition,
+  state: DefinitionState
+): void => {
+  if (section.repeat) {
+    if (section.repeat.min < 0 || section.repeat.max < 1) {
+      state.problems.push(
+        `Section "${section.title}" has an impossible repeat count.`
+      );
+    }
+    if (section.repeat.min > section.repeat.max) {
+      state.problems.push(
+        `Section "${section.title}" repeats a minimum more times than its maximum.`
+      );
+    }
+    if (section.repeatFields) {
+      if (section.repeatFields.length === 0) {
+        state.problems.push(
+          `Section "${section.title}" names no repeating fields.`
+        );
+      }
+      const fieldIds = new Set(section.fields.map((field) => field.id));
+      for (const id of section.repeatFields) {
+        if (!fieldIds.has(id)) {
+          state.problems.push(
+            `Section "${section.title}" repeats unknown field "${id}".`
+          );
+        }
+      }
+    }
+  } else if (section.repeatFields) {
+    state.problems.push(
+      `Section "${section.title}" names repeating fields without a repeat count.`
+    );
+  }
+};
+
+const validateSectionFields = (
+  section: SectionDefinition,
+  state: DefinitionState
+): void => {
+  if (section.fields.length === 0) {
+    state.problems.push(`Section "${section.title}" has no fields.`);
+  }
+  for (const field of section.fields) {
+    validateFieldDefinition(field, section.title, state);
+  }
+  const { rows: rowFields } = splitSection(section);
+  for (const field of rowFields) {
+    if (field.condition) {
+      state.problems.push(
+        `Row field "${field.label || field.id}" cannot carry its own condition; gate the section instead.`
+      );
+    }
+  }
+};
+
+const validateDefinitionSection = (
+  section: SectionDefinition,
+  state: DefinitionState
+): void => {
+  validateSectionIdentity(section, state);
+  validateSectionRepeat(section, state);
+  validateSectionFields(section, state);
+};
+
+interface ConditionState {
+  available: Map<string, FieldDefinition>;
+  problems: string[];
+}
+
+const validateCondition = (
+  target: Condition | undefined,
+  owner: string,
+  state: ConditionState
+): void => {
+  if (!target) {
+    return;
+  }
+  if (target.rules.length === 0) {
+    state.problems.push(`A condition on "${owner}" has no rules.`);
+  }
+  for (const rule of target.rules) {
+    if (!state.available.has(rule.fieldId)) {
+      state.problems.push(
+        `Condition on "${owner}" reads "${rule.fieldId}", which is not an earlier choice field.`
+      );
+    } else if (rule.values.length === 0) {
+      state.problems.push(`Condition on "${owner}" matches no answers.`);
+    }
+  }
+};
+
+const validateDefinitionConditions = (
+  definition: FormDefinition,
+  problems: string[]
+): void => {
+  const state: ConditionState = {
+    available: new Map<string, FieldDefinition>(),
+    problems,
+  };
+  for (const section of definition.sections) {
+    validateCondition(section.condition, section.title, state);
+    for (const field of section.fields) {
+      validateCondition(field.condition, field.label || section.title, state);
+      if (choiceKinds.has(field.kind) && !section.repeat) {
+        state.available.set(field.id, field);
+      }
+    }
+  }
+};
+
+export const validateDefinition = (definition: FormDefinition): string[] => {
+  const state: DefinitionState = {
+    problems: [],
+    seenIds: new Set<string>(),
+  };
+  for (const section of definition.sections) {
+    validateDefinitionSection(section, state);
+  }
+  validateDefinitionConditions(definition, state.problems);
+  return state.problems;
+};
